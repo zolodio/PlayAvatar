@@ -543,7 +543,7 @@ function checkWin(){
 // SCREENS
 // ================================================================
 let selChar=null;
-function toCharSelect(){G.selecting=0;selChar=null;showCharSelect();}
+function toCharSelect(){G.screen = 'char';G.selecting=0;selChar=null;showCharSelect();}
 function showCharSelect(){
   showOnly('char-screen');
   document.getElementById('char-title').textContent=`Player ${G.selecting+1} — Choose Your Character`;
@@ -595,6 +595,10 @@ function showOnly(id){
 function render(){
   const s=G.screen;
   if(s==='title'){showOnly('title-screen');return;}
+  if(s==='char'){
+  showCharSelect();
+  return;
+}
   if(s==='handoff'){
     showOnly('handoff-screen');
     const p=G.players[G.turn];
