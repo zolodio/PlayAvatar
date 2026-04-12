@@ -3,823 +3,2325 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Avatar TCG: Master of Elements — Playmat Edition</title>
+<title>Avatar TCG — Master of Elements</title>
+<link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <style>
-*{box-sizing:border-box;margin:0;padding:0}
-html,body{width:100%;height:100%;background:#0a0a0a;overflow:hidden;font-family:Georgia,serif}
-#root{width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-#mat-wrap{position:relative;width:100vw;height:calc(100vw * 1272 / 1600);max-height:100vh;max-width:calc(100vh * 1600 / 1272)}
-#mat-bg{position:absolute;inset:0;width:100%;height:100%;display:block;user-select:none;pointer-events:none}
-.screen{position:absolute;inset:0;display:flex;align-items:center;justify-content:center}
-.hidden{display:none!important}
-
-/* TITLE */
-#title-screen{background:rgba(0,0,0,0.8);flex-direction:column;gap:16px;text-align:center}
-.logo-big{font-size:clamp(24px,5vw,60px);color:#c8a04a;text-shadow:0 0 40px rgba(200,160,74,0.6);letter-spacing:3px}
-.logo-med{font-size:clamp(12px,2vw,24px);color:#7a5a2a;letter-spacing:6px;margin-bottom:4px}
-.logo-sm{font-size:clamp(10px,1.5vw,18px);color:#c8a04a88;letter-spacing:4px}
-
-/* BUTTONS */
-.btn{cursor:pointer;border:2px solid #c8a04a;background:rgba(200,160,74,0.15);color:#e8d5a3;padding:9px 22px;border-radius:6px;font-family:Georgia,serif;font-size:clamp(11px,1.4vw,17px);transition:all .2s;letter-spacing:1px}
-.btn:hover{background:rgba(200,160,74,0.35);box-shadow:0 0 12px rgba(200,160,74,0.3)}
-.btn:disabled{opacity:0.35;cursor:not-allowed}
-.btn.red{border-color:#c84a4a;background:rgba(200,74,74,0.12)}.btn.red:hover{background:rgba(200,74,74,0.3)}
-.btn.blue{border-color:#4a8fc8;background:rgba(74,143,200,0.12)}.btn.blue:hover{background:rgba(74,143,200,0.3)}
-.btn.grn{border-color:#4ac86a;background:rgba(74,200,106,0.12)}.btn.grn:hover{background:rgba(74,200,106,0.3)}
-
-/* CHAR SELECT */
-#char-screen{background:rgba(0,0,0,0.86);flex-direction:column;gap:14px;padding:16px;overflow-y:auto}
-#char-screen h2{color:#c8a04a;font-size:clamp(15px,2.2vw,28px);text-align:center}
-.char-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:860px}
-.char-card{border:2px solid #c8a04a33;background:rgba(200,160,74,0.05);border-radius:10px;padding:12px 16px;cursor:pointer;text-align:center;transition:all .2s;min-width:120px}
-.char-card:hover,.char-card.sel{border-color:#c8a04a;background:rgba(200,160,74,0.15)}
-.char-card.disabled-card{opacity:0.35;cursor:not-allowed}
-.char-card h3{color:#c8a04a;font-size:clamp(11px,1.3vw,16px);margin:6px 0 3px}
-.char-emoji{font-size:clamp(26px,4vw,44px)}
-
-/* HANDOFF */
-#handoff-screen{background:rgba(0,0,0,0.92);flex-direction:column;gap:18px;text-align:center}
-#handoff-screen h2{font-size:clamp(18px,3vw,38px);color:#c8a04a}
-#handoff-screen p{color:#7a7a5a;font-size:clamp(11px,1.4vw,18px);max-width:500px}
-
-/* GAME LAYER */
-#game-layer{position:absolute;inset:0;pointer-events:none}
-
-/* ZONE SLOTS */
-.zslot{position:absolute;pointer-events:all;border-radius:6px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:box-shadow .25s,border-color .25s}
-.zslot.empty{border:1px dashed rgba(200,160,74,0.22);background:rgba(0,0,0,0.05)}
-.zslot.empty:hover{border-color:rgba(200,160,74,0.5);background:rgba(200,160,74,0.05);box-shadow:0 0 10px rgba(200,160,74,0.2)}
-.zslot.charged{box-shadow:0 0 18px rgba(255,220,50,0.55)!important}
-.zslot.active-def{border:1.5px solid #e74c4c!important;box-shadow:0 0 16px rgba(231,76,60,0.6)!important;animation:pulsered 1.1s infinite alternate}
-@keyframes pulsered{from{box-shadow:0 0 8px rgba(231,76,60,0.4)}to{box-shadow:0 0 22px rgba(231,76,60,0.85)}}
-.zslot.deck-glow{border:1.5px solid #c8a04a!important;animation:pulsegold 0.9s infinite alternate}
-@keyframes pulsegold{from{box-shadow:0 0 6px rgba(200,160,74,0.4)}to{box-shadow:0 0 18px rgba(200,160,74,0.75)}}
-
-/* CARD 3D FLIP */
-.card3d{position:relative;width:100%;height:100%;transform-style:preserve-3d;transition:transform 0.55s cubic-bezier(.4,0,.2,1);cursor:pointer}
-.card3d.flipped{transform:rotateY(180deg)}
-.cface,.cback{position:absolute;inset:0;backface-visibility:hidden;border-radius:5px;overflow:hidden}
-.cback{
-  background:linear-gradient(145deg,#0b1220 0%,#162040 45%,#0f1a30 100%);
-  border:2px solid #c8a04a;
-  display:flex;align-items:center;justify-content:center;
-  box-shadow:inset 0 0 20px rgba(200,160,74,0.12);
+:root {
+  --mat-parchment: #c9a96e;
+  --mat-parchment-dark: #a07840;
+  --green-zone: #1a3d1a;
+  --green-zone-mid: #2a5c2a;
+  --green-border: #3a7a2a;
+  --yellow-zone: #5c3d08;
+  --yellow-zone-mid: #7a5510;
+  --yellow-border: #b87a20;
+  --red-zone: #4a0f0f;
+  --red-zone-mid: #6b1515;
+  --red-border: #9a2020;
+  --card-slot-bg: rgba(0,0,0,0.4);
+  --card-slot-border: rgba(200,160,80,0.4);
+  --gold: #d4a843;
+  --gold-light: #f0d080;
+  --dark-wood: #2c1a0c;
+  --parchment-text: #f5e8c0;
+  --page-bg: #0a0704;
+  --charged-glow: #ffd700;
 }
-.cback-inner{width:82%;height:82%;border:1px solid rgba(200,160,74,0.35);border-radius:4px;display:flex;align-items:center;justify-content:center;position:relative;background:radial-gradient(ellipse at 50% 40%,rgba(200,160,74,0.07),transparent 70%)}
-.cback-inner svg{width:62%;height:auto;opacity:0.82}
-.cback-title{position:absolute;bottom:3px;font-size:clamp(3.5px,0.4vw,6px);color:#c8a04a66;letter-spacing:1px;text-align:center;white-space:nowrap}
-.cface{transform:rotateY(180deg);background:#0d1421;border:2px solid #c8a04a88;display:flex;flex-direction:column;padding:3px;gap:2px}
-.cface img{width:100%;flex:1;object-fit:cover;border-radius:2px;min-height:0}
-.cf-name{font-size:clamp(4.5px,0.55vw,8px);color:#e8d5a3;text-align:center;font-weight:bold;line-height:1.1}
-.cf-stats{display:flex;gap:2px;justify-content:center;flex-wrap:wrap}
-.cst{font-size:clamp(4px,0.45vw,6.5px);padding:1px 3px;border-radius:2px;font-weight:bold}
-.cst-int{background:#1a4a6a;color:#4ab4e8}.cst-frc{background:#4a1a1a;color:#e84a4a}.cst-type{background:#2a2a1a;color:#c8a04a}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body {
+  background: var(--page-bg);
+  font-family: 'Crimson Pro', Georgia, serif;
+  color: var(--parchment-text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
 
-/* DECK STACK */
-.deck-stack{position:relative;width:100%;height:100%;display:flex;align-items:center;justify-content:center}
-.deck-layer{position:absolute;width:88%;height:88%;border-radius:5px;border:2px solid #c8a04a88;background:linear-gradient(145deg,#0d1421,#1a2744)}
-.deck-badge{position:absolute;background:rgba(200,160,74,0.92);color:#0a0a0a;font-size:clamp(9px,1.1vw,15px);font-weight:bold;width:clamp(18px,1.8vw,28px);height:clamp(18px,1.8vw,28px);border-radius:50%;display:flex;align-items:center;justify-content:center;z-index:10;box-shadow:0 2px 8px rgba(0,0,0,0.6)}
+/* ===================== SETUP SCREEN ===================== */
+#setup-screen {
+  position: fixed; inset: 0; z-index: 1000;
+  background: radial-gradient(ellipse at center, #1a0e04 0%, #000 100%);
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 30px;
+}
+#setup-screen h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.4rem, 4vw, 2.8rem);
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(212,168,67,0.6);
+  text-align: center;
+  letter-spacing: 4px;
+}
+#setup-screen h2 { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--mat-parchment); letter-spacing: 2px; }
+.player-setup { display: flex; gap: 40px; align-items: flex-start; flex-wrap: wrap; justify-content: center; }
+.player-card-setup {
+  background: rgba(200,160,80,0.08);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 12px;
+  padding: 20px;
+  text-align: center;
+  min-width: 200px;
+}
+.player-card-setup h3 { font-family: 'Cinzel', serif; color: var(--gold); margin-bottom: 12px; font-size: 1rem; letter-spacing: 2px; }
+.char-options { display: flex; gap: 12px; justify-content: center; }
+.char-btn {
+  background: rgba(0,0,0,0.5);
+  border: 2px solid rgba(212,168,67,0.4);
+  border-radius: 8px;
+  padding: 10px 16px;
+  cursor: pointer;
+  color: var(--parchment-text);
+  font-family: 'Cinzel', serif;
+  font-size: 0.85rem;
+  transition: all 0.2s;
+  letter-spacing: 1px;
+}
+.char-btn:hover { border-color: var(--gold); background: rgba(212,168,67,0.15); }
+.char-btn.selected { border-color: var(--gold); background: rgba(212,168,67,0.25); color: var(--gold-light); }
+.char-btn.aang { border-color: rgba(100,180,255,0.6); }
+.char-btn.aang.selected { background: rgba(100,180,255,0.2); border-color: #64b4ff; color: #a0d4ff; }
+.char-btn.zuko { border-color: rgba(255,80,30,0.6); }
+.char-btn.zuko.selected { background: rgba(255,80,30,0.2); border-color: #ff501e; color: #ffb080; }
+.start-btn {
+  background: linear-gradient(135deg, #8b6914, #d4a843, #8b6914);
+  border: none; border-radius: 8px;
+  padding: 14px 40px;
+  font-family: 'Cinzel', serif; font-size: 1.1rem; letter-spacing: 3px;
+  color: #2c1a0c; cursor: pointer;
+  box-shadow: 0 4px 20px rgba(212,168,67,0.4);
+  transition: all 0.2s;
+}
+.start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(212,168,67,0.6); }
+.start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
-/* ALLY SLOT */
-.ally-box{position:absolute;inset:0;border:1.5px solid #6464c8;border-radius:5px;background:rgba(80,60,160,0.18);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px;gap:2px}
-.ally-box .ae{font-size:clamp(12px,1.8vw,26px)}
-.ally-box .an{font-size:clamp(4px,0.5vw,7.5px);color:#b4b4e8;text-align:center;line-height:1.15}
+/* ===================== PASS SCREEN ===================== */
+#pass-screen {
+  position: fixed; inset: 0; z-index: 900;
+  background: rgba(0,0,0,0.95);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 24px;
+}
+#pass-screen h2 { font-family: 'Cinzel', serif; font-size: 1.8rem; color: var(--gold); text-align: center; }
+#pass-screen p { color: var(--mat-parchment); font-size: 1.2rem; text-align: center; }
+.pass-btn {
+  background: linear-gradient(135deg, #8b6914, #d4a843);
+  border: none; border-radius: 8px; padding: 12px 36px;
+  font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 2px;
+  color: #2c1a0c; cursor: pointer;
+}
 
-/* ENERGY AREA */
-.energy-area{position:absolute;display:flex;flex-wrap:wrap;gap:2px;align-items:flex-start;align-content:flex-start;padding:4px;pointer-events:none}
-.epip{width:clamp(5px,0.75vw,11px);height:clamp(5px,0.75vw,11px);border-radius:50%;border:1px solid rgba(255,255,255,0.25);box-shadow:0 1px 3px rgba(0,0,0,0.5)}
-.epip.g{background:radial-gradient(circle at 35% 35%,#5ce05c,#1a5a1a)}
-.epip.y{background:radial-gradient(circle at 35% 35%,#f0d500,#7a6600)}
-.epip.r{background:radial-gradient(circle at 35% 35%,#e85050,#6a1a1a)}
+/* ===================== GAME OVER ===================== */
+#gameover-screen {
+  position: fixed; inset: 0; z-index: 1100;
+  background: radial-gradient(ellipse at center, #1a0e04 0%, #000 100%);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 20px;
+}
+#gameover-screen h1 { font-family: 'Cinzel Decorative', serif; font-size: 2.5rem; color: var(--gold); text-shadow: 0 0 40px rgba(212,168,67,0.8); }
+#gameover-screen h2 { font-family: 'Cinzel', serif; font-size: 1.5rem; color: var(--parchment-text); }
+.play-again-btn {
+  background: linear-gradient(135deg, #8b6914, #d4a843);
+  border: none; border-radius: 8px; padding: 14px 40px;
+  font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 2px;
+  color: #2c1a0c; cursor: pointer; margin-top: 10px;
+}
 
-/* ADVANTAGE AREA */
-.adv-area-slot{position:absolute;display:flex;flex-wrap:wrap;align-items:flex-start;align-content:flex-start;gap:2px;padding:4px;pointer-events:all}
-.adv-chip{display:inline-flex;align-items:center;font-size:clamp(4.5px,0.5vw,7.5px);padding:2px 4px;margin:0;background:rgba(200,160,74,0.18);border:1px solid #c8a04a66;border-radius:3px;color:#e8d5a3;cursor:default;white-space:nowrap;overflow:hidden;max-width:95%;text-overflow:ellipsis}
+/* ===================== GAME LAYOUT ===================== */
+#game-layout {
+  display: none;
+  flex-direction: column;
+  height: 100vh;
+  min-height: 600px;
+}
 
-/* HUD PANELS */
-.hpanel{position:absolute;background:rgba(5,8,18,0.88);border:1px solid rgba(200,160,74,0.28);border-radius:8px;padding:7px 10px;color:#e8d5a3;pointer-events:all;backdrop-filter:blur(6px)}
-#hud-player{left:0.4%;top:18%;width:18.5%;font-size:clamp(8px,0.9vw,13px)}
-#hud-player h3{font-size:clamp(9px,1vw,14px);margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid rgba(200,160,74,0.3)}
-#hud-phase{right:0.4%;top:18%;width:18.5%;font-size:clamp(8px,0.88vw,13px)}
-#hud-phase h3{color:#c8a04a;font-size:clamp(9px,1vw,14px);margin-bottom:4px;padding-bottom:3px;border-bottom:1px solid rgba(200,160,74,0.3)}
-#hud-actions{right:0.4%;top:42%;width:18.5%;font-size:clamp(8px,0.88vw,12px)}
-#hud-actions h3{color:#c8a04a;font-size:clamp(9px,1vw,14px);margin-bottom:5px}
-#hud-actions .btn{display:block;width:100%;margin-bottom:4px;font-size:clamp(7.5px,0.82vw,11.5px);padding:5px 7px;text-align:left}
-#hud-card{left:49%;top:18%;transform:translateX(-50%);width:19%;text-align:center;font-size:clamp(8px,0.88vw,12px)}
-#hud-card h3{color:#c8a04a;font-size:clamp(9px,1vw,14px);margin-bottom:4px}
-#hud-log{left:0.4%;bottom:0.5%;width:32%;max-height:9%;overflow-y:auto;font-size:clamp(6.5px,0.72vw,10px);color:#6b6b5a;line-height:1.55}
-.score-pip{width:11px;height:11px;border-radius:50%;border:2px solid #c8a04a;display:inline-block;margin:1px}
-.score-pip.on{background:#c8a04a}
-.stat-row{display:flex;gap:3px;justify-content:center;flex-wrap:wrap;margin:3px 0}
-.sstat{font-size:clamp(7px,0.75vw,11px);padding:2px 5px;border-radius:3px;font-weight:bold}
-.sstat.i{background:#1a3a5a;color:#4ac8f0}.sstat.f{background:#4a1818;color:#f04a4a}.sstat.t{background:#2a2818;color:#c8b04a}
-.card-text-fp{font-style:italic;color:#8b8b6a;font-size:clamp(6.5px,0.7vw,10px);margin:4px 0;line-height:1.3}
+/* ===================== HEADER ===================== */
+#header {
+  background: linear-gradient(to right, #1a0a00, #2c1a0c, #1a0a00);
+  border-bottom: 2px solid var(--gold);
+  padding: 6px 16px;
+  display: flex; align-items: center; justify-content: space-between;
+  gap: 10px; flex-shrink: 0;
+}
+.score-box {
+  display: flex; flex-direction: column; align-items: center; gap: 2px;
+  min-width: 120px;
+}
+.player-name-h { font-family: 'Cinzel', serif; font-size: 0.8rem; letter-spacing: 2px; color: var(--gold); }
+.score-dots { display: flex; gap: 6px; }
+.score-dot {
+  width: 16px; height: 16px; border-radius: 50%;
+  border: 2px solid var(--gold);
+  background: transparent;
+  transition: background 0.3s;
+}
+.score-dot.filled { background: var(--gold); box-shadow: 0 0 8px rgba(212,168,67,0.8); }
+#header-center {
+  text-align: center; flex: 1;
+}
+#header-center h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(0.7rem, 2vw, 1rem);
+  color: var(--gold); letter-spacing: 3px;
+  line-height: 1.2;
+}
+#turn-indicator {
+  font-family: 'Cinzel', serif; font-size: 0.7rem;
+  color: var(--mat-parchment); letter-spacing: 1px;
+  margin-top: 2px;
+}
 
-/* ACTION OVERLAY on flipped card */
-.act-overlay{position:absolute;inset:0;background:rgba(0,0,0,0.78);border-radius:5px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;padding:3px;z-index:6}
-.act-btn{font-size:clamp(4.5px,0.52vw,8px);padding:2px 5px;border-radius:3px;cursor:pointer;border:1px solid;background:rgba(0,0,0,0.5);color:#e8d5a3;white-space:nowrap;transition:background .15s}
-.act-btn:hover{background:rgba(255,255,255,0.1)}
-.act-atk{border-color:#e84a4a;color:#e84a4a}.act-adv{border-color:#4a8fc8;color:#4a8fc8}.act-ally{border-color:#6464c8;color:#b4b4e8}.act-foc{border-color:#c8a04a;color:#c8a04a}.act-dis{border-color:#555;color:#888}
+/* ===================== BOARD ===================== */
+#board {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  position: relative;
+}
 
-/* GAMEOVER */
-#gameover-screen{background:rgba(0,0,0,0.9);flex-direction:column;gap:14px;text-align:center}
-#gameover-screen h1{font-size:clamp(22px,4vw,50px);color:#c8a04a}
-#gameover-screen h2{font-size:clamp(15px,2.5vw,30px);color:#e8d5a3}
+/* ===================== MAT HALF ===================== */
+.mat-half {
+  flex: 1;
+  background: var(--mat-parchment);
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  border: 3px solid var(--mat-parchment-dark);
+  overflow: hidden;
+}
+.mat-half::before {
+  content: '';
+  position: absolute; inset: 0;
+  background:
+    repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(0,0,0,0.02) 20px, rgba(0,0,0,0.02) 21px);
+  pointer-events: none;
+}
+#p2-mat { border-bottom: 1px solid var(--mat-parchment-dark); }
+#p1-mat { border-top: 1px solid var(--mat-parchment-dark); }
 
-::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#1a1a1a}::-webkit-scrollbar-thumb{background:#c8a04a44}
+/* Player label banner */
+.player-banner {
+  position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
+  background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(212,168,67,0.5);
+  border-radius: 20px;
+  padding: 2px 16px;
+  font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 2px;
+  color: var(--gold); z-index: 10;
+  pointer-events: none;
+}
+.player-banner.active-player {
+  background: rgba(212,168,67,0.2);
+  border-color: var(--gold);
+  box-shadow: 0 0 12px rgba(212,168,67,0.4);
+}
+
+/* Advantage area */
+.adv-area {
+  display: flex; align-items: center; gap: 6px;
+  padding: 4px 8px;
+  background: rgba(0,0,0,0.15);
+  border-bottom: 1px solid rgba(0,0,0,0.2);
+  min-height: 32px;
+  flex-shrink: 0;
+}
+#p2-mat .adv-area { border-bottom: none; border-top: 1px solid rgba(0,0,0,0.2); order: 5; }
+.adv-area-label {
+  font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 2px;
+  color: rgba(44,26,12,0.7); text-transform: uppercase; white-space: nowrap;
+}
+.adv-card-mini {
+  width: 34px; height: 48px; border-radius: 3px;
+  background: linear-gradient(135deg, #8b6914, #d4a843);
+  border: 1px solid #8b6914;
+  cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  font-size: 0.4rem; color: #2c1a0c; text-align: center;
+  padding: 2px;
+  line-height: 1.2;
+  transition: transform 0.1s;
+}
+.adv-card-mini:hover { transform: scale(1.1); }
+
+/* Zones container */
+.zones-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+/* Individual zone */
+.zone {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  position: relative;
+  min-height: 60px;
+  transition: box-shadow 0.3s;
+}
+.zone.green-zone { background: linear-gradient(to right, var(--green-zone), var(--green-zone-mid) 30%, var(--green-zone-mid) 70%, var(--green-zone)); border-top: 1px solid var(--green-border); border-bottom: 1px solid rgba(0,0,0,0.3); }
+.zone.yellow-zone { background: linear-gradient(to right, var(--yellow-zone), var(--yellow-zone-mid) 30%, var(--yellow-zone-mid) 70%, var(--yellow-zone)); border-top: 1px solid rgba(0,0,0,0.2); border-bottom: 1px solid rgba(0,0,0,0.3); }
+.zone.red-zone { background: linear-gradient(to right, var(--red-zone), var(--red-zone-mid) 30%, var(--red-zone-mid) 70%, var(--red-zone)); border-top: 1px solid rgba(0,0,0,0.2); }
+
+.zone.active-defense { box-shadow: inset 0 0 20px rgba(255,255,200,0.2); }
+.zone.charged::after {
+  content: '⚡';
+  position: absolute; top: 4px; right: 4px; font-size: 0.8rem;
+  color: var(--charged-glow); text-shadow: 0 0 8px rgba(255,215,0,0.8);
+  pointer-events: none;
+}
+
+/* Zone label */
+.zone-label {
+  writing-mode: vertical-rl; text-orientation: mixed;
+  font-family: 'Cinzel', serif; font-size: 0.5rem;
+  letter-spacing: 2px; color: rgba(255,255,255,0.4);
+  padding: 4px; flex-shrink: 0;
+  text-transform: uppercase;
+}
+
+/* Zone inner layout */
+.zone-inner {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 6px;
+  height: 100%;
+}
+
+/* Card slots */
+.card-slot {
+  position: relative;
+  background: var(--card-slot-bg);
+  border: 1px dashed var(--card-slot-border);
+  border-radius: 5px;
+  display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0;
+  cursor: pointer;
+  overflow: visible;
+}
+.card-slot-label {
+  font-family: 'Cinzel', serif; font-size: 0.38rem;
+  color: rgba(200,160,80,0.5); letter-spacing: 1px;
+  text-align: center; padding: 2px; pointer-events: none;
+  text-transform: uppercase;
+}
+.ally-slot { width: 52px; height: 74px; }
+.flip-slot { width: 58px; height: 80px; }
+.charge-slot { width: 46px; height: 64px; }
+
+/* Energy area */
+.energy-area {
+  display: flex; flex-direction: column; align-items: center; gap: 3px;
+  min-width: 44px;
+}
+.energy-label {
+  font-family: 'Cinzel', serif; font-size: 0.4rem;
+  letter-spacing: 1px; text-transform: uppercase;
+  color: rgba(255,255,255,0.5);
+}
+.energy-count {
+  display: flex; align-items: center; gap: 3px;
+}
+.energy-pip {
+  width: 10px; height: 10px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,0.4);
+  cursor: pointer;
+  transition: transform 0.1s;
+}
+.energy-pip:hover { transform: scale(1.3); }
+.energy-pip.green { background: #4a9a4a; border-color: #6aca6a; box-shadow: 0 0 4px rgba(74,154,74,0.8); }
+.energy-pip.yellow { background: #b88020; border-color: #e8b040; box-shadow: 0 0 4px rgba(184,128,32,0.8); }
+.energy-pip.red { background: #9a2020; border-color: #cc4040; box-shadow: 0 0 4px rgba(154,32,32,0.8); }
+.energy-num {
+  font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 700;
+  color: rgba(255,255,255,0.9);
+}
+
+/* Chamber/Deck/Discard */
+.charge-indicator {
+  position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%);
+  font-size: 0.35rem; color: rgba(255,215,0,0.7); white-space: nowrap;
+  pointer-events: none;
+}
+
+/* ===================== GAME CARDS ===================== */
+.tcg-card {
+  width: 52px; height: 74px;
+  border-radius: 4px;
+  position: relative;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  transform-style: preserve-3d;
+}
+.tcg-card:hover { transform: scale(1.08); z-index: 50; }
+.tcg-card.flip-slot-card { width: 58px; height: 80px; }
+.tcg-card.counterattacked { transform: rotate(90deg); }
+.tcg-card.counterattacked:hover { transform: rotate(90deg) scale(1.08); }
+
+.card-face, .card-back-face {
+  position: absolute; inset: 0;
+  border-radius: 4px;
+  backface-visibility: hidden;
+  overflow: hidden;
+}
+.card-back-face {
+  transform: rotateY(180deg);
+}
+.card-face img, .card-back-face img {
+  width: 100%; height: 100%;
+  object-fit: cover; border-radius: 4px;
+}
+
+/* Card flip animation */
+@keyframes dealFlip {
+  0% { transform: translateX(-20px) rotateY(180deg); opacity: 0.5; }
+  60% { opacity: 1; }
+  100% { transform: translateX(0) rotateY(0deg); opacity: 1; }
+}
+.tcg-card.flipping {
+  animation: dealFlip 0.5s ease-out forwards;
+}
+
+/* Inline card for small display */
+.card-inner {
+  position: absolute; inset: 0;
+  border-radius: 4px;
+  display: flex; flex-direction: column;
+  overflow: hidden;
+  font-size: 0.32rem;
+  border: 1px solid rgba(200,160,80,0.6);
+}
+.card-inner .card-img {
+  flex: 1; overflow: hidden;
+  background: #1a1a2e;
+}
+.card-inner .card-img img { width: 100%; height: 100%; object-fit: cover; }
+.card-inner .card-stats {
+  background: rgba(0,0,0,0.85);
+  padding: 1px 2px;
+  display: flex; justify-content: space-between; align-items: center;
+}
+.card-inner .card-name {
+  font-family: 'Cinzel', serif; font-size: 0.35rem;
+  color: var(--gold); text-align: center;
+  padding: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: rgba(0,0,0,0.7);
+}
+.stat-int { color: #60c0ff; font-weight: 700; font-size: 0.5rem; }
+.stat-for { color: #ffb060; font-weight: 700; font-size: 0.5rem; }
+
+/* Ally card styling */
+.ally-card-inner {
+  background: linear-gradient(135deg, #2a1a4a, #4a2a6a);
+  border: 1px solid #8a60c0;
+}
+.adv-card-inner {
+  background: linear-gradient(135deg, #2a2000, #5c4800);
+  border: 1px solid #a08020;
+}
+.chamber-card-inner {
+  background: linear-gradient(135deg, #1a1a1a, #3a3a3a);
+  border: 1px solid rgba(212,168,67,0.6);
+}
+
+/* Deck pile */
+.deck-pile {
+  width: 46px; height: 64px;
+  background: #1a1a1a;
+  border-radius: 4px;
+  border: 1px solid rgba(200,160,80,0.5);
+  display: flex; align-items: center; justify-content: center;
+  cursor: pointer;
+  position: relative;
+  overflow: hidden;
+}
+.deck-pile img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+.deck-count {
+  position: absolute; bottom: 2px; right: 2px;
+  background: rgba(0,0,0,0.8);
+  border-radius: 3px;
+  font-family: 'Cinzel', serif; font-size: 0.5rem;
+  color: var(--gold); padding: 0 2px;
+}
+.deck-pile.empty { opacity: 0.4; cursor: default; }
+
+/* Discard pile */
+.discard-pile {
+  width: 46px; height: 64px;
+  border-radius: 4px;
+  border: 1px dashed rgba(200,160,80,0.4);
+  display: flex; align-items: center; justify-content: center;
+  position: relative; overflow: hidden;
+  cursor: pointer;
+}
+.discard-pile img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
+.discard-pile.empty { background: rgba(0,0,0,0.2); }
+
+/* ===================== CENTER PANEL ===================== */
+#center-panel {
+  background: linear-gradient(to bottom, #1a0a00, #0d0704, #1a0a00);
+  border-top: 2px solid var(--gold);
+  border-bottom: 2px solid var(--gold);
+  padding: 6px 12px;
+  display: flex; align-items: center; gap: 10px;
+  flex-shrink: 0;
+  min-height: 48px;
+  position: relative; z-index: 20;
+}
+#phase-display {
+  font-family: 'Cinzel', serif; font-size: 0.65rem;
+  color: var(--gold); letter-spacing: 2px;
+  white-space: nowrap; flex-shrink: 0;
+}
+#log-area {
+  flex: 1; overflow: hidden;
+  font-size: 0.7rem; color: var(--mat-parchment);
+  font-style: italic; text-align: center;
+  max-height: 36px; overflow-y: auto;
+}
+#action-btns {
+  display: flex; gap: 6px; flex-wrap: wrap; justify-content: flex-end; flex-shrink: 0;
+}
+.act-btn {
+  background: linear-gradient(135deg, rgba(44,26,12,0.9), rgba(80,50,20,0.9));
+  border: 1px solid rgba(212,168,67,0.5);
+  border-radius: 5px;
+  padding: 5px 10px;
+  font-family: 'Cinzel', serif; font-size: 0.6rem;
+  letter-spacing: 1px; color: var(--parchment-text);
+  cursor: pointer; transition: all 0.15s; white-space: nowrap;
+}
+.act-btn:hover { border-color: var(--gold); background: rgba(212,168,67,0.2); color: var(--gold-light); }
+.act-btn:disabled { opacity: 0.35; cursor: not-allowed; }
+.act-btn.primary { background: linear-gradient(135deg, #8b6914, #d4a843); color: #2c1a0c; border-color: #d4a843; }
+.act-btn.primary:hover { box-shadow: 0 0 12px rgba(212,168,67,0.5); }
+.act-btn.danger { border-color: rgba(180,40,40,0.7); }
+.act-btn.danger:hover { border-color: #cc4040; background: rgba(154,32,32,0.3); }
+.act-btn.success { border-color: rgba(40,180,40,0.7); }
+.act-btn.success:hover { border-color: #60c060; background: rgba(40,130,40,0.3); }
+
+/* ===================== CARD MODAL ===================== */
+#card-modal {
+  position: fixed; inset: 0; z-index: 800;
+  background: rgba(0,0,0,0.85);
+  display: none; align-items: center; justify-content: center;
+  flex-direction: column; gap: 16px;
+}
+#card-modal-content {
+  background: #1a1200;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 320px;
+  width: 90%;
+}
+.modal-card-img { width: 100%; border-radius: 6px; display: block; }
+.modal-card-name { font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--gold); margin-top: 10px; }
+.modal-card-stats { display: flex; gap: 16px; margin: 8px 0; font-size: 0.9rem; }
+.modal-int { color: #60c0ff; } .modal-for { color: #ffb060; }
+.modal-cost { color: var(--mat-parchment); font-size: 0.8rem; }
+.modal-rules { font-style: italic; color: #c0a860; font-size: 0.85rem; margin-top: 6px; line-height: 1.4; }
+.modal-flavor { color: rgba(200,180,140,0.7); font-size: 0.75rem; margin-top: 6px; font-style: italic; border-top: 1px solid rgba(212,168,67,0.2); padding-top: 6px; }
+.modal-close-btn {
+  background: rgba(212,168,67,0.2); border: 1px solid var(--gold); border-radius: 6px;
+  padding: 8px 24px; color: var(--gold); font-family: 'Cinzel', serif; font-size: 0.85rem;
+  cursor: pointer; letter-spacing: 2px;
+}
+
+/* ===================== ENERGY PAYMENT ===================== */
+#energy-modal {
+  position: fixed; inset: 0; z-index: 850;
+  background: rgba(0,0,0,0.9);
+  display: none; align-items: center; justify-content: center;
+}
+#energy-modal-content {
+  background: #1a1200;
+  border: 2px solid var(--gold);
+  border-radius: 12px;
+  padding: 24px;
+  max-width: 360px; width: 90%;
+  text-align: center;
+}
+#energy-modal h3 { font-family: 'Cinzel', serif; color: var(--gold); margin-bottom: 8px; }
+#energy-modal p { color: var(--mat-parchment); font-size: 0.85rem; margin-bottom: 16px; }
+.energy-selector { display: flex; gap: 16px; justify-content: center; margin: 12px 0; }
+.energy-sel-box {
+  background: rgba(0,0,0,0.4); border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 8px; padding: 10px; text-align: center;
+}
+.energy-sel-box .elabel { font-family: 'Cinzel', serif; font-size: 0.7rem; letter-spacing: 1px; margin-bottom: 6px; }
+.energy-sel-box.green .elabel { color: #6aca6a; }
+.energy-sel-box.yellow .elabel { color: #e8b040; }
+.energy-sel-box.red .elabel { color: #cc4040; }
+.energy-counter { display: flex; align-items: center; gap: 8px; justify-content: center; }
+.energy-counter button {
+  background: rgba(212,168,67,0.2); border: 1px solid rgba(212,168,67,0.5);
+  border-radius: 4px; width: 24px; height: 24px;
+  color: var(--gold); font-size: 1rem; cursor: pointer;
+}
+.energy-counter .ecnt { font-family: 'Cinzel', serif; font-size: 1rem; color: white; min-width: 20px; text-align: center; }
+.energy-modal-btns { display: flex; gap: 10px; justify-content: center; margin-top: 16px; }
+.em-btn {
+  background: rgba(0,0,0,0.5); border: 1px solid rgba(212,168,67,0.4);
+  border-radius: 6px; padding: 8px 20px;
+  font-family: 'Cinzel', serif; font-size: 0.8rem; color: var(--gold);
+  cursor: pointer; letter-spacing: 1px;
+}
+.em-btn.confirm { background: linear-gradient(135deg, #8b6914, #d4a843); color: #2c1a0c; }
+.em-btn.cancel { color: rgba(200,160,80,0.7); }
+
+/* ===================== SIGNATURE MOVE MODAL ===================== */
+#sig-modal {
+  position: fixed; inset: 0; z-index: 860;
+  background: rgba(0,0,0,0.92);
+  display: none; align-items: center; justify-content: center;
+}
+#sig-modal-content {
+  background: #1a0a00; border: 2px solid var(--gold);
+  border-radius: 12px; padding: 24px;
+  max-width: 320px; width: 90%; text-align: center;
+}
+#sig-modal h3 { font-family: 'Cinzel', serif; color: var(--gold); margin-bottom: 8px; font-size: 1.2rem; }
+.sig-name { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--parchment-text); margin: 8px 0; }
+.sig-stats { font-size: 0.9rem; color: var(--mat-parchment); margin: 4px 0; }
+.sig-rules { font-style: italic; color: #c0a860; font-size: 0.82rem; margin: 8px 0; line-height: 1.4; }
+.sig-btns { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
+
+/* ===================== ANIMATIONS ===================== */
+@keyframes scoreFlash {
+  0%,100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.6; } }
+.pulse { animation: pulse 1.2s infinite; }
+@keyframes slideIn { from { transform: translateY(-10px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+.slide-in { animation: slideIn 0.3s ease-out; }
+
+/* ===================== RESPONSIVE ===================== */
+@media (max-height: 600px) {
+  .ally-slot { width: 40px; height: 56px; }
+  .flip-slot { width: 46px; height: 64px; }
+  .charge-slot, .deck-pile, .discard-pile { width: 38px; height: 54px; }
+  .tcg-card { width: 40px; height: 56px; }
+  .tcg-card.flip-slot-card { width: 46px; height: 64px; }
+}
+
+/* Incoming force badge */
+.force-badge {
+  position: absolute; top: -6px; right: -6px;
+  background: #cc0000; color: white;
+  border-radius: 50%; width: 18px; height: 18px;
+  font-family: 'Cinzel', serif; font-size: 0.55rem;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(255,255,255,0.5);
+  font-weight: 700; z-index: 5;
+  box-shadow: 0 0 8px rgba(200,0,0,0.8);
+  pointer-events: none;
+}
+
+.zone-name-badge {
+  position: absolute; left: 50%; transform: translateX(-50%);
+  font-family: 'Cinzel', serif; font-size: 0.45rem; letter-spacing: 2px;
+  color: rgba(255,255,255,0.3); text-transform: uppercase;
+  pointer-events: none; white-space: nowrap;
+}
+
+/* Quick stats bar */
+.incoming-bar {
+  position: fixed; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  z-index: 30; pointer-events: none;
+  background: rgba(0,0,0,0.8); border: 1px solid var(--gold);
+  border-radius: 20px; padding: 4px 16px;
+  font-family: 'Cinzel', serif; font-size: 0.75rem; color: var(--gold);
+  letter-spacing: 2px; white-space: nowrap;
+}
+
+/* ===================== SCROLLBAR ===================== */
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
+::-webkit-scrollbar-thumb { background: rgba(212,168,67,0.4); border-radius: 2px; }
 </style>
 </head>
 <body>
-<div id="root">
-<div id="mat-wrap">
-  <img id="mat-bg" src="https://github.com/zolodio/Avatar-TCG-Database/raw/main/PLMT001.jpg" alt="Avatar TCG Playmat" draggable="false"/>
 
-  <!-- TITLE -->
-  <div id="title-screen" class="screen">
-    <div style="display:flex;flex-direction:column;align-items:center;gap:12px">
-      <div class="logo-big">AVATAR</div>
-      <div class="logo-med">THE LAST AIRBENDER</div>
-      <div class="logo-sm">MASTER OF ELEMENTS</div>
-      <div style="width:160px;height:2px;background:linear-gradient(90deg,transparent,#c8a04a,transparent);margin:4px 0"></div>
-      <button class="btn" style="font-size:clamp(13px,1.8vw,22px);padding:12px 40px" onclick="toCharSelect()">▶ Begin</button>
-      <div style="font-size:clamp(8px,0.9vw,12px);color:#444">2-Player Pass &amp; Play</div>
+<!-- ===== SETUP SCREEN ===== -->
+<div id="setup-screen">
+  <h1>AVATAR: THE LAST AIRBENDER<br>MASTER OF ELEMENTS</h1>
+  <h2>Choose Your Characters</h2>
+  <div class="player-setup">
+    <div class="player-card-setup">
+      <h3>PLAYER 1</h3>
+      <div class="char-options">
+        <button class="char-btn aang selected" onclick="selectChar(1,'aang',this)">AANG</button>
+        <button class="char-btn zuko" onclick="selectChar(1,'zuko',this)">ZUKO</button>
+      </div>
+    </div>
+    <div class="player-card-setup">
+      <h3>PLAYER 2</h3>
+      <div class="char-options">
+        <button class="char-btn aang" onclick="selectChar(2,'aang',this)">AANG</button>
+        <button class="char-btn zuko selected" onclick="selectChar(2,'zuko',this)">ZUKO</button>
+      </div>
+    </div>
+  </div>
+  <button class="start-btn" id="start-btn" onclick="startGame()">BEGIN BATTLE</button>
+</div>
+
+<!-- ===== PASS SCREEN ===== -->
+<div id="pass-screen">
+  <h2 id="pass-title">PASS THE DEVICE</h2>
+  <p id="pass-msg">Hand the device to the next player.</p>
+  <button class="pass-btn" onclick="dismissPass()">I AM READY</button>
+</div>
+
+<!-- ===== GAME OVER ===== -->
+<div id="gameover-screen">
+  <h1>⚡ VICTORY ⚡</h1>
+  <h2 id="winner-text">Player 1 Wins!</h2>
+  <p id="final-score" style="color: var(--mat-parchment); font-size:1rem;"></p>
+  <button class="play-again-btn" onclick="location.reload()">PLAY AGAIN</button>
+</div>
+
+<!-- ===== MAIN GAME ===== -->
+<div id="game-layout">
+  <!-- Header -->
+  <div id="header">
+    <div class="score-box" id="p1-score-box">
+      <div class="player-name-h" id="p1-header-name">PLAYER 1</div>
+      <div class="score-dots" id="p1-dots">
+        <div class="score-dot" id="p1-dot-0"></div>
+        <div class="score-dot" id="p1-dot-1"></div>
+        <div class="score-dot" id="p1-dot-2"></div>
+      </div>
+    </div>
+    <div id="header-center">
+      <h1>AVATAR TCG</h1>
+      <div id="turn-indicator">—</div>
+    </div>
+    <div class="score-box" id="p2-score-box">
+      <div class="player-name-h" id="p2-header-name">PLAYER 2</div>
+      <div class="score-dots" id="p2-dots">
+        <div class="score-dot" id="p2-dot-0"></div>
+        <div class="score-dot" id="p2-dot-1"></div>
+        <div class="score-dot" id="p2-dot-2"></div>
+      </div>
     </div>
   </div>
 
-  <!-- CHAR SELECT -->
-  <div id="char-screen" class="screen hidden">
-    <div style="display:flex;flex-direction:column;align-items:center;gap:14px;width:100%;max-width:900px">
-      <h2 id="char-title">Player 1 — Choose Your Character</h2>
-      <div class="char-grid" id="char-grid"></div>
-      <button class="btn blue" id="char-confirm" onclick="confirmChar()" disabled>Confirm ✓</button>
+  <!-- Board -->
+  <div id="board">
+    <!-- P2 Mat (top) -->
+    <div class="mat-half" id="p2-mat">
+      <div class="player-banner" id="p2-banner">PLAYER 2</div>
+      <div id="p2-adv-area" class="adv-area">
+        <span class="adv-area-label">ADVANTAGE AREA</span>
+      </div>
+      <div class="zones-container" id="p2-zones"></div>
     </div>
-  </div>
 
-  <!-- HANDOFF -->
-  <div id="handoff-screen" class="screen hidden">
-    <div style="display:flex;flex-direction:column;align-items:center;gap:16px">
-      <div id="ho-emoji" style="font-size:64px"></div>
-      <h2 id="ho-title">Pass Device</h2>
-      <p id="ho-msg">Hand the device to the next player.</p>
-      <button class="btn" id="ho-btn" onclick="afterHandoff()">I'm Ready ▶</button>
+    <!-- Center Panel -->
+    <div id="center-panel">
+      <div id="phase-display">—</div>
+      <div id="log-area">Welcome to Avatar TCG!</div>
+      <div id="action-btns"></div>
     </div>
-  </div>
 
-  <!-- GAME LAYER -->
-  <div id="game-layer" class="hidden">
-    <!-- Advantage area -->
-    <div id="adv-area" class="adv-area-slot" style="left:5.5%;top:2%;width:18%;height:15.5%;border:1px dashed rgba(200,160,74,0.15);border-radius:4px"></div>
-
-    <!-- GREEN ZONE ROW -->
-    <div id="ally-0" class="zslot empty" style="left:4.8%;top:17.8%;width:10.8%;height:20.2%" onclick="onAllyClick(0)"></div>
-    <div id="flip-0" class="zslot empty" style="left:15.7%;top:17.8%;width:14.2%;height:20.2%" onclick="onFlipZoneClick(0)"></div>
-    <div id="chg-0"  class="zslot empty" style="left:30.1%;top:17.8%;width:5.3%; height:20.2%" onclick="onChargeClick(0)" title="Focus: Charge Green Zone"></div>
-    <div id="cham-slot" class="zslot" style="left:35.6%;top:17.8%;width:12.8%;height:20.2%;border:none;pointer-events:none"></div>
-
-    <!-- YELLOW ZONE ROW -->
-    <div id="ally-1" class="zslot empty" style="left:4.8%;top:38.0%;width:10.8%;height:21.3%" onclick="onAllyClick(1)"></div>
-    <div id="flip-1" class="zslot empty" style="left:15.7%;top:38.0%;width:14.2%;height:21.3%" onclick="onFlipZoneClick(1)"></div>
-    <div id="chg-1"  class="zslot empty" style="left:30.1%;top:38.0%;width:5.3%; height:21.3%" onclick="onChargeClick(1)" title="Focus: Charge Yellow Zone"></div>
-    <div id="deck-slot" class="zslot" style="left:35.6%;top:38.0%;width:12.8%;height:21.3%;border:none" onclick="onDeckClick()"></div>
-
-    <!-- RED ZONE ROW -->
-    <div id="ally-2" class="zslot empty" style="left:4.8%;top:59.3%;width:10.8%;height:22.2%" onclick="onAllyClick(2)"></div>
-    <div id="flip-2" class="zslot empty" style="left:15.7%;top:59.3%;width:14.2%;height:22.2%" onclick="onFlipZoneClick(2)"></div>
-    <div id="chg-2"  class="zslot empty" style="left:30.1%;top:59.3%;width:5.3%; height:22.2%" onclick="onChargeClick(2)" title="Focus: Charge Red Zone"></div>
-    <div id="disc-slot" class="zslot" style="left:35.6%;top:59.3%;width:12.8%;height:22.2%;border:none;pointer-events:none"></div>
-
-    <!-- ENERGY AREAS -->
-    <div id="en-0" class="energy-area" style="left:49%;top:17.8%;width:21%;height:20.2%"></div>
-    <div id="en-1" class="energy-area" style="left:49%;top:38.0%;width:21%;height:21.3%"></div>
-    <div id="en-2" class="energy-area" style="left:49%;top:59.3%;width:21%;height:22.2%"></div>
-
-    <!-- HUD PANELS -->
-    <div id="hud-player" class="hpanel">
-      <h3 id="hp-name" style="color:#c8a04a">Player</h3>
-      <div id="hp-score" style="display:flex;gap:3px;align-items:center;margin:3px 0"></div>
-      <div id="hp-deck" style="color:#6b6b5a;margin:2px 0;font-size:clamp(7px,0.75vw,10px)"></div>
-      <div id="hp-opp" style="color:#6b6b5a;font-size:clamp(7px,0.75vw,10px)"></div>
+    <!-- P1 Mat (bottom) -->
+    <div class="mat-half" id="p1-mat">
+      <div class="player-banner" id="p1-banner">PLAYER 1</div>
+      <div class="zones-container" id="p1-zones"></div>
+      <div id="p1-adv-area" class="adv-area">
+        <span class="adv-area-label">ADVANTAGE AREA</span>
+      </div>
     </div>
-    <div id="hud-phase" class="hpanel">
-      <h3 id="hph-title">Phase</h3>
-      <div id="hph-body" style="color:#7a7a5a;font-size:clamp(7px,0.78vw,11px);line-height:1.55"></div>
-    </div>
-    <div id="hud-card" class="hpanel hidden">
-      <h3 id="hc-name"></h3>
-      <div class="stat-row" id="hc-stats"></div>
-      <div class="card-text-fp" id="hc-text"></div>
-    </div>
-    <div id="hud-actions" class="hpanel">
-      <h3>Actions</h3>
-      <div id="ha-btns"></div>
-    </div>
-    <div id="hud-log" class="hpanel">
-      <div id="log-lines"></div>
-    </div>
-  </div>
-
-  <!-- GAMEOVER -->
-  <div id="gameover-screen" class="screen hidden">
-    <div id="go-emoji" style="font-size:72px"></div>
-    <h1 id="go-h1"></h1>
-    <h2 id="go-h2"></h2>
-    <button class="btn blue" style="font-size:clamp(14px,1.8vw,22px);padding:12px 36px" onclick="location.reload()">Play Again</button>
   </div>
 </div>
+
+<!-- ===== CARD ZOOM MODAL ===== -->
+<div id="card-modal" onclick="closeCardModal()">
+  <div id="card-modal-content" onclick="event.stopPropagation()">
+    <img class="modal-card-img" id="modal-img" src="" alt="">
+    <div class="modal-card-name" id="modal-name"></div>
+    <div class="modal-card-stats">
+      <span class="modal-int" id="modal-int"></span>
+      <span class="modal-for" id="modal-for"></span>
+      <span class="modal-cost" id="modal-cost"></span>
+    </div>
+    <div class="modal-rules" id="modal-rules"></div>
+    <div class="modal-flavor" id="modal-flavor"></div>
+  </div>
+  <button class="modal-close-btn" onclick="closeCardModal()">CLOSE</button>
+</div>
+
+<!-- ===== ENERGY MODAL ===== -->
+<div id="energy-modal">
+  <div id="energy-modal-content">
+    <h3 id="energy-modal-title">Pay Energy Cost</h3>
+    <p id="energy-modal-desc"></p>
+    <div class="energy-selector">
+      <div class="energy-sel-box green">
+        <div class="elabel">GREEN</div>
+        <div class="energy-counter">
+          <button onclick="adjustPay('green',-1)">−</button>
+          <div class="ecnt" id="pay-green">0</div>
+          <button onclick="adjustPay('green',1)">+</button>
+        </div>
+        <div style="font-size:0.65rem;color:#6aca6a;margin-top:4px;">Avail: <span id="avail-green">0</span></div>
+      </div>
+      <div class="energy-sel-box yellow">
+        <div class="elabel">YELLOW</div>
+        <div class="energy-counter">
+          <button onclick="adjustPay('yellow',-1)">−</button>
+          <div class="ecnt" id="pay-yellow">0</div>
+          <button onclick="adjustPay('yellow',1)">+</button>
+        </div>
+        <div style="font-size:0.65rem;color:#e8b040;margin-top:4px;">Avail: <span id="avail-yellow">0</span></div>
+      </div>
+      <div class="energy-sel-box red">
+        <div class="elabel">RED</div>
+        <div class="energy-counter">
+          <button onclick="adjustPay('red',-1)">−</button>
+          <div class="ecnt" id="pay-red">0</div>
+          <button onclick="adjustPay('red',1)">+</button>
+        </div>
+        <div style="font-size:0.65rem;color:#cc4040;margin-top:4px;">Avail: <span id="avail-red">0</span></div>
+      </div>
+    </div>
+    <p id="energy-feedback" style="font-size:0.8rem;color:#ffb060;margin-top:6px;min-height:18px;"></p>
+    <div class="energy-modal-btns">
+      <button class="em-btn cancel" onclick="cancelPayment()">CANCEL</button>
+      <button class="em-btn confirm" onclick="confirmPayment()">CONFIRM PAYMENT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== SIGNATURE MOVE MODAL ===== -->
+<div id="sig-modal">
+  <div id="sig-modal-content">
+    <h3>⚡ SIGNATURE MOVE ⚡</h3>
+    <p style="color:var(--mat-parchment);font-size:0.8rem;">All zones charged! Use your signature move?</p>
+    <div class="sig-name" id="sig-name"></div>
+    <div class="sig-stats" id="sig-stats"></div>
+    <div class="sig-rules" id="sig-rules"></div>
+    <div class="sig-btns">
+      <button class="em-btn cancel" onclick="skipSig()">SKIP</button>
+      <button class="em-btn confirm" onclick="useSig()">USE SIGNATURE MOVE</button>
+    </div>
+  </div>
 </div>
 
 <script>
-'use strict';
-// ================================================================
+// ============================================================
 // CARD DATABASE
-// ================================================================
+// ============================================================
+
+const CARD_BACK = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/main/cardback.jpg';
 const IMG_BASE = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/main/';
-const ci = id => IMG_BASE + id + '.jpg';
 
-const CARDS = {
-  AME063:{id:'AME063',name:'Canyon Crawler Clash',type:'strike',g:1,y:1,r:1,int:6,frc:6,text:''},
-  AME065:{id:'AME065',name:'Downdraft',type:'strike',g:1,y:0,r:0,int:4,frc:3,text:''},
-  AME066:{id:'AME066',name:'Earthbound',type:'strike',g:1,y:1,r:0,int:6,frc:5,text:''},
-  AME068:{id:'AME068',name:'Evade',type:'strike',g:1,y:0,r:0,int:3,frc:1,text:'Red→+4 Int (once)'},
-  AME070:{id:'AME070',name:'Knuckle Sandwich',type:'strike',g:2,y:1,r:0,int:6,frc:4,text:''},
-  AME072:{id:'AME072',name:'Kyoshi Fan Parry',type:'strike',g:2,y:1,r:0,int:7,frc:2,text:'Reflip: Green',reflip:'g'},
-  AME074:{id:'AME074',name:'Kyoshi Pride',type:'strike',g:2,y:0,r:0,int:5,frc:5,text:'Reflip: Green',reflip:'g'},
-  AME075:{id:'AME075',name:'Pummel',type:'strike',g:2,y:0,r:0,int:4,frc:4,text:'Green→+1 Int (once)'},
-  AME077:{id:'AME077',name:'Skewer',type:'strike',g:1,y:0,r:0,int:3,frc:6,text:''},
-  AME078:{id:'AME078',name:'Snapped Off',type:'strike',g:1,y:1,r:1,int:8,frc:4,text:''},
-  AME079:{id:'AME079',name:'Tremor Trail',type:'strike',g:1,y:2,r:0,int:5,frc:6,text:''},
-  AME080:{id:'AME080',name:'Will of the Warrior',type:'strike',g:3,y:0,r:1,int:4,frc:7,text:''},
-  AME112:{id:'AME112',name:'Caution to the Wind',type:'advantage',g:1,y:0,r:0,text:'Strikes -1 Int +1 Frc'},
-  AME113:{id:'AME113',name:'Closed-Hand Form',type:'advantage',g:1,y:0,r:0,text:'Strikes +1 Force'},
-  AME114:{id:'AME114',name:'Lifesaver',type:'advantage',g:1,y:0,r:0,text:'+1 Int in Red Zone'},
-  AME115:{id:'AME115',name:'Open-Hand Form',type:'advantage',g:1,y:0,r:0,text:'Strikes +1 Intercept'},
-  AME116:{id:'AME116',name:"Roku's Guidance",type:'advantage',g:1,y:0,r:0,text:'Imm: Look at top card',immediate:true},
-  AME117:{id:'AME117',name:'Sustenance',type:'advantage',g:2,y:1,r:0,text:'Imm: Add red energy',immediate:true},
-  AME118:{id:'AME118',name:'Take Them Away',type:'advantage',g:1,y:0,r:0,text:'Opp eliminates ally',immediate:true},
-  AME111:{id:'AME111',name:'Bonzu Pippinpaddle',type:'advantage',g:1,y:0,r:0,text:'Opp uncharges zone',immediate:true},
-  AME138:{id:'AME138',name:'Canyon Guide',type:'ally',g:1,y:0,r:0,text:'On flip: opp reveals top'},
-  AME139:{id:'AME139',name:'Gan Jin Tribe',type:'ally',g:2,y:0,r:0,text:'Green→+1 Int here'},
-  AME141:{id:'AME141',name:'Zhang Tribe',type:'ally',g:2,y:0,r:0,text:'Green→+1 Frc here'},
-  AME137:{id:'AME137',name:'Cabbage Merchant',type:'ally',g:1,y:0,r:0,text:'Counter: may add green'},
-  AME142:{id:'AME142',name:'Air Scooter',type:'strike',g:2,y:1,r:0,int:5,frc:5,text:'On flip: move ally here'},
-  AME143:{id:'AME143',name:'Chi Absorption',type:'strike',g:1,y:1,r:0,int:8,frc:1,text:'Move down→add yellow'},
-  AME145:{id:'AME145',name:'Graceful Leap',type:'strike',g:1,y:0,r:0,int:4,frc:2,text:'2Green→move up zone'},
-  AME147:{id:'AME147',name:'Zoom!',type:'strike',g:1,y:1,r:0,int:4,frc:6,text:'2Green→move up zone'},
-  AME154:{id:'AME154',name:'Corona Punch',type:'strike',g:2,y:1,r:0,int:5,frc:6,text:'Counter→elim yellow'},
-  AME155:{id:'AME155',name:'Ember Shot',type:'strike',g:1,y:1,r:0,int:4,frc:6,text:'Counter→charge zone'},
-  AME156:{id:'AME156',name:'Fire Sweep',type:'strike',g:1,y:0,r:0,int:3,frc:3,text:'Pitch→elim 2 green'},
-  AME157:{id:'AME157',name:'Kindle',type:'strike',g:3,y:0,r:0,int:6,frc:4,text:'Pitch→charge zone'},
-  AME160:{id:'AME160',name:'Bubble Burst',type:'strike',g:1,y:0,r:0,int:4,frc:4,text:'-1 Int → +1 Frc'},
-  AME162:{id:'AME162',name:'Flash Flood',type:'strike',g:2,y:1,r:0,int:5,frc:4,text:'Counter from charged: charge any'},
-  AME163:{id:'AME163',name:'Ice Blooms',type:'strike',g:2,y:1,r:0,int:6,frc:4,text:'Red→charge any (once)'},
-  AME164:{id:'AME164',name:'Single Water Whip',type:'strike',g:2,y:1,r:0,int:5,frc:5,text:'Uncharge→charge any on counter'},
-  AME165:{id:'AME165',name:'Tidal Wave',type:'strike',g:1,y:2,r:1,int:6,frc:7,text:'-3Int→charge any (once)'},
-  AME148:{id:'AME148',name:'Boulder Smash',type:'strike',g:2,y:1,r:0,int:5,frc:5,text:'Opp focuses→+1 Frc'},
-  AME150:{id:'AME150',name:'Granite Block',type:'strike',g:1,y:1,r:1,int:7,frc:5,text:'Opp counters→uncharge their zone'},
-  AME151:{id:'AME151',name:'Ground Breaker',type:'strike',g:1,y:1,r:1,int:6,frc:2,text:'Opp counter→uncharge+elim ally+energy'},
-  AME001:{id:'AME001',name:'Blazing Axe Kick',type:'strike',g:2,y:1,r:0,int:6,frc:3,text:'Counter≤3Frc→+3Frc'},
-  AME003:{id:'AME003',name:'Burning Blade',type:'strike',g:2,y:1,r:0,int:5,frc:3,text:'Counter→opp uncharges'},
-  AME004:{id:'AME004',name:'Burning Disc',type:'strike',g:1,y:1,r:1,int:5,frc:6,text:'Counter→opp uncharges'},
-  AME009:{id:'AME009',name:'Flare',type:'strike',g:1,y:0,r:0,int:4,frc:3,text:'Counter→may elim green'},
-  AME041:{id:'AME041',name:'Bitter Batter',type:'strike',g:1,y:0,r:0,int:4,frc:3,text:'Counter from charged→add green'},
-  AME044:{id:'AME044',name:'Dancing Mists',type:'strike',g:1,y:2,r:0,int:4,frc:6,text:'Charged zone→+2 Int'},
-  AME050:{id:'AME050',name:'Sea Sphere',type:'strike',g:2,y:0,r:0,int:5,frc:5,text:'Counter→charge zone'},
-  AME051:{id:'AME051',name:'Snowball Smash',type:'strike',g:2,y:1,r:0,int:8,frc:5,text:'Counter→charge zone'},
-  AME054:{id:'AME054',name:'Surf Spray',type:'strike',g:2,y:0,r:0,int:5,frc:2,text:'Counter→+1green per charged zone'},
-  AME059:{id:'AME059',name:'Windmill Barrier',type:'strike',g:2,y:0,r:0,int:6,frc:5,text:"While opp defends: can't uncharge"},
-  AME023:{id:'AME023',name:'Canyon Sprint',type:'strike',g:2,y:0,r:0,int:5,frc:5,text:"While opp defends: can't charge"},
-  AME026:{id:'AME026',name:'Frost Daggers',type:'strike',g:1,y:1,r:0,int:6,frc:1,text:'Opp strikes cost +1Y'},
-  AME031:{id:'AME031',name:'Howling Wind',type:'strike',g:1,y:0,r:0,int:5,frc:5,text:'Opp focuses→-1Frc'},
-  AME082:{id:'AME082',name:'Crystal Rampart',type:'advantage',g:1,y:0,r:0,text:'Strikes +2 Int'},
-  AME085:{id:'AME085',name:'Immobilize',type:'advantage',g:1,y:0,r:0,text:"While opp defends: can't charge"},
-  AME086:{id:'AME086',name:'Misdirection',type:'advantage',g:2,y:0,r:0,text:'Opp skips green defense'},
-  AME087:{id:'AME087',name:'Riding the Crest',type:'advantage',g:1,y:0,r:0,text:'+2Frc in opp green zone'},
-  AME088:{id:'AME088',name:'Stand Firm',type:'advantage',g:2,y:0,r:0,text:'+1Int +1Frc in charged zone'},
-  AME089:{id:'AME089',name:'Take High Ground',type:'advantage',g:1,y:0,r:0,text:'+1Frc in charged zone'},
-  AME092:{id:'AME092',name:'Contemplate',type:'advantage',g:1,y:0,r:0,text:'Imm: Look at top 2',immediate:true},
-  AME094:{id:'AME094',name:'Meditate',type:'advantage',g:2,y:0,r:0,text:'Imm: Look at top 3',immediate:true},
-  AME095:{id:'AME095',name:'Pai Sho Mastery',type:'advantage',g:1,y:0,r:0,text:'Reflip: Elim Pai Sho',reflip:'g'},
-  AME098:{id:'AME098',name:'Training Scroll',type:'advantage',g:1,y:0,r:0,text:'On flip: reveal top card'},
-  AME099:{id:'AME099',name:'Water Kata',type:'advantage',g:1,y:0,r:0,text:'Counter→uncharge one+charge one'},
-  AME100:{id:'AME100',name:'Yip Yip!',type:'advantage',g:1,y:1,r:0,text:'Imm: Defend up one zone',immediate:true},
-  AME101:{id:'AME101',name:'Bad Breath',type:'advantage',g:1,y:0,r:0,text:'Imm: If charged→uncharge any',immediate:true},
-  AME102:{id:'AME102',name:'Channel the Winds',type:'advantage',g:3,y:0,r:0,text:'Imm: Charge any zone',immediate:true},
-  AME103:{id:'AME103',name:'Dust Storm',type:'advantage',g:2,y:0,r:0,text:'Counter→add yellow'},
-  AME105:{id:'AME105',name:'Fiery Temper',type:'advantage',g:1,y:1,r:0,text:'Reflip: Green; Imm: elim ally',immediate:true,reflip:'g'},
-  AME108:{id:'AME108',name:'Head Over Heels',type:'advantage',g:1,y:1,r:0,text:'Reflip: Green; Imm: uncharge',immediate:true,reflip:'g'},
-  AME109:{id:'AME109',name:'Highway Robbery',type:'advantage',g:1,y:0,r:0,text:'Opp counters green→add 2 green'},
-  AME119:{id:'AME119',name:'Aang',type:'ally',g:1,y:0,r:0,text:'+1 Int in Aang zone'},
-  AME120:{id:'AME120',name:'Appa',type:'ally',g:1,y:1,r:0,text:'On flip: swap with another ally'},
-  AME121:{id:'AME121',name:'Katara',type:'ally',g:1,y:0,r:0,text:'Yellow→charge zone on counter'},
-  AME123:{id:'AME123',name:'Momo',type:'ally',g:1,y:0,r:0,text:'Counter: each player +1 green'},
-  AME124:{id:'AME124',name:'Monk Gyatso',type:'ally',g:1,y:0,r:0,text:'On flip: reveal top card'},
-  AME125:{id:'AME125',name:'Jet',type:'ally',g:1,y:0,r:0,text:'Counter: each elim one ally'},
-  AME126:{id:'AME126',name:'Jojo',type:'ally',g:2,y:0,r:0,text:'Counter: elim opp green+add green',reflip:'g'},
-  AME128:{id:'AME128',name:'Pirate Captain',type:'ally',g:1,y:0,r:0,text:'Counter: look at top card'},
-  AME129:{id:'AME129',name:'Prince Zuko',type:'ally',g:1,y:0,r:0,text:'Elim energy→elim same color'},
-  AME130:{id:'AME130',name:'Uncle Iroh',type:'ally',g:1,y:0,r:0,text:'Before flip: look at top 2'},
-  AME131:{id:'AME131',name:'Afiko',type:'ally',g:1,y:1,r:0,text:'Counter: elim ally→opp charges zone'},
-  AME132:{id:'AME132',name:'Commander Zhao',type:'ally',g:1,y:1,r:0,text:'+1 Frc in Zhao zone'},
-  AME133:{id:'AME133',name:'Fire Nation Elite',type:'ally',g:1,y:0,r:0,text:'Counter: opp reveals top card'},
-  AME134:{id:'AME134',name:'Kinto',type:'ally',g:1,y:0,r:0,text:'Counter: elim ally→opp uncharges'},
-  AME135:{id:'AME135',name:'Prison Warden',type:'ally',g:1,y:0,r:0,text:'Red→opp elim ally (once)'},
+// Inline cards: all strikes from CSV (numbered 1-80), advantages (81-108+)
+// [id, name, type, trait, intercept, force, green, yellow, red, rules]
+const STRIKE_DB = {
+  1:{id:1,name:'Blazing Axe Kick',type:'strike',trait:'bull',int:6,for:3,g:2,y:1,r:0,rules:'When you counterattack against a strike that has 3 Force or less, gets +3 Force.'},
+  2:{id:2,name:'Boiling Point',type:'strike',trait:'bull',int:8,for:3,g:2,y:0,r:1,rules:'When you counterattack against a strike that has 3 Force or less, gets +3 Force.'},
+  3:{id:3,name:'Burning Blade',type:'strike',trait:'bull',int:5,for:3,g:2,y:1,r:0,rules:"When you counterattack, your opponent uncharges one of his or her zones."},
+  4:{id:4,name:'Burning Disc',type:'strike',trait:'bull',int:5,for:6,g:1,y:1,r:1,rules:"When you counterattack, your opponent uncharges one of his or her zones."},
+  5:{id:5,name:'Burning Lash',type:'strike',trait:'bull',int:7,for:4,g:1,y:2,r:0,rules:'-4 Intercept → When you counterattack, your opponent uncharges one of his or her zones.'},
+  7:{id:7,name:'Eye of Ozai',type:'strike',trait:'bull',int:4,for:6,g:0,y:2,r:0,rules:'Eliminate one of your allies → +1 Intercept. Use only once.'},
+  8:{id:8,name:'Fetch!',type:'strike',trait:'bull',int:5,for:4,g:3,y:0,r:0,rules:'When you counterattack, you may eliminate a green energy.'},
+  9:{id:9,name:'Flare',type:'strike',trait:'bull',int:4,for:3,g:0,y:1,r:0,rules:'When you counterattack, you may eliminate a green energy.'},
+  10:{id:10,name:'Flying Fire Fist',type:'strike',trait:'bull',int:5,for:7,g:1,y:2,r:1,rules:'When you counterattack, you may eliminate up to two green energy.'},
+  16:{id:16,name:'Searing Cage',type:'strike',trait:'bull',int:6,for:2,g:1,y:0,r:1,rules:'When you counterattack, your opponent eliminates one of his or her allies.'},
+  17:{id:17,name:'Stoke the Flames',type:'strike',trait:'bull',int:8,for:4,g:1,y:1,r:1,rules:'Eliminate one of your allies → When you counterattack, eliminate up to two green energy.'},
+  19:{id:19,name:'Titanic Fireball',type:'strike',trait:'bull',int:5,for:5,g:2,y:1,r:0,rules:'Eliminate one of your allies → When you counterattack, your opponent eliminates one of his or her allies.'},
+  20:{id:20,name:'Wildfire Arc',type:'strike',trait:'bull',int:7,for:6,g:2,y:1,r:1,rules:'-4 Intercept → When you counterattack, your opponent eliminates one of his or her allies.'},
+  35:{id:35,name:'Swirling Flames',type:'strike',trait:'fox',int:5,for:6,g:2,y:0,r:1,rules:'Red → +2 Intercept. Use only once.'},
+  41:{id:41,name:'Bitter Batter',type:'strike',trait:'lion',int:4,for:3,g:0,y:1,r:0,rules:'When you counterattack from a charged zone, add a green energy.'},
+  44:{id:44,name:'Dancing Mists',type:'strike',trait:'lion',int:4,for:6,g:1,y:2,r:0,rules:'While this zone is charged, Dancing Mists has +2 Intercept.'},
+  45:{id:45,name:'Double Crest',type:'strike',trait:'lion',int:6,for:3,g:2,y:1,r:0,rules:'For each ally you have, Double Crest has +1 Force.'},
+  47:{id:47,name:'Just Desserts',type:'strike',trait:'lion',int:7,for:1,g:0,y:2,r:0,rules:'When you counterattack from a charged zone, add a green energy.'},
+  49:{id:49,name:'Mischievous Downpour',type:'strike',trait:'lion',int:3,for:4,g:1,y:0,r:0,rules:'Reflip: Green | When you counterattack, charge this zone.'},
+  50:{id:50,name:'Sea Sphere',type:'strike',trait:'lion',int:5,for:5,g:0,y:2,r:0,rules:'When you counterattack, charge this zone.'},
+  51:{id:51,name:'Snowball Smash',type:'strike',trait:'lion',int:8,for:5,g:0,y:2,r:1,rules:'When you counterattack, charge this zone.'},
+  52:{id:52,name:'Stifling Breeze',type:'strike',trait:'lion',int:6,for:4,g:3,y:0,r:0,rules:"While your opponent is defending, your allies cannot be moved or eliminated."},
+  54:{id:54,name:'Surf Spray',type:'strike',trait:'lion',int:5,for:2,g:0,y:2,r:0,rules:'When you counterattack, add a green energy for each charged zone you have.'},
+  55:{id:55,name:'Sweet Revenge',type:'strike',trait:'lion',int:5,for:3,g:3,y:0,r:0,rules:'-1 Intercept → When you counterattack, add a green energy.'},
+  24:{id:24,name:'Careening Koi',type:'strike',trait:'fox',int:5,for:4,g:3,y:0,r:0,rules:'When you counterattack, you may move one of your yellow energy to your red zone.'},
+  40:{id:40,name:'Wind on the Waves',type:'strike',trait:'fox',int:4,for:4,g:2,y:0,r:0,rules:'When you counterattack, you may move one of your green energy to your yellow zone.'},
+  31:{id:31,name:'Howling Wind',type:'strike',trait:'fox',int:5,for:5,g:0,y:0,r:1,rules:'Whenever your opponent focuses, Howling Wind gets -1 Force.'},
+  23:{id:23,name:'Canyon Sprint',type:'strike',trait:'fox',int:5,for:5,g:0,y:2,r:0,rules:"While your opponent is defending, his or her zones cannot be charged."},
+  63:{id:63,name:'Canyon Crawler Clash',type:'strike',trait:'',int:6,for:6,g:1,y:1,r:1,rules:''},
+  64:{id:64,name:'Coal Rake',type:'strike',trait:'',int:5,for:1,g:1,y:0,r:1,rules:'When you counterattack, your opponent uncharges one of his or her zones.'},
+  68:{id:68,name:'Evade',type:'strike',trait:'',int:3,for:1,g:1,y:0,r:0,rules:'Red → +4 Intercept. Use only once.'},
+  70:{id:70,name:'Knuckle Sandwich',type:'strike',trait:'',int:6,for:4,g:2,y:1,r:0,rules:''},
+  75:{id:75,name:'Pummel',type:'strike',trait:'',int:4,for:4,g:2,y:0,r:0,rules:'Green → +1 Intercept. Use only once.'},
+  77:{id:77,name:'Skewer',type:'strike',trait:'',int:3,for:6,g:0,y:1,r:0,rules:''},
+  80:{id:80,name:'Will of the Warrior',type:'strike',trait:'',int:4,for:7,g:3,y:0,r:1,rules:''},
+  65:{id:65,name:'Downdraft',type:'strike',trait:'',int:4,for:3,g:1,y:0,r:0,rules:''},
+  79:{id:79,name:'Tremor Trail',type:'strike',trait:'',int:5,for:6,g:1,y:2,r:0,rules:''},
+  71:{id:71,name:'Kyoshi Backhand',type:'strike',trait:'',int:4,for:4,g:0,y:0,r:1,rules:"When you counterattack, your opponent eliminates one of his or her energy."},
+  56:{id:56,name:'Tandem Attack',type:'strike',trait:'lion',int:5,for:4,g:2,y:1,r:0,rules:"While you have an ally in this zone, Tandem Attack has +2 Force."},
+  42:{id:42,name:'Blowback',type:'strike',trait:'lion',int:5,for:5,g:1,y:2,r:0,rules:"Your opponent skips defending in his or her green zone."},
+  59:{id:59,name:'Windmill Barrier',type:'strike',trait:'lion',int:6,for:5,g:0,y:2,r:0,rules:"While your opponent is defending, your zones cannot be uncharged."},
 };
 
-const CHARS = {
-  aang:{id:'aang',name:'Aang',el:'air',color:'#87ceeb',emoji:'🌀',
-    cf:{name:'Penguin Sledding',int:5,frc:7},cb:{name:'Taming Unagi',int:0,frc:9},deck:null},
-  katara:{id:'katara',name:'Katara',el:'water',color:'#4a8fc8',emoji:'💧',
-    cf:{name:'Arctic Sheath',int:6,frc:4},cb:{name:'Whirlpool',int:0,frc:9},deck:null},
-  zuko:{id:'zuko',name:'Prince Zuko',el:'fire',color:'#ff6b35',emoji:'🔥',
-    cf:{name:'Meltdown',int:6,frc:1},cb:{name:'Night of Flames',int:0,frc:9},deck:null},
-  iroh:{id:'iroh',name:'Uncle Iroh',el:'fire',color:'#c8a04a',emoji:'☕',
-    cf:{name:'Firecrackers',int:5,frc:5},cb:{name:'Smokescreen',int:0,frc:8},deck:null},
-  bumi:{id:'bumi',name:'King Bumi',el:'earth',color:'#6aa84f',emoji:'⛰️',
-    cf:{name:'Omashu Dodgeball',int:6,frc:5},cb:{name:'Stone Heel',int:0,frc:7},deck:null},
-  zhao:{id:'zhao',name:'Cmdr. Zhao',el:'fire',color:'#8b2a2a',emoji:'⚔️',
-    cf:{name:'No Mercy',int:5,frc:4},cb:{name:'Open Fire!',int:0,frc:6},deck:null},
+const ADV_DB = {
+  83:{id:83,name:'Dive for Cover',type:'advantage',trait:'body',g:1,y:0,r:0,immediate:false,rules:'Your strikes have +1 Intercept while in one of your charged zones.',effect:'intercept_in_charged'},
+  88:{id:88,name:'Stand Firm',type:'advantage',trait:'body',g:2,y:0,r:0,immediate:false,rules:'Your strikes have +1 Intercept and +1 Force while in one of your charged zones.',effect:'both_in_charged'},
+  89:{id:89,name:'Take the High Ground',type:'advantage',trait:'body',g:1,y:0,r:0,immediate:false,rules:'Your strikes have +1 Force while in one of your charged zones.',effect:'force_in_charged'},
+  87:{id:87,name:'Riding the Crest',type:'advantage',trait:'body',g:1,y:0,r:0,immediate:false,rules:'While your opponent is defending in his or her green zone, your strikes have +2 Force.',effect:'force_vs_green'},
+  85:{id:85,name:'Immobilize',type:'advantage',trait:'body',g:1,y:0,r:0,immediate:false,rules:"While your opponent is defending, his or her zones cannot be charged.",effect:'lock_opponent_charge'},
+  92:{id:92,name:'Contemplate',type:'advantage',trait:'mind',g:1,y:0,r:0,immediate:true,rules:'Immediate — Look at the top two cards of your deck. Put them back in any order.',effect:'look_top2'},
+  94:{id:94,name:'Meditate',type:'advantage',trait:'mind',g:2,y:0,r:0,immediate:true,rules:'Immediate — Look at the top three cards of your deck. Put them back in any order.',effect:'look_top3'},
+  98:{id:98,name:'Training Scroll',type:'advantage',trait:'mind',g:1,y:0,r:0,immediate:false,rules:'Whenever you flip a card, turn the top card of your deck face up.',effect:'reveal_on_flip'},
+  99:{id:99,name:'Water Kata',type:'advantage',trait:'mind',g:0,y:1,r:0,immediate:false,rules:'When you counterattack, you may uncharge one of your zones. If you do, charge one of your zones.',effect:'swap_charge'},
+  103:{id:103,name:'Dust Storm',type:'advantage',trait:'spirit',g:2,y:0,r:0,immediate:false,rules:'When you counterattack, add a yellow energy.',effect:'add_yellow_on_ca'},
+  102:{id:102,name:'Channel the Winds',type:'advantage',trait:'spirit',g:3,y:0,r:0,immediate:true,rules:'Immediate — You may charge any zone. (You also charge this zone as normal.)',effect:'charge_any'},
+  107:{id:107,name:'Glorious Feast',type:'advantage',trait:'spirit',g:3,y:0,r:0,immediate:true,rules:'Immediate — Add a red energy.',effect:'add_red'},
+  86:{id:86,name:'Misdirection',type:'advantage',trait:'body',g:2,y:0,r:0,immediate:false,rules:"Your opponent skips defending in his or her green zone.",effect:'skip_opp_green'},
+  81:{id:81,name:'Churning Stomachs',type:'advantage',trait:'body',g:2,y:0,r:0,immediate:false,rules:"Your opponent's strikes cost an additional yellow energy to play.",effect:'opp_extra_yellow'},
+  93:{id:93,name:'Incinerate',type:'advantage',trait:'mind',g:1,y:0,r:0,immediate:true,rules:"Immediate — Your opponent turns the top card of his or her deck face up. You may have your opponent put that card into his or her discard pile.",effect:'peek_opp_top'},
+  104:{id:104,name:'Expendable Troops',type:'advantage',trait:'spirit',g:1,y:0,r:0,immediate:true,rules:'Immediate — You may eliminate one of your allies. If you do, eliminate one of your opponent\'s allies.',effect:'trade_allies'},
+  105:{id:105,name:'Fiery Temper',type:'advantage',trait:'spirit',g:1,y:1,r:0,immediate:true,rules:'Reflip: Green | Immediate — You may eliminate an ally.',effect:'elim_ally'},
 };
 
-function buildDeck(cid){
-  const d=[];const add=(id,n)=>{for(let i=0;i<n;i++)d.push({...CARDS[id],uid:Math.random()});};
-  if(cid==='aang'){add('AME063',2);add('AME065',2);add('AME068',2);add('AME074',2);add('AME080',2);add('AME142',2);add('AME145',2);add('AME147',2);add('AME041',2);add('AME044',2);add('AME092',2);add('AME098',2);add('AME115',2);add('AME113',1);add('AME119',1);add('AME123',2);add('AME124',1);}
-  else if(cid==='katara'){add('AME063',2);add('AME065',2);add('AME068',2);add('AME074',2);add('AME080',2);add('AME160',2);add('AME162',2);add('AME164',2);add('AME041',2);add('AME051',2);add('AME092',2);add('AME094',1);add('AME099',2);add('AME115',1);add('AME119',1);add('AME121',1);add('AME123',2);}
-  else if(cid==='zuko'){add('AME063',2);add('AME068',2);add('AME070',2);add('AME077',2);add('AME080',2);add('AME154',2);add('AME155',2);add('AME001',2);add('AME003',2);add('AME004',2);add('AME085',2);add('AME088',2);add('AME089',2);add('AME113',1);add('AME129',1);add('AME128',2);add('AME125',1);}
-  else if(cid==='iroh'){add('AME063',2);add('AME068',2);add('AME070',2);add('AME077',2);add('AME079',2);add('AME154',2);add('AME023',2);add('AME026',2);add('AME031',2);add('AME157',2);add('AME103',2);add('AME105',2);add('AME108',2);add('AME113',1);add('AME130',1);add('AME128',2);add('AME135',1);}
-  else if(cid==='bumi'){add('AME063',2);add('AME070',2);add('AME078',2);add('AME079',2);add('AME080',2);add('AME148',2);add('AME150',2);add('AME001',2);add('AME003',2);add('AME004',2);add('AME102',2);add('AME109',2);add('AME115',2);add('AME113',1);add('AME123',1);add('AME124',2);add('AME137',1);}
-  else{add('AME063',2);add('AME068',2);add('AME070',2);add('AME077',2);add('AME080',2);add('AME154',2);add('AME155',2);add('AME004',2);add('AME009',2);add('AME001',2);add('AME082',2);add('AME085',2);add('AME086',2);add('AME113',1);add('AME132',1);add('AME133',2);add('AME135',1);}
-  return shuffle(d);
-}
-function shuffle(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
+// Ally definitions
+const ALLY_DB = {
+  katara:{id:'katara',name:'Katara',type:'ally',g:1,y:0,r:0,rules:"Your strikes in Katara's zone have +1 Intercept.",forceBonus:0,intBonus:1,color:'#1a3a5a'},
+  sokka:{id:'sokka',name:'Sokka',type:'ally',g:0,y:1,r:0,rules:"Your strikes in Sokka's zone have +1 Force.",forceBonus:1,intBonus:0,color:'#2a3a5a'},
+  toph:{id:'toph',name:'Toph',type:'ally',g:1,y:1,r:0,rules:"Your strikes in Toph's zone have +2 Force.",forceBonus:2,intBonus:0,color:'#2a3a1a'},
+  appa:{id:'appa',name:'Appa',type:'ally',g:1,y:0,r:0,rules:"When you counterattack from Appa's zone, add a green energy.",forceBonus:0,intBonus:0,color:'#3a3a4a'},
+  momo:{id:'momo',name:'Momo',type:'ally',g:0,y:0,r:1,rules:"Your strikes in Momo's zone have +1 Force and +1 Intercept.",forceBonus:1,intBonus:1,color:'#2a1a0a'},
+  iroh:{id:'iroh',name:'Uncle Iroh',type:'ally',g:1,y:1,r:0,rules:"Your strikes in Uncle Iroh's zone have +1 Force and +1 Intercept.",forceBonus:1,intBonus:1,color:'#3a1a0a'},
+  azula:{id:'azula',name:'Azula',type:'ally',g:0,y:1,r:1,rules:"Your strikes in Azula's zone have +3 Force.",forceBonus:3,intBonus:0,color:'#1a0a2a'},
+  tylee:{id:'tylee',name:'Ty Lee',type:'ally',g:1,y:0,r:0,rules:"Your strikes in Ty Lee's zone have +1 Intercept.",forceBonus:0,intBonus:1,color:'#3a1a2a'},
+  mai:{id:'mai',name:'Mai',type:'ally',g:0,y:1,r:0,rules:"Your strikes in Mai's zone have +1 Force.",forceBonus:1,intBonus:0,color:'#1a1a1a'},
+  ltjee:{id:'ltjee',name:'Lt. Jee',type:'ally',g:1,y:0,r:0,rules:"Your strikes in Lt. Jee's zone have +1 Force.",forceBonus:1,intBonus:0,color:'#2a1a0a'},
+};
 
-// ================================================================
+// Chamber cards
+const CHAMBERS = {
+  aang:{
+    id:'aang',name:'Aang',type:'chamber',
+    traits:['lion','body','light','air'],
+    color:'#1a3a5a',
+    frontSig:{name:'Penguin Sledding',int:5,for:4,g:0,y:1,r:0,rules:"When you counterattack from a charged zone, add a green energy."},
+    backSig:{name:'Taming the Unagi',int:7,for:7,g:1,y:1,r:0,rules:"When you counterattack, charge all of your zones."}
+  },
+  zuko:{
+    id:'zuko',name:'Zuko',type:'chamber',
+    traits:['bull','mind','shadow','fire'],
+    color:'#5a1a0a',
+    frontSig:{name:'Royal Flame',int:5,for:6,g:1,y:0,r:1,rules:"When you counterattack, your opponent uncharges one of his or her zones."},
+    backSig:{name:'Blue Flame',int:7,for:9,g:1,y:1,r:1,rules:"When you counterattack, eliminate all of your opponent's green energy."}
+  }
+};
+
+// Deck templates (card IDs + counts)
+const AANG_DECK_TEMPLATE = [
+  {id:41,count:2},{id:44,count:2},{id:45,count:2},{id:47,count:2},{id:49,count:2},
+  {id:50,count:1},{id:51,count:1},{id:52,count:1},{id:54,count:1},{id:55,count:1},
+  {id:24,count:1},{id:40,count:1},{id:65,count:1},{id:56,count:1},{id:42,count:1},
+  // Advantages
+  {id:'a83',count:1},{id:'a89',count:1},{id:'a92',count:1},{id:'a94',count:1},
+  {id:'a98',count:1},{id:'a99',count:1},{id:'a103',count:1},{id:'a102',count:1},
+  {id:'a107',count:1},
+  // Allies
+  {id:'ly_katara',count:2},{id:'ly_sokka',count:2},{id:'ly_toph',count:1},
+  {id:'ly_appa',count:1},{id:'ly_momo',count:1}
+];
+
+const ZUKO_DECK_TEMPLATE = [
+  {id:1,count:2},{id:2,count:2},{id:3,count:2},{id:4,count:2},{id:9,count:2},
+  {id:16,count:1},{id:17,count:1},{id:19,count:1},{id:20,count:1},{id:35,count:1},
+  {id:63,count:1},{id:64,count:1},{id:70,count:1},{id:77,count:1},{id:71,count:1},
+  // Advantages
+  {id:'a81',count:1},{id:'a85',count:1},{id:'a87',count:1},{id:'a93',count:1},
+  {id:'a104',count:1},{id:'a105',count:1},{id:'a88',count:1},{id:'a86',count:1},
+  {id:'a83',count:1},
+  // Allies
+  {id:'ly_iroh',count:2},{id:'ly_azula',count:1},{id:'ly_tylee',count:1},
+  {id:'ly_mai',count:2},{id:'ly_ltjee',count:1}
+];
+
+// ============================================================
 // GAME STATE
-// ================================================================
-let G={screen:'title',selecting:0,players:[null,null],turn:0,incomingForce:4,fromSigMove:false,defenseZone:0,flippedCard:null,phase:'cleanup',log:[],round:0,winner:-1};
+// ============================================================
+let G = null; // global game state
+let selectedChars = { p1: 'aang', p2: 'zuko' };
 
-function newPlayer(cid){
-  const ch=CHARS[cid];
-  const deck=buildDeck(cid);
-  const disc=deck.splice(0,4);
-  const eg=deck.splice(0,3).map(c=>({...c,faceDown:true}));
-  const ey=deck.splice(0,3).map(c=>({...c,faceDown:true}));
-  const er=deck.splice(0,3).map(c=>({...c,faceDown:true}));
-  return {cid,name:ch.name,color:ch.color,emoji:ch.emoji,cf:true,cfm:{...ch.cf},cbm:{...ch.cb},score:0,deck,disc,adv:[],cStrike:null,
-    zones:[{energy:[...eg],ally:null,flipCard:null,charged:false},{energy:[...ey],ally:null,flipCard:null,charged:false},{energy:[...er],ally:null,flipCard:null,charged:false}]};
+// Payment tracking
+let pendingPayment = null;
+
+// Pending action (what we do after energy is paid)
+let pendingAction = null;
+
+// ============================================================
+// UTILITY
+// ============================================================
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
 }
-const addLog=m=>{G.log.unshift(m);if(G.log.length>30)G.log.pop();};
-function addEnergy(pi,col,amt){
-  const p=G.players[pi],zi={g:0,y:1,r:2}[col],zone=p.zones[zi];
-  for(let i=0;i<amt;i++){
-    if(p.disc.length>0){zone.energy.push({...p.disc.shift(),faceDown:true});}
-    else if(p.deck.length>0){const t=p.deck.splice(0,Math.min(4,p.deck.length));p.disc.push(...t);if(p.disc.length>0)zone.energy.push({...p.disc.shift(),faceDown:true});}
+
+function cardImg(id) {
+  if (typeof id === 'number') return IMG_BASE + id + '.jpg';
+  if (typeof id === 'string' && id.startsWith('a')) {
+    const numId = parseInt(id.slice(1));
+    return IMG_BASE + numId + '.jpg';
+  }
+  return CARD_BACK;
+}
+
+function buildDeck(template, charId) {
+  const cards = [];
+  let uid = 0;
+  for (const entry of template) {
+    const id = entry.id;
+    for (let c = 0; c < entry.count; c++) {
+      uid++;
+      if (typeof id === 'number') {
+        const base = STRIKE_DB[id];
+        if (!base) continue;
+        cards.push({...base, uid: charId+'_'+uid, imgUrl: cardImg(id)});
+      } else if (typeof id === 'string' && id.startsWith('a')) {
+        const numId = parseInt(id.slice(1));
+        const base = ADV_DB[numId];
+        if (!base) continue;
+        cards.push({...base, uid: charId+'_'+uid, imgUrl: cardImg(id)});
+      } else if (typeof id === 'string' && id.startsWith('ly_')) {
+        const allyId = id.slice(3);
+        const base = ALLY_DB[allyId];
+        if (!base) continue;
+        cards.push({...base, uid: charId+'_'+uid, imgUrl: null});
+      }
+    }
+  }
+  return shuffle(cards);
+}
+
+function makePlayer(pIdx, charId, template) {
+  const chamber = CHAMBERS[charId];
+  const deck = buildDeck(template, charId);
+  // Deal 3 energy per zone (face-down cards from deck)
+  const green_energy = deck.splice(0, 3);
+  const yellow_energy = deck.splice(0, 3);
+  const red_energy = deck.splice(0, 3);
+  // Deal 4 to discard
+  const discard = deck.splice(0, 4);
+  return {
+    idx: pIdx,
+    name: 'Player ' + (pIdx + 1),
+    charId,
+    chamber,
+    chamberFrontActive: true, // which sig move is available
+    deck,
+    discard,
+    advantageArea: [],
+    zones: {
+      green:  { energy: green_energy,  ally: null, flipCard: null, charged: false, name: 'green' },
+      yellow: { energy: yellow_energy, ally: null, flipCard: null, charged: false, name: 'yellow' },
+      red:    { energy: red_energy,    ally: null, flipCard: null, charged: false, name: 'red' }
+    },
+    score: 0,
+    currentStrike: null, // the strike they just counterattacked with
+    currentStrikeZone: null, // which zone they counterattacked from
+  };
+}
+
+function calcForceInDiscard(player) {
+  return player.discard.reduce((sum, c) => sum + (c.for || 0), 0);
+}
+
+function initGame() {
+  const p1char = selectedChars.p1;
+  const p2char = selectedChars.p2;
+  const p1template = p1char === 'aang' ? AANG_DECK_TEMPLATE : ZUKO_DECK_TEMPLATE;
+  const p2template = p2char === 'aang' ? AANG_DECK_TEMPLATE : ZUKO_DECK_TEMPLATE;
+
+  const p1 = makePlayer(0, p1char, p1template);
+  const p2 = makePlayer(1, p2char, p2template);
+
+  p1.name = 'Player 1 (' + CHAMBERS[p1char].name + ')';
+  p2.name = 'Player 2 (' + CHAMBERS[p2char].name + ')';
+
+  G = {
+    players: [p1, p2],
+    phase: 'OPENING_CHOOSE', // who defends opening
+    step: null,
+    defender: 0, // who is currently defending
+    attacker: 1, // who sent the last attack
+    incomingForce: 4, // force of the incoming strike
+    attackFromZone: 'opening', // zone where attacker counterattacked from
+    currentZone: 'green', // zone defender is currently in
+    zoneOrder: ['green','yellow','red'],
+    roundNum: 0,
+    log: [],
+    pointJustScored: false,
+    skipGreenZone: false, // effect from Blowback etc
+  };
+
+  // Determine who chooses based on discard Force
+  const f0 = calcForceInDiscard(p1);
+  const f1 = calcForceInDiscard(p2);
+  addLog(`Opening cards revealed. ${p1.name} Force: ${f0} | ${p2.name} Force: ${f1}`);
+
+  if (f0 > f1) {
+    addLog(`${p1.name} has higher force — choosing who defends the opening attack.`);
+    G.choosingPlayer = 0;
+  } else if (f1 > f0) {
+    addLog(`${p2.name} has higher force — choosing who defends the opening attack.`);
+    G.choosingPlayer = 1;
+  } else {
+    // Tie: keep revealing until broken (simplified: P1 chooses)
+    addLog('Tie! Player 1 will choose who defends.');
+    G.choosingPlayer = 0;
   }
 }
-function chargeZone(pi,zi){const z=G.players[pi].zones[zi];if(!z.charged){z.charged=true;addLog(`${['Green','Yellow','Red'][zi]} zone charged!`);}}
-function canPay(pi,card){
-  const p=G.players[pi];let gN=card.g||0,yN=card.y||0,rN=card.r||0;
-  let gH=p.zones[0].energy.length,yH=p.zones[1].energy.length,rH=p.zones[2].energy.length;
-  if(rH<rN)return false;rH-=rN;
-  if(yH<yN){const fr=yN-yH;if(rH<fr)return false;rH-=fr;yH=0;}else yH-=yN;
-  return gH+yH+rH>=gN;
-}
-function payCost(pi,card){
-  const p=G.players[pi];let gN=card.g||0,yN=card.y||0,rN=card.r||0;
-  const rem=zone=>{const c=zone.energy.pop();if(c)p.disc.unshift(c);};
-  for(let i=0;i<rN;i++)rem(p.zones[2]);
-  let yP=0;for(let i=0;i<yN&&p.zones[1].energy.length>0;i++){rem(p.zones[1]);yP++;}
-  while(yP<yN&&p.zones[2].energy.length>0){rem(p.zones[2]);yP++;}
-  let gP=0;while(gP<gN&&p.zones[0].energy.length>0){rem(p.zones[0]);gP++;}
-  while(gP<gN&&p.zones[1].energy.length>0){rem(p.zones[1]);gP++;}
-  while(gP<gN&&p.zones[2].energy.length>0){rem(p.zones[2]);gP++;}
-}
-function effInt(card){
-  const p=G.players[G.turn];let b=card.int||0;
-  p.adv.forEach(a=>{if(a.id==='AME115')b+=1;if(a.id==='AME082')b+=2;if(a.id==='AME088'&&p.zones[G.defenseZone].charged)b+=1;if(a.id==='AME114'&&G.defenseZone===2)b+=1;});
-  const ally=p.zones[G.defenseZone].ally;if(ally&&ally.id==='AME119')b+=1;
-  return b;
-}
-function effFrc(card){
-  const p=G.players[G.turn];let b=card.frc||0;
-  p.adv.forEach(a=>{if(a.id==='AME113')b+=1;if(a.id==='AME112')b+=1;if(a.id==='AME089'&&p.zones[G.defenseZone].charged)b+=1;if(a.id==='AME088'&&p.zones[G.defenseZone].charged)b+=1;});
-  return b;
-}
-function allCharged(pi){return G.players[pi].zones.every(z=>z.charged);}
 
-// ================================================================
+function addLog(msg) {
+  if (!G) return;
+  G.log.unshift(msg);
+  if (G.log.length > 20) G.log.pop();
+  const el = document.getElementById('log-area');
+  if (el) el.textContent = msg;
+}
+
+// ============================================================
 // GAME FLOW
-// ================================================================
-function startGame(){
-  const p0=G.players[0],p1=G.players[1];
-  const f0=p0.disc.reduce((s,c)=>s+(c.frc||0),0),f1=p1.disc.reduce((s,c)=>s+(c.frc||0),0);
-  G.turn=f0>=f1?1:0;
-  addLog(`${G.players[G.turn].name} defends opening attack (Force 4).`);
-  addEnergy(G.turn,'g',1);
-  G.incomingForce=4;G.fromSigMove=false;G.defenseZone=0;G.flippedCard=null;G.phase='cleanup';
-  doCleanup();
+// ============================================================
+function setOpeningAttackDefender(defIdx) {
+  G.defender = defIdx;
+  G.attacker = 1 - defIdx;
+  const def = G.players[defIdx];
+  // Defender gets +1 green energy
+  if (def.deck.length > 0) {
+    def.zones.green.energy.push(def.deck.shift());
+  }
+  addLog(`${def.name} defends the opening attack (Force 4) and gains +1 green energy!`);
+  G.incomingForce = 4;
+  G.attackFromZone = 'opening';
+  G.phase = 'DEFENSE';
+  G.step = 'FLIP';
+  G.currentZone = 'green';
+  G.skipGreenZone = false;
+  renderAll();
 }
 
-function doCleanup(){
-  const p=G.players[G.turn];
-  if(p.cStrike){p.disc.unshift(p.cStrike);p.cStrike=null;}
-  p.disc.unshift(...p.adv);p.adv=[];
-  p.zones.forEach(z=>{if(z.flipCard&&!z.flipCard.sideways){p.disc.unshift(z.flipCard);z.flipCard=null;}});
-  G.phase='replenish';addLog(`${p.name}: Cleanup done.`);render();
+function startTurn(playerIdx) {
+  // Called when it's a player's turn after opponent counterattacked
+  const p = G.players[playerIdx];
+  G.defender = playerIdx;
+  G.attacker = 1 - playerIdx;
+  G.phase = 'TURN';
+  G.step = 'CLEANUP';
+
+  addLog(`${p.name}'s turn begins — Cleanup phase.`);
+  doCleanup(playerIdx);
 }
 
-function doReplenish(){
-  const p=G.players[G.turn],opp=G.players[1-G.turn];let zone=-1;
-  if(opp.cStrike&&!G.fromSigMove){for(let i=0;i<3;i++){if(opp.zones[i].flipCard===opp.cStrike)zone=i;}if(zone===-1)zone=0;}
-  if(G.fromSigMove||zone===-1){addLog(`${p.name}: No energy replenish.`);}
-  else{for(let i=0;i<=zone;i++)addEnergy(G.turn,['g','y','r'][i],1);addLog(`${p.name}: Replenished from ${['green','yellow','red'][zone]} zone.`);}
-  G.phase='sigMove';render();
+function doCleanup(playerIdx) {
+  const p = G.players[playerIdx];
+  // Move current strike to discard (it was in their flip zone already)
+  for (const zname of ['green','yellow','red']) {
+    const z = p.zones[zname];
+    if (z.flipCard) {
+      p.discard.push(z.flipCard);
+      z.flipCard = null;
+    }
+  }
+  // Move advantage area to discard
+  while (p.advantageArea.length > 0) {
+    p.discard.push(p.advantageArea.pop());
+  }
+  G.step = 'REPLENISH';
+  doReplenish(playerIdx);
 }
 
-function doSigMove(){
-  const p=G.players[G.turn];
-  if(!allCharged(G.turn)){proceedToFlip();return;}
-  const sig=p.cf?p.cfm:p.cbm;
-  if((sig.int||0)>=G.incomingForce){
-    addLog(`${p.name} plays ${sig.name}! Force ${sig.frc}`);
-    G.fromSigMove=true;G.players[1-G.turn].score++;checkWin();advanceTurn(sig.frc||0);
-  }else{proceedToFlip();}
+function doReplenish(playerIdx) {
+  const p = G.players[playerIdx];
+  const opp = G.players[G.attacker];
+  const zone = opp.currentStrikeZone; // zone opp counterattacked from
+  addLog(`Replenish based on opponent counterattack from: ${zone || 'opening'}`);
+
+  if (zone === 'opening' || zone === 'signature' || !zone) {
+    addLog('No energy replenished (opening/signature move).');
+  } else {
+    if (zone === 'green') {
+      gainEnergy(p, 'green', 1);
+    } else if (zone === 'yellow') {
+      gainEnergy(p, 'green', 1);
+      gainEnergy(p, 'yellow', 1);
+    } else if (zone === 'red') {
+      gainEnergy(p, 'green', 1);
+      gainEnergy(p, 'yellow', 1);
+      gainEnergy(p, 'red', 1);
+    }
+  }
+
+  G.step = 'SIGNATURE';
+  renderAll();
+  checkSignatureMove(playerIdx);
 }
 
-function proceedToFlip(){
-  G.phase='flip';G.defenseZone=0;G.flippedCard=null;
-  addLog(`${G.players[G.turn].name}: Flip phase begins.`);render();
+function gainEnergy(player, color, amount) {
+  for (let i = 0; i < amount; i++) {
+    if (player.discard.length > 0) {
+      player.zones[color].energy.push(player.discard.shift());
+      addLog(`${player.name} gains 1 ${color} energy.`);
+    } else if (player.deck.length > 0) {
+      // Edge case: pull from deck
+      player.zones[color].energy.push(player.deck.shift());
+    }
+  }
 }
 
-function onDeckClick(){
-  if(G.phase!=='flip'||G.flippedCard)return;
-  const p=G.players[G.turn];
-  if(p.deck.length===0){addLog('Deck empty!');return;}
-  const card={...p.deck.shift(),faceDown:true};
-  p.zones[G.defenseZone].flipCard=card;
-  G.flippedCard=card;
-  addLog(`${p.name} draws to ${['Green','Yellow','Red'][G.defenseZone]} zone.`);
-  renderZones();
-  // Animate flip
-  setTimeout(()=>{
-    const el=document.getElementById(`c3d-${G.defenseZone}`);
-    if(el){el.classList.add('flipped');setTimeout(()=>{G.flippedCard.faceDown=false;showCardHUD(G.flippedCard);renderZones();renderActions();},560);}
-  },80);
-}
-
-function onFlipZoneClick(zi){
-  const p=G.players[G.turn];const z=p.zones[zi];
-  if(!z.flipCard){if(G.phase==='flip'&&zi===G.defenseZone&&!G.flippedCard)addLog('Click the Deck to draw!');return;}
-  if(z.flipCard.faceDown){
-    z.flipCard.faceDown=false;G.flippedCard=z.flipCard;G.defenseZone=zi;
-    const el=document.getElementById(`c3d-${zi}`);if(el)el.classList.add('flipped');
-    addLog(`${p.name} flips ${z.flipCard.name}.`);
-    setTimeout(()=>{showCardHUD(G.flippedCard);renderZones();renderActions();},560);
+function checkSignatureMove(playerIdx) {
+  const p = G.players[playerIdx];
+  const allCharged = p.zones.green.charged && p.zones.yellow.charged && p.zones.red.charged;
+  if (allCharged) {
+    // Show signature move modal
+    const sig = p.chamberFrontActive ? p.chamber.frontSig : p.chamber.backSig;
+    document.getElementById('sig-name').textContent = sig.name;
+    document.getElementById('sig-stats').textContent =
+      `Intercept: ${sig.int} | Force: ${sig.for} | Cost: ${sig.g}G ${sig.y}Y ${sig.r}R`;
+    document.getElementById('sig-rules').textContent = sig.rules;
+    document.getElementById('sig-modal').style.display = 'flex';
     return;
   }
-  if(!z.flipCard.faceDown&&G.defenseZone===zi){G.flippedCard=z.flipCard;showCardHUD(G.flippedCard);renderActions();}
+  goToFlipStep(playerIdx);
 }
 
-function onChargeClick(zi){
-  if(!G.flippedCard)return;
-  doFocusAction(zi);
+function skipSig() {
+  document.getElementById('sig-modal').style.display = 'none';
+  goToFlipStep(G.defender);
 }
 
-function onAllyClick(zi){
-  const a=G.players[G.turn].zones[zi].ally;
-  if(a)addLog(`Ally: ${a.name} — ${a.text}`);
-}
+function useSig() {
+  document.getElementById('sig-modal').style.display = 'none';
+  const p = G.players[G.defender];
+  const sig = p.chamberFrontActive ? p.chamber.frontSig : p.chamber.backSig;
+  const force = G.incomingForce;
 
-// Actions
-function doCounterattack(){
-  const p=G.players[G.turn],card=G.flippedCard;
-  if(!card||card.type!=='strike')return;if(!canPay(G.turn,card))return;
-  payCost(G.turn,card);const frc=effFrc(card);
-  card.sideways=true;p.cStrike=card;p.zones[G.defenseZone].flipCard=card;
-  if(card.id==='AME155'||card.id==='AME050'||card.id==='AME051')chargeZone(G.turn,G.defenseZone);
-  if(card.id==='AME041'&&p.zones[G.defenseZone].charged)addEnergy(G.turn,'g',1);
-  addLog(`${p.name} counterattacks with ${card.name}! Force ${frc}`);
-  G.flippedCard=null;hideCardHUD();advanceTurn(frc);
-}
-function doPlayAdv(){
-  const p=G.players[G.turn],card=G.flippedCard;
-  if(!card||card.type!=='advantage')return;if(!canPay(G.turn,card))return;
-  payCost(G.turn,card);p.adv.push(card);p.zones[G.defenseZone].flipCard=null;G.flippedCard=null;
-  if(card.id==='AME117')addEnergy(G.turn,'r',1);
-  addLog(`${p.name} plays advantage: ${card.name}`);hideCardHUD();advanceDefZone();
-}
-function doPlayAlly(){
-  const p=G.players[G.turn],card=G.flippedCard;
-  if(!card||card.type!=='ally')return;if(!canPay(G.turn,card))return;
-  payCost(G.turn,card);p.zones[G.defenseZone].ally=card;p.zones[G.defenseZone].flipCard=null;G.flippedCard=null;
-  addLog(`${p.name} plays ally: ${card.name}`);hideCardHUD();advanceDefZone();
-}
-function doFocusAction(zi){
-  const p=G.players[G.turn],col=['g','y','r'][zi!==undefined?zi:G.defenseZone];
-  addEnergy(G.turn,col,1);p.zones[G.defenseZone].flipCard=null;G.flippedCard=null;
-  addLog(`${p.name} focuses — adds ${col==='g'?'green':col==='y'?'yellow':'red'} energy.`);hideCardHUD();advanceDefZone();
-}
-function doDiscard(){
-  const p=G.players[G.turn],card=G.flippedCard;
-  if(!card)return;p.disc.unshift(card);p.zones[G.defenseZone].flipCard=null;G.flippedCard=null;
-  addLog(`${p.name} discards ${card.name}.`);hideCardHUD();advanceDefZone();
-}
-
-function advanceDefZone(){
-  G.defenseZone++;G.flippedCard=null;
-  if(G.defenseZone>=3){G.players[1-G.turn].score++;addLog(`${G.players[1-G.turn].name} scores!`);checkWin();advanceTurn(0);}
-  else{G.phase='flip';addLog(`Defending in ${['Green','Yellow','Red'][G.defenseZone]} zone now.`);render();}
-}
-
-function advanceTurn(counterFrc){
-  G.incomingForce=counterFrc||0;G.fromSigMove=false;G.round++;G.turn=1-G.turn;
-  G.screen='handoff';render();
-}
-
-function checkWin(){
-  for(let pi=0;pi<2;pi++){if(G.players[pi].score>=4){G.screen='gameover';G.winner=pi;render();return true;}}return false;
-}
-
-// ================================================================
-// SCREENS
-// ================================================================
-let selChar=null;
-function toCharSelect(){G.screen = 'char';G.selecting=0;selChar=null;showCharSelect();}
-function showCharSelect(){
-  showOnly('char-screen');
-  document.getElementById('char-title').textContent=`Player ${G.selecting+1} — Choose Your Character`;
-  selChar=null;document.getElementById('char-confirm').disabled=true;
-  const taken=G.players.map(p=>p&&p.cid).filter(Boolean);
-  document.getElementById('char-grid').innerHTML=Object.values(CHARS).map(ch=>{
-    const dis=taken.includes(ch.id)&&!(G.players[G.selecting]&&G.players[G.selecting].cid===ch.id);
-    return `<div class="char-card${dis?' disabled-card':''}" onclick="selCh('${ch.id}',${dis})">
-      <div class="char-emoji">${ch.emoji}</div>
-      <h3>${ch.name}</h3>
-      <p style="color:${ch.color};font-size:clamp(9px,1vw,13px)">${ch.el}</p>
-    </div>`;
-  }).join('');
-}
-function selCh(id,dis){
-  if(dis)return;selChar=id;
-  document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('sel'));
-  event.currentTarget.classList.add('sel');
-  document.getElementById('char-confirm').disabled=false;
-}
-function confirmChar(){
-  if(!selChar)return;
-  G.players[G.selecting]=newPlayer(selChar);G.selecting++;
-  if(G.selecting<2){showCharSelect();}
-  else{
-    showOnly('handoff-screen');
-    document.getElementById('ho-emoji').textContent='⚔️';
-    document.getElementById('ho-title').textContent='Ready to Battle!';
-    document.getElementById('ho-msg').textContent=`${G.players[0].name} vs ${G.players[1].name}`;
-    document.getElementById('ho-btn').textContent='Start Game ▶';
-    document.getElementById('ho-btn').onclick=()=>{startGame();};
-  }
-}
-function afterHandoff(){
-  G.screen='game';showOnly(null);
-  document.getElementById('game-layer').classList.remove('hidden');
-  render();
-}
-
-function showOnly(id){
-  ['title-screen','char-screen','handoff-screen','gameover-screen'].forEach(s=>document.getElementById(s).classList.add('hidden'));
-  document.getElementById('game-layer').classList.add('hidden');
-  if(id)document.getElementById(id).classList.remove('hidden');
-}
-
-// ================================================================
-// RENDER
-// ================================================================
-function render(){
-  const s=G.screen;
-  if(s==='title'){showOnly('title-screen');return;}
-  if(s==='char'){
-  showCharSelect();
-  return;
-}
-  if(s==='handoff'){
-    showOnly('handoff-screen');
-    const p=G.players[G.turn];
-    document.getElementById('ho-emoji').textContent=p.emoji;
-    document.getElementById('ho-title').textContent=`Pass to ${p.name}`;
-    document.getElementById('ho-msg').textContent=`It is ${p.name}'s turn to defend. Hand the device to ${p.name}.`;
-    document.getElementById('ho-btn').textContent="I'm Ready ▶";
-    document.getElementById('ho-btn').onclick=afterHandoff;
+  // Check Intercept
+  if (sig.int < force) {
+    addLog(`Signature move Intercept (${sig.int}) is too low! Need ${force}.`);
+    goToFlipStep(G.defender);
     return;
   }
-  if(s==='gameover'){
-    showOnly('gameover-screen');
-    const w=G.players[G.winner],l=G.players[1-G.winner];
-    document.getElementById('go-emoji').textContent=w.emoji;
-    document.getElementById('go-h1').textContent=`${w.name} Wins!`;
-    document.getElementById('go-h2').textContent=`${w.score} — ${l.score}`;
+
+  // Check energy
+  if (!canAfford(p, sig.g, sig.y, sig.r)) {
+    addLog('Not enough energy for signature move!');
+    goToFlipStep(G.defender);
     return;
   }
-  if(s==='game'){renderAll();}
+
+  // Prompt payment
+  pendingAction = { type: 'signature', sig };
+  openEnergyModal(p, sig.g, sig.y, sig.r, `Signature Move: ${sig.name}`);
 }
 
-function renderAll(){
-  renderZones();renderPlayerHUD();renderPhaseHUD();renderActions();renderLog();
+function afterSigPayment(sig) {
+  const p = G.players[G.defender];
+  // Uncharge all zones
+  p.zones.green.charged = false;
+  p.zones.yellow.charged = false;
+  p.zones.red.charged = false;
+  // Flip chamber
+  p.chamberFrontActive = !p.chamberFrontActive;
+  // Counterattack with signature
+  p.currentStrike = sig;
+  p.currentStrikeZone = 'signature';
+  addLog(`${p.name} plays signature move: ${sig.name} (Force ${sig.for})!`);
+  applySigEffect(sig, p);
+  G.incomingForce = sig.for;
+  endDefenderTurn();
 }
 
-function cardBackSVG(){
-  return `<div class="cback"><div class="cback-inner">
-    <svg viewBox="0 0 100 100" xmlns="http://www.w3.org/2000/svg">
-      <circle cx="50" cy="50" r="42" fill="none" stroke="#c8a04a" stroke-width="1.8"/>
-      <circle cx="50" cy="50" r="30" fill="none" stroke="#c8a04a" stroke-width="0.6" opacity="0.5"/>
-      <circle cx="50" cy="50" r="18" fill="none" stroke="#c8a04a" stroke-width="0.4" opacity="0.3"/>
-      <path d="M50,8 L44,20 L50,16 L56,20 Z" fill="#c8a04a"/>
-      <path d="M50,92 L56,80 L50,84 L44,80 Z" fill="#c8a04a"/>
-      <path d="M8,50 L20,44 L16,50 L20,56 Z" fill="#c8a04a"/>
-      <path d="M92,50 L80,56 L84,50 L80,44 Z" fill="#c8a04a"/>
-      <circle cx="50" cy="50" r="5" fill="none" stroke="#c8a04a" stroke-width="1.5"/>
-      <circle cx="50" cy="50" r="2" fill="#c8a04a"/>
-      <circle cx="50" cy="14" r="2" fill="#c8a04a" opacity="0.5"/>
-      <circle cx="50" cy="86" r="2" fill="#c8a04a" opacity="0.5"/>
-      <circle cx="14" cy="50" r="2" fill="#c8a04a" opacity="0.5"/>
-      <circle cx="86" cy="50" r="2" fill="#c8a04a" opacity="0.5"/>
-    </svg>
-    <div class="cback-title">AVATAR · MASTER OF ELEMENTS</div>
-  </div></div>`;
+function applySigEffect(sig, player) {
+  const opp = G.players[1 - player.idx];
+  if (sig.rules.includes('charge all of your zones')) {
+    player.zones.green.charged = true;
+    player.zones.yellow.charged = true;
+    player.zones.red.charged = true;
+    addLog(`${player.name}'s zones are all charged!`);
+  }
+  if (sig.rules.includes('uncharges one of his or her zones')) {
+    // Uncharge a random charged zone of opponent
+    const charged = ['green','yellow','red'].filter(z => opp.zones[z].charged);
+    if (charged.length > 0) {
+      opp.zones[charged[0]].charged = false;
+      addLog(`${opp.name}'s ${charged[0]} zone is uncharged!`);
+    }
+  }
+  if (sig.rules.includes("eliminate all of your opponent's green energy")) {
+    opp.zones.green.energy = [];
+    addLog(`${opp.name}'s green energy is eliminated!`);
+  }
 }
 
-function cardFrontHTML(card){
-  const ei=effInt(card),ef=effFrc(card);
-  const blocked=card.type==='strike'&&ei>=G.incomingForce;
-  return `<div class="cface">
-    <img src="${ci(card.id||'')}" alt="${card.name}" onerror="this.style.display='none'">
-    <div class="cf-name">${card.name}</div>
-    <div class="cf-stats">
-      ${card.type==='strike'?`<span class="cst cst-int">🛡${ei}</span><span class="cst cst-frc">⚡${ef}</span><span class="cst" style="background:${blocked?'#1a4a1a':'#4a1a1a'};color:${blocked?'#4ae04a':'#e04a4a'}">${blocked?'✓':'✗'}</span>`:`<span class="cst cst-type">${card.type}</span>`}
-    </div>
-  </div>`;
+function goToFlipStep(playerIdx) {
+  const p = G.players[playerIdx];
+  G.step = 'FLIP';
+  G.phase = 'DEFENSE';
+  G.defender = playerIdx;
+  let startZone = 'green';
+  if (G.skipGreenZone) {
+    startZone = 'yellow';
+    G.skipGreenZone = false;
+    addLog('Green zone skipped!');
+  }
+  G.currentZone = startZone;
+  addLog(`${p.name} begins defending in the ${startZone} zone against Force ${G.incomingForce}.`);
+  renderAll();
 }
 
-function renderZones(){
-  const p=G.players[G.turn];
+function flipCardInZone() {
+  const p = G.players[G.defender];
+  const zoneName = G.currentZone;
+  const zone = p.zones[zoneName];
+
+  if (zone.flipCard) {
+    addLog('Already a card in this zone!');
+    return;
+  }
+
+  if (p.deck.length === 0) {
+    // Reshuffle
+    reshuffleDeck(p);
+  }
+
+  if (p.deck.length === 0) {
+    addLog('No cards! Cannot flip.');
+    return;
+  }
+
+  const card = p.deck.shift();
+  zone.flipCard = card;
+  addLog(`${p.name} flips: ${card.name} (${card.type})`);
+  G.step = 'CHOOSING';
+  renderAll();
+}
+
+function reshuffleDeck(player) {
+  const cards = [...player.zones.green.energy, ...player.zones.yellow.energy, ...player.zones.red.energy, ...player.discard];
+  const greenCount = player.zones.green.energy.length;
+  const yellowCount = player.zones.yellow.energy.length;
+  const redCount = player.zones.red.energy.length;
+  const greenCharged = player.zones.green.charged;
+  const yellowCharged = player.zones.yellow.charged;
+  const redCharged = player.zones.red.charged;
+
+  // Shuffle all into new deck
+  player.deck = shuffle(player.discard);
+  player.discard = [];
+  // Re-deal energy
+  player.zones.green.energy = player.deck.splice(0, greenCount);
+  player.zones.yellow.energy = player.deck.splice(0, yellowCount);
+  player.zones.red.energy = player.deck.splice(0, redCount);
+  player.zones.green.charged = greenCharged;
+  player.zones.yellow.charged = yellowCharged;
+  player.zones.red.charged = redCharged;
+  // Put 4 in discard
+  player.discard = player.deck.splice(0, 4);
+  addLog(`${player.name} reshuffled their deck!`);
+}
+
+// Player chooses to play the flipped card as a strike
+function playAsStrike(card) {
+  const p = G.players[G.defender];
+  const zone = p.zones[G.currentZone];
+
+  // Get ally bonuses
+  const allyInt = zone.ally ? (zone.ally.intBonus || 0) : 0;
+  const allyFor = zone.ally ? (zone.ally.forceBonus || 0) : 0;
+
+  // Advantage bonuses
+  let advInt = 0, advFor = 0;
+  for (const adv of p.advantageArea) {
+    if (adv.effect === 'intercept_in_charged' && zone.charged) advInt += 1;
+    if (adv.effect === 'force_in_charged' && zone.charged) advFor += 1;
+    if (adv.effect === 'both_in_charged' && zone.charged) { advInt += 1; advFor += 1; }
+    if (adv.effect === 'force_vs_green' && G.currentZone === 'green') advFor += 2;
+  }
+  // Opponent advantage penalty
+  const opp = G.players[G.attacker];
+  for (const adv of opp.advantageArea) {
+    if (adv.effect === 'opp_extra_yellow') {
+      addLog(`Opponent's Churning Stomachs: your strike costs +1 yellow!`);
+      // We'll handle this in the cost
+    }
+  }
+
+  const effectiveInt = card.int + allyInt + advInt;
+  if (effectiveInt < G.incomingForce) {
+    addLog(`Cannot play ${card.name}: Intercept ${effectiveInt} < Force ${G.incomingForce}`);
+    return;
+  }
+
+  // Check extra yellow from opponent advantage
+  let extraY = 0;
+  for (const adv of opp.advantageArea) {
+    if (adv.effect === 'opp_extra_yellow') extraY += 1;
+  }
+
+  pendingAction = { type: 'strike', card, zone: G.currentZone };
+  openEnergyModal(p, card.g, card.y + extraY, card.r, `Play ${card.name}`);
+}
+
+function afterStrikePayment(card, zoneName) {
+  const p = G.players[G.defender];
+  const zone = p.zones[zoneName];
+  const allyFor = zone.ally ? (zone.ally.forceBonus || 0) : 0;
+  let advFor = 0;
+  for (const adv of p.advantageArea) {
+    if (adv.effect === 'force_in_charged' && zone.charged) advFor += 1;
+    if (adv.effect === 'both_in_charged' && zone.charged) advFor += 1;
+    if (adv.effect === 'force_vs_green' && zoneName === 'green') advFor += 2;
+  }
+  // Tandem Attack bonus
+  let forBonus = allyFor + advFor;
+  if (card.rules && card.rules.includes('For each ally you have')) {
+    const totalAllies = ['green','yellow','red'].filter(z => p.zones[z].ally).length;
+    forBonus += totalAllies;
+  }
+  if (card.rules && card.rules.includes('While you have an ally in this zone') && zone.ally) {
+    forBonus += 2;
+  }
+
+  const effectiveForce = card.for + forBonus;
+  addLog(`${p.name} counterattacks with ${card.name} (Force ${effectiveForce})!`);
+
+  // Apply counterattack effects
+  applyCounterattackEffect(card, p, zoneName, effectiveForce);
+
+  p.currentStrike = card;
+  p.currentStrikeZone = zoneName;
+  G.incomingForce = effectiveForce;
+
+  // Charge zone effects
+  if (card.rules && card.rules.includes('When you counterattack, charge this zone')) {
+    zone.charged = true;
+    addLog(`${p.name}'s ${zoneName} zone is now charged!`);
+  }
+  if (card.rules && card.rules.includes('When you counterattack from a charged zone, add a green energy') && zone.charged) {
+    gainEnergy(p, 'green', 1);
+  }
+  if (card.rules && card.rules.includes('add a green energy for each charged zone')) {
+    const count = ['green','yellow','red'].filter(z => p.zones[z].charged).length;
+    gainEnergy(p, 'green', count);
+  }
+  if (card.rules && card.rules.includes('add a yellow energy') && card.rules.includes('Dust Storm')) {
+    gainEnergy(p, 'yellow', 1);
+  }
+  // Appa ally effect
+  if (zone.ally && zone.ally.id === 'appa') {
+    gainEnergy(p, 'green', 1);
+  }
+
+  endDefenderTurn();
+}
+
+function applyCounterattackEffect(card, player, zoneName, force) {
+  const opp = G.players[1 - player.idx];
+  if (card.rules && card.rules.includes("your opponent uncharges one of his or her zones")) {
+    const charged = ['green','yellow','red'].filter(z => opp.zones[z].charged);
+    if (charged.length > 0) {
+      opp.zones[charged[0]].charged = false;
+      addLog(`${opp.name}'s ${charged[0]} zone uncharged!`);
+    }
+  }
+  if (card.rules && card.rules.includes("you may eliminate a green energy")) {
+    if (opp.zones.green.energy.length > 0) {
+      opp.zones.green.energy.pop();
+      addLog(`${opp.name} loses 1 green energy!`);
+    }
+  }
+  if (card.rules && card.rules.includes("you may eliminate up to two green energy")) {
+    const toRemove = Math.min(2, opp.zones.green.energy.length);
+    for (let i = 0; i < toRemove; i++) opp.zones.green.energy.pop();
+    if (toRemove > 0) addLog(`${opp.name} loses ${toRemove} green energy!`);
+  }
+  if (card.rules && card.rules.includes("your opponent eliminates one of his or her allies")) {
+    const allies = ['green','yellow','red'].filter(z => opp.zones[z].ally);
+    if (allies.length > 0) { opp.zones[allies[0]].ally = null; addLog(`${opp.name}'s ally eliminated!`); }
+  }
+  if (card.rules && card.rules.includes("your opponent eliminates one of his or her energy")) {
+    // Remove one energy from strongest zone
+    for (const z of ['red','yellow','green']) {
+      if (opp.zones[z].energy.length > 0) { opp.zones[z].energy.pop(); addLog(`${opp.name} loses 1 ${z} energy!`); break; }
+    }
+  }
+  if (card.rules && card.rules.includes("skips defending in his or her green zone")) {
+    G.skipGreenZone = true;
+    addLog(`${opp.name} will skip their green zone!`);
+  }
+  if (card.rules && card.rules.includes("move one of your green energy to your yellow zone")) {
+    if (player.zones.green.energy.length > 0) {
+      const e = player.zones.green.energy.pop();
+      player.zones.yellow.energy.push(e);
+      addLog(`${player.name} moved green energy to yellow zone.`);
+    }
+  }
+  if (card.rules && card.rules.includes("move one of your yellow energy to your red zone")) {
+    if (player.zones.yellow.energy.length > 0) {
+      const e = player.zones.yellow.energy.pop();
+      player.zones.red.energy.push(e);
+      addLog(`${player.name} moved yellow energy to red zone.`);
+    }
+  }
+}
+
+function playAsAlly(card) {
+  const p = G.players[G.defender];
+  pendingAction = { type: 'ally', card, zone: G.currentZone };
+  openEnergyModal(p, card.g, card.y, card.r, `Play ally: ${card.name}`);
+}
+
+function afterAllyPayment(card, zoneName) {
+  const p = G.players[G.defender];
+  const zone = p.zones[zoneName];
+  // Replace existing ally or play to empty slot
+  if (zone.ally) {
+    p.discard.push(zone.ally); // discard old ally
+  }
+  zone.flipCard = null; // remove from flip
+  zone.ally = card;
+  addLog(`${p.name} plays ally ${card.name} in ${zoneName} zone!`);
+  G.step = 'FLIP'; // continue defending same zone
+  renderAll();
+}
+
+function playAsAdvantage(card) {
+  const p = G.players[G.defender];
+  pendingAction = { type: 'advantage', card, zone: G.currentZone };
+  openEnergyModal(p, card.g, card.y, card.r, `Play advantage: ${card.name}`);
+}
+
+function afterAdvantagePayment(card, zoneName) {
+  const p = G.players[G.defender];
+  const zone = p.zones[zoneName];
+  zone.flipCard = null;
+
+  if (card.immediate) {
+    applyImmediateEffect(card, p, zoneName);
+    p.discard.push(card);
+  } else {
+    p.advantageArea.push(card);
+    applyPassiveEffect(card, p, zoneName);
+  }
+
+  // Charge this zone (standard for all advantages)
+  if (!zone.charged) {
+    zone.charged = true;
+    addLog(`${p.name}'s ${zoneName} zone is now charged!`);
+  }
+
+  addLog(`${p.name} plays ${card.name}!`);
+  G.step = 'FLIP'; // continue defending same zone
+  renderAll();
+}
+
+function applyImmediateEffect(card, player, zoneName) {
+  const opp = G.players[1 - player.idx];
+  if (card.effect === 'add_red') {
+    gainEnergy(player, 'red', 1);
+  } else if (card.effect === 'look_top2' || card.effect === 'look_top3') {
+    addLog(`${player.name} looks at top of deck and reorders.`);
+    // Just shuffle top 2-3 (simplified)
+  } else if (card.effect === 'charge_any') {
+    // Charge any zone
+    const uncharged = ['green','yellow','red'].filter(z => !player.zones[z].charged);
+    if (uncharged.length > 0) {
+      player.zones[uncharged[0]].charged = true;
+      addLog(`${player.name} also charges ${uncharged[0]} zone!`);
+    }
+  } else if (card.effect === 'peek_opp_top') {
+    if (opp.deck.length > 0) {
+      addLog(`${player.name} peeks at ${opp.name}'s top card: ${opp.deck[0].name}!`);
+    }
+  } else if (card.effect === 'trade_allies') {
+    const pAllies = ['green','yellow','red'].filter(z => player.zones[z].ally);
+    const oAllies = ['green','yellow','red'].filter(z => opp.zones[z].ally);
+    if (pAllies.length > 0 && oAllies.length > 0) {
+      const pAlly = player.zones[pAllies[0]].ally;
+      player.zones[pAllies[0]].ally = null;
+      player.discard.push(pAlly);
+      const oAlly = opp.zones[oAllies[0]].ally;
+      opp.zones[oAllies[0]].ally = null;
+      opp.discard.push(oAlly);
+      addLog('Both players lose one ally!');
+    }
+  } else if (card.effect === 'elim_ally') {
+    const myAllies = ['green','yellow','red'].filter(z => player.zones[z].ally);
+    if (myAllies.length > 0) {
+      const a = player.zones[myAllies[0]].ally;
+      player.zones[myAllies[0]].ally = null;
+      player.discard.push(a);
+      addLog(`${player.name} eliminates ${a.name}!`);
+    }
+  }
+}
+
+function applyPassiveEffect(card, player, zoneName) {
+  if (card.effect === 'skip_opp_green') {
+    G.skipGreenZone = true;
+    addLog('Misdirection: opponent will skip green zone!');
+  }
+}
+
+function focusCard() {
+  const p = G.players[G.defender];
+  const zone = p.zones[G.currentZone];
+  if (!zone.flipCard) return;
+  const card = zone.flipCard;
+  zone.flipCard = null;
+  // Add face-down to energy stack of current zone
+  zone.energy.push(card);
+  addLog(`${p.name} focuses ${card.name} into ${G.currentZone} energy.`);
+  applyFocusPenalties(p);
+  moveToNextZone();
+}
+
+function applyFocusPenalties(player) {
+  const opp = G.players[1 - player.idx];
+  // Check opponent's strikes with "Whenever your opponent focuses"
+  const strike = opp.currentStrike;
+  if (strike && strike.rules) {
+    if (strike.rules.includes('Whenever your opponent focuses, Howling Wind gets -1 Force') ||
+        strike.rules.includes('Howling Squall gets -1 Force') ||
+        strike.rules.includes('Howling Cyclone gets -2 Force')) {
+      const penalty = strike.rules.includes('Cyclone') ? 2 : 1;
+      G.incomingForce = Math.max(0, G.incomingForce - penalty);
+      addLog(`Opponent's strike loses ${penalty} Force from focus! Now: ${G.incomingForce}`);
+    }
+    if (strike.rules.includes('Whenever your opponent focuses, he or she eliminates one of his or her green energy')) {
+      if (player.zones.green.energy.length > 0) {
+        player.zones.green.energy.pop();
+        addLog(`${player.name} loses green energy from focusing!`);
+      }
+    }
+  }
+}
+
+function discardCard() {
+  const p = G.players[G.defender];
+  const zone = p.zones[G.currentZone];
+  if (!zone.flipCard) return;
+  const card = zone.flipCard;
+  zone.flipCard = null;
+  p.discard.push(card);
+  addLog(`${p.name} discards ${card.name}.`);
+  moveToNextZone();
+}
+
+function moveToNextZone() {
+  const zones = ['green', 'yellow', 'red'];
+  const currentIdx = zones.indexOf(G.currentZone);
+  if (currentIdx >= zones.length - 1) {
+    // Opponent scores!
+    scorePoint(G.attacker);
+  } else {
+    G.currentZone = zones[currentIdx + 1];
+    G.step = 'FLIP';
+    addLog(`${G.players[G.defender].name} moves to ${G.currentZone} zone.`);
+    renderAll();
+  }
+}
+
+function scorePoint(scorerIdx) {
+  const scorer = G.players[scorerIdx];
+  const loser = G.players[1 - scorerIdx];
+  scorer.score++;
+  addLog(`⚡ ${scorer.name} scores a point! (${scorer.score}-${loser.score})`);
+
+  // Celebration: gain energy in zones with allies
+  for (const zname of ['green','yellow','red']) {
+    if (scorer.zones[zname].ally) {
+      gainEnergy(scorer, zname, 1);
+      addLog(`Celebration! ${scorer.name} gains ${zname} energy.`);
+    }
+  }
+
+  // Both cleanup
+  cleanupAfterScore(scorer);
+  cleanupAfterScore(loser);
+
+  // Check win
+  if (scorer.score >= 3) {
+    endGame(scorerIdx);
+    return;
+  }
+
+  // Reset for next point
+  G.pointJustScored = true;
+  updateScoreDisplay();
+  // Loser chooses who defends
+  G.phase = 'OPENING_CHOOSE';
+  G.choosingPlayer = 1 - scorerIdx;
+  addLog(`${loser.name} chooses who defends the opening attack.`);
+  renderAll();
+}
+
+function cleanupAfterScore(player) {
+  for (const zname of ['green','yellow','red']) {
+    const z = player.zones[zname];
+    if (z.flipCard) {
+      player.discard.push(z.flipCard);
+      z.flipCard = null;
+    }
+  }
+  while (player.advantageArea.length > 0) player.discard.push(player.advantageArea.pop());
+}
+
+function endDefenderTurn() {
+  // Defender just counterattacked — now it's the attacker's turn
+  const defender = G.defender;
+  const attacker = G.attacker;
+  addLog(`${G.players[defender].name} counterattacked with Force ${G.incomingForce}. ${G.players[attacker].name}'s turn begins.`);
+  G.phase = 'PASS';
+  renderAll();
+  // Show pass screen
+  showPassScreen(attacker);
+}
+
+function endGame(winnerIdx) {
+  const winner = G.players[winnerIdx];
+  const loser = G.players[1 - winnerIdx];
+  document.getElementById('winner-text').textContent = `${winner.name} WINS!`;
+  document.getElementById('final-score').textContent = `Final Score: ${winner.score} - ${loser.score}`;
+  document.getElementById('gameover-screen').style.display = 'flex';
+}
+
+// ============================================================
+// ENERGY SYSTEM
+// ============================================================
+function canAfford(player, g, y, r) {
+  const avG = player.zones.green.energy.length;
+  const avY = player.zones.yellow.energy.length;
+  const avR = player.zones.red.energy.length;
+  // Overpayment: y can pay g, r can pay y or g
+  // Simple check: total available including overpay
+  // Red can pay yellow or green cost
+  // Yellow can pay green cost
+  // So total "green-equivalent" cost:
+  // r can pay any, y can pay g or y, g can only pay g
+  // Total cost value = g + y + r (treating them equally for availability check)
+  // For actual check, we need to verify minimum coverage
+  // Simplest: try to construct a valid payment
+  return findValidPayment(avG, avY, avR, g, y, r) !== null;
+}
+
+function findValidPayment(avG, avY, avR, costG, costY, costR) {
+  // Pay red first (only red can pay red)
+  if (avR < costR) return null;
+  let remR = avR - costR;
+  // Pay yellow (yellow or red can pay yellow)
+  let needY = costY;
+  let paidY = Math.min(avY, needY);
+  needY -= paidY;
+  let redForY = Math.min(remR, needY);
+  needY -= redForY;
+  if (needY > 0) return null;
+  let remY = avY - paidY;
+  remR -= redForY;
+  // Pay green (green, yellow, or red can pay green)
+  let needG = costG;
+  let paidG = Math.min(avG, needG);
+  needG -= paidG;
+  let yellowForG = Math.min(remY, needG);
+  needG -= yellowForG;
+  let redForG = Math.min(remR, needG);
+  needG -= redForG;
+  if (needG > 0) return null;
+  return { pG: paidG, pY: paidY, pR: costR, yForY: redForY, yForG: yellowForG, rForG: redForG };
+}
+
+function openEnergyModal(player, costG, costY, costR, title) {
+  pendingPayment = { player, costG, costY, costR, paidG:0, paidY:0, paidR:0 };
+  document.getElementById('energy-modal-title').textContent = title;
+  document.getElementById('energy-modal-desc').textContent =
+    `Required: ${costG}G ${costY}Y ${costR}R`;
+  document.getElementById('pay-green').textContent = 0;
+  document.getElementById('pay-yellow').textContent = 0;
+  document.getElementById('pay-red').textContent = 0;
+  document.getElementById('avail-green').textContent = player.zones.green.energy.length;
+  document.getElementById('avail-yellow').textContent = player.zones.yellow.energy.length;
+  document.getElementById('avail-red').textContent = player.zones.red.energy.length;
+  document.getElementById('energy-feedback').textContent = '';
+
+  // Auto-calculate minimum payment
+  autoFillPayment(player, costG, costY, costR);
+  document.getElementById('energy-modal').style.display = 'flex';
+}
+
+function autoFillPayment(player, cG, cY, cR) {
+  const avG = player.zones.green.energy.length;
+  const avY = player.zones.yellow.energy.length;
+  const avR = player.zones.red.energy.length;
+
+  let payR = Math.min(cR, avR);
+  let remR = avR - payR;
+  let payY = Math.min(cY, avY);
+  let remY = avY - payY;
+  let remNeedY = cY - payY;
+  let redForY = Math.min(remR, remNeedY);
+  payR += redForY; remR -= redForY;
+  let payG = Math.min(cG, avG);
+  let remNeedG = cG - payG;
+  let yellowForG = Math.min(remY, remNeedG);
+  payY += yellowForG; remNeedG -= yellowForG;
+  let redForG = Math.min(remR, remNeedG);
+  payR += redForG;
+
+  pendingPayment.paidG = payG;
+  pendingPayment.paidY = payY;
+  pendingPayment.paidR = payR;
+  document.getElementById('pay-green').textContent = payG;
+  document.getElementById('pay-yellow').textContent = payY;
+  document.getElementById('pay-red').textContent = payR;
+}
+
+function adjustPay(color, delta) {
+  if (!pendingPayment) return;
+  const key = 'paid' + color.charAt(0).toUpperCase() + color.slice(1);
+  const avail = pendingPayment.player.zones[color].energy.length;
+  const newVal = Math.max(0, Math.min(avail, pendingPayment[key] + delta));
+  pendingPayment[key] = newVal;
+  document.getElementById('pay-' + color).textContent = newVal;
+}
+
+function confirmPayment() {
+  if (!pendingPayment || !pendingAction) return;
+  const { player, costG, costY, costR, paidG, paidY, paidR } = pendingPayment;
+
+  // Validate: check that total paid covers cost with overpayment rules
+  // Paid amounts: paidG covers G exactly, paidY covers Y and can overpay G, paidR covers R and can overpay Y/G
+  const totalGreenEquiv = paidG + paidY + paidR;
+  const costTotal = costG + costY + costR;
+  if (paidR < costR) { showFeedback('Not enough RED energy!'); return; }
+  if (paidY + Math.max(0, paidR - costR) < costY) { showFeedback('Not enough YELLOW energy (with overpay)!'); return; }
+  // Check green can be covered
+  const surplusR = paidR - costR;
+  const surplusY = paidY - costY + surplusR;
+  if (paidG + surplusY < costG) { showFeedback('Not enough GREEN energy (with overpay)!'); return; }
+  if (paidG + paidY + paidR < costG + costY + costR) { showFeedback('Total payment insufficient!'); return; }
+
+  // Deduct energy
+  for (let i = 0; i < paidG; i++) {
+    if (player.zones.green.energy.length > 0) {
+      player.discard.push(player.zones.green.energy.pop());
+    }
+  }
+  for (let i = 0; i < paidY; i++) {
+    if (player.zones.yellow.energy.length > 0) {
+      player.discard.push(player.zones.yellow.energy.pop());
+    }
+  }
+  for (let i = 0; i < paidR; i++) {
+    if (player.zones.red.energy.length > 0) {
+      player.discard.push(player.zones.red.energy.pop());
+    }
+  }
+  addLog(`${player.name} pays ${paidG}G ${paidY}Y ${paidR}R.`);
+  document.getElementById('energy-modal').style.display = 'none';
+
+  const action = pendingAction;
+  pendingPayment = null;
+  pendingAction = null;
+
+  // Execute the action
+  if (action.type === 'strike') afterStrikePayment(action.card, action.zone);
+  else if (action.type === 'ally') afterAllyPayment(action.card, action.zone);
+  else if (action.type === 'advantage') afterAdvantagePayment(action.card, action.zone);
+  else if (action.type === 'signature') afterSigPayment(action.sig);
+}
+
+function showFeedback(msg) {
+  document.getElementById('energy-feedback').textContent = msg;
+}
+
+function cancelPayment() {
+  document.getElementById('energy-modal').style.display = 'none';
+  pendingPayment = null;
+  pendingAction = null;
+}
+
+// ============================================================
+// PASS SCREEN
+// ============================================================
+function showPassScreen(nextPlayerIdx) {
+  const name = G.players[nextPlayerIdx].name;
+  document.getElementById('pass-title').textContent = `PASS DEVICE TO ${name.toUpperCase()}`;
+  document.getElementById('pass-msg').textContent = `${name}'s turn is about to begin. Please pass the device.`;
+  document.getElementById('pass-screen').style.display = 'flex';
+}
+
+function dismissPass() {
+  document.getElementById('pass-screen').style.display = 'none';
+  // Now start the next player's turn
+  startTurn(G.defender === 0 ? 1 : 0);
+  // Wait, we need to figure out who the new active player is
+  // After endDefenderTurn, G.attacker is who just had their turn end
+  // G.defender counterattacked, so now G.attacker (the old attacker) starts their turn
+  // But I stored G.defender as the one who counterattacked...
+  // Let me fix: after counterattack, old attacker becomes new defender, old defender becomes new attacker
+  // startTurn should use the stored state from endDefenderTurn
+}
+
+// Actually let me fix the pass flow:
+function endDefenderTurn_v2() {
+  const oldDefender = G.defender;
+  const oldAttacker = G.attacker;
+  addLog(`${G.players[oldDefender].name} counterattacked with Force ${G.incomingForce}.`);
+
+  // The old attacker now becomes the new defender
+  G.phase = 'PASS';
+  G._nextTurnPlayer = oldAttacker;
+  renderAll();
+  showPassScreen_v2(oldAttacker);
+}
+
+function showPassScreen_v2(nextPlayerIdx) {
+  const name = G.players[nextPlayerIdx].name;
+  document.getElementById('pass-title').textContent = `${name.toUpperCase()}'S TURN`;
+  document.getElementById('pass-msg').textContent = `Incoming attack with Force ${G.incomingForce}! Hand the device to ${name}.`;
+  document.getElementById('pass-screen').style.display = 'flex';
+}
+
+// Reassign endDefenderTurn
+function endDefenderTurn() {
+  const oldDefender = G.defender;
+  const oldAttacker = G.attacker;
+  addLog(`${G.players[oldDefender].name} counterattacks with Force ${G.incomingForce}. Hand device to ${G.players[oldAttacker].name}!`);
+  G.phase = 'PASS';
+  G._nextTurnPlayer = oldAttacker;
+  renderAll();
+  // Show pass screen
+  setTimeout(() => {
+    const name = G.players[oldAttacker].name;
+    document.getElementById('pass-title').textContent = `${name.toUpperCase()}'S TURN`;
+    document.getElementById('pass-msg').textContent = `Incoming Force: ${G.incomingForce}. Hand device to ${name}.`;
+    document.getElementById('pass-screen').style.display = 'flex';
+  }, 100);
+}
+
+function dismissPass() {
+  document.getElementById('pass-screen').style.display = 'none';
+  if (G._nextTurnPlayer !== undefined) {
+    const next = G._nextTurnPlayer;
+    G._nextTurnPlayer = undefined;
+    startTurn(next);
+  }
+}
+
+// ============================================================
+// RENDERING
+// ============================================================
+function renderAll() {
+  if (!G) return;
+  renderPlayer(0);
+  renderPlayer(1);
+  updateScoreDisplay();
+  renderCenterPanel();
+}
+
+function renderPlayer(pIdx) {
+  const p = G.players[pIdx];
+  const zonesEl = document.getElementById(`p${pIdx+1}-zones`);
+  const advEl = document.getElementById(`p${pIdx+1}-adv-area`);
+  const bannerEl = document.getElementById(`p${pIdx+1}-banner`);
+  if (!zonesEl) return;
+
+  const isActive = G.defender === pIdx && (G.phase === 'DEFENSE');
+  bannerEl.className = 'player-banner' + (isActive ? ' active-player' : '');
+  bannerEl.textContent = p.name;
+
+  zonesEl.innerHTML = '';
+  const zoneNames = ['green','yellow','red'];
+  for (const zname of zoneNames) {
+    const zone = p.zones[zname];
+    const zEl = document.createElement('div');
+    zEl.className = `zone ${zname}-zone` + (zone.charged ? ' charged' : '') +
+      (G.defender === pIdx && G.currentZone === zname && G.phase === 'DEFENSE' ? ' active-defense' : '');
+
+    // Zone inner
+    const inner = document.createElement('div');
+    inner.className = 'zone-inner';
+
+    // Ally slot
+    const allySlot = document.createElement('div');
+    allySlot.className = 'card-slot ally-slot';
+    if (zone.ally) {
+      allySlot.appendChild(makeAllyCard(zone.ally, pIdx, zname));
+    } else {
+      allySlot.innerHTML = '<div class="card-slot-label">ALLY</div>';
+    }
+    inner.appendChild(allySlot);
+
+    // Flip slot
+    const flipSlot = document.createElement('div');
+    flipSlot.className = 'card-slot flip-slot';
+    if (zone.flipCard) {
+      const fc = makeTcgCard(zone.flipCard, true);
+      fc.classList.add('flip-slot-card');
+      if (G.defender === pIdx && G.currentZone === zname) {
+        // This is the active flip card — add force badge showing incoming force
+      }
+      flipSlot.appendChild(fc);
+    } else {
+      flipSlot.innerHTML = '<div class="card-slot-label">FLIP<br>HERE</div>';
+    }
+    inner.appendChild(flipSlot);
+
+    // Charge slot (Chamber/Deck/Discard)
+    const chargeSlot = document.createElement('div');
+    chargeSlot.className = 'card-slot charge-slot';
+    if (zname === 'green') {
+      // Chamber card
+      const chamberEl = makeChamberMini(p.chamber, zone.charged);
+      chamberEl.onclick = () => showChamberInfo(p);
+      chargeSlot.appendChild(chamberEl);
+      chargeSlot.appendChild(Object.assign(document.createElement('div'), {className:'charge-indicator',textContent: zone.charged ? '⚡CHARGED' : ''}));
+    } else if (zname === 'yellow') {
+      // Deck
+      const deckEl = makeDeckPile(p.deck);
+      chargeSlot.appendChild(deckEl);
+    } else {
+      // Discard
+      const discEl = makeDiscardPile(p.discard, zone.charged);
+      chargeSlot.appendChild(discEl);
+    }
+    inner.appendChild(chargeSlot);
+
+    // Energy area
+    const energyArea = document.createElement('div');
+    energyArea.className = 'energy-area';
+    energyArea.innerHTML = `<div class="energy-label">${zname.toUpperCase()}</div>
+      <div class="energy-count">
+        <span class="energy-num">${zone.energy.length}</span>
+        <div class="energy-pip ${zname}"></div>
+      </div>`;
+    inner.appendChild(energyArea);
+
+    zEl.appendChild(inner);
+    zonesEl.appendChild(zEl);
+  }
 
   // Advantage area
-  document.getElementById('adv-area').innerHTML=p.adv.map(a=>`<div class="adv-chip" title="${a.text}">${a.name}</div>`).join('');
-
-  // 3 zones
-  for(let zi=0;zi<3;zi++){
-    const z=p.zones[zi];const col=['g','y','r'][zi];const colors=['Green','Yellow','Red'];
-
-    // Ally
-    const ae=document.getElementById(`ally-${zi}`);
-    const chgClass=z.charged?' charged':'';
-    if(z.ally){
-      ae.className=`zslot${chgClass}`;
-      ae.innerHTML=`<div class="ally-box"><div class="ae">${allyEmoji(z.ally)}</div><div class="an">${z.ally.name}</div></div>`;
-    }else{
-      ae.className=`zslot empty${chgClass}`;
-      ae.innerHTML=`<div style="font-size:clamp(6px,0.65vw,9px);color:rgba(200,160,74,0.3)">ALLY</div>`;
-    }
-
-    // Charge strip
-    const ce=document.getElementById(`chg-${zi}`);
-    ce.className=`zslot${z.charged?` charged`:(G.flippedCard?' deck-glow':' empty')}`;
-    ce.innerHTML=`<div style="writing-mode:vertical-lr;font-size:clamp(5px,0.5vw,7px);color:${z.charged?'#ffd700':'rgba(200,160,74,0.35)'};letter-spacing:1px;text-align:center">${z.charged?'⚡ CHARGED':'CHARGE'}</div>`;
-
-    // Flip zone
-    const fe=document.getElementById(`flip-${zi}`);
-    const fc=z.flipCard;
-    const isActive=G.phase==='flip'&&zi===G.defenseZone&&!G.flippedCard;
-    const hasFlipped=G.flippedCard&&G.defenseZone===zi&&!G.flippedCard.faceDown;
-
-    if(fc){
-      fe.className=`zslot${hasFlipped?' deck-glow':''}`;fe.style.border='none';
-      const actHTML=hasFlipped?actionOverlayHTML(fc):'';
-      fe.innerHTML=`<div id="c3d-${zi}" class="card3d${fc.faceDown?'':' flipped'}">
-        ${cardBackSVG()}
-        ${cardFrontHTML(fc)}
-        ${actHTML}
-      </div>`;
-    }else{
-      fe.style.border='';
-      fe.className=`zslot empty${isActive?' active-def':''}`;
-      fe.innerHTML=`<div style="font-size:clamp(6px,0.65vw,9px);color:rgba(200,160,74,${isActive?'0.85':'0.28'});text-align:center;line-height:1.4">${isActive?'▼<br>DRAW':'FLIP<br>HERE'}</div>`;
-    }
-
-    // Energy pips
-    document.getElementById(`en-${zi}`).innerHTML=z.energy.map(()=>`<div class="epip ${col}"></div>`).join('');
-  }
-
-  // Deck
-  const de=document.getElementById('deck-slot');
-  const deckClickable=G.phase==='flip'&&!G.flippedCard;
-  de.className=`zslot${deckClickable?' deck-glow':''}`;de.style.border='none';de.style.cursor=deckClickable?'pointer':'default';
-  const dn=p.deck.length;
-  de.innerHTML=`<div class="deck-stack">
-    ${dn>2?`<div class="deck-layer" style="transform:translate(4px,4px);opacity:0.5"></div>`:''}
-    ${dn>0?`<div class="deck-layer" style="transform:translate(2px,2px);opacity:0.7"></div>`:''}
-    ${dn>0?cardBackSVG().replace('class="cback"','class="cback deck-layer" style="width:88%;height:88%;position:absolute"'):`<div style="color:rgba(200,160,74,0.35);font-size:clamp(7px,0.7vw,10px)">EMPTY</div>`}
-    ${dn>0?`<div class="deck-badge">${dn}</div>`:''}
-  </div>`;
-
-  // Chamber
-  const sig=p.cf?p.cfm:p.cbm;const allChg=allCharged(G.turn);
-  document.getElementById('cham-slot').innerHTML=`<div style="width:88%;height:88%;background:linear-gradient(145deg,#0d1421,#1a2744);border:2px solid ${allChg?'#ffd700':'#c8a04a66'};border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:4px;gap:2px;box-shadow:${allChg?'0 0 18px rgba(255,215,0,0.5)':'none'}">
-    ${allChg?'<div style="font-size:clamp(10px,1.2vw,16px)">⚡</div>':''}
-    <div style="font-size:clamp(5px,0.55vw,8px);color:#c8a04a;font-weight:bold;text-align:center">${sig.name}</div>
-    <div style="font-size:clamp(4px,0.48vw,7px);color:#e84a4a">Frc:${sig.frc||0}</div>
-    <div style="font-size:clamp(4px,0.48vw,7px);color:#4ab4e8">Int:${sig.int||0}</div>
-  </div>`;
-
-  // Discard
-  const top=p.disc[0];
-  document.getElementById('disc-slot').innerHTML=`<div style="width:88%;height:88%;background:linear-gradient(145deg,#1a0d00,#2a1800);border:2px solid #c8a04a33;border-radius:6px;display:flex;flex-direction:column;align-items:center;justify-content:center;padding:3px;gap:1px;overflow:hidden">
-    ${top?`<img src="${ci(top.id||'')}" alt="${top.name}" style="width:100%;flex:1;object-fit:cover;border-radius:2px;min-height:0" onerror="this.style.display='none'">
-      <div style="font-size:clamp(4px,0.45vw,6.5px);color:#6b6b5a">${p.disc.length} cards</div>`:
-    `<div style="color:rgba(200,160,74,0.25);font-size:clamp(7px,0.7vw,10px)">DISCARD</div>`}
-  </div>`;
-}
-
-function actionOverlayHTML(card){
-  const cp=canPay(G.turn,card);const ei=effInt(card);const ef=effFrc(card);
-  const canBlock=card.type==='strike'&&ei>=G.incomingForce;
-  let h='<div class="act-overlay">';
-  if(card.type==='strike'&&canBlock&&cp) h+=`<div class="act-btn act-atk" onclick="doCounterattack()">⚔️ Counterattack (Frc ${ef})</div>`;
-  if(card.type==='advantage'&&cp) h+=`<div class="act-btn act-adv" onclick="doPlayAdv()">✨ Advantage</div>`;
-  if(card.type==='ally'&&cp) h+=`<div class="act-btn act-ally" onclick="doPlayAlly()">🤝 Ally</div>`;
-  h+=`<div class="act-btn act-foc" onclick="doFocusAction()">🔋 Focus</div>`;
-  h+=`<div class="act-btn act-dis" onclick="doDiscard()">🗑️ Discard</div>`;
-  h+='</div>';
-  return h;
-}
-
-function allyEmoji(a){
-  const m={AME119:'🌀',AME120:'🦬',AME121:'💧',AME123:'🦎',AME124:'🧘',AME125:'⚔️',AME126:'🗡️',AME128:'🏴‍☠️',AME129:'🔥',AME130:'☕',AME131:'🌑',AME132:'👨‍✈️',AME133:'🔱',AME134:'⛓️',AME135:'🏛️',AME138:'🗺️',AME139:'🌿',AME141:'⛰️',AME137:'🥬'};
-  return m[a.id]||'👤';
-}
-
-function renderPlayerHUD(){
-  const p=G.players[G.turn],opp=G.players[1-G.turn];
-  document.getElementById('hp-name').textContent=`${p.emoji} ${p.name}`;
-  document.getElementById('hp-name').style.color=p.color;
-  document.getElementById('hp-score').innerHTML=`<span style="color:#6b6b5a;font-size:clamp(6px,0.7vw,9px);margin-right:3px">Score:</span>`+Array.from({length:4},(_,i)=>`<div class="score-pip${i<p.score?' on':''}" style="border-color:${p.color};background:${i<p.score?p.color:'transparent'}"></div>`).join('');
-  document.getElementById('hp-deck').textContent=`Deck: ${p.deck.length}  ·  Discard: ${p.disc.length}`;
-  document.getElementById('hp-opp').innerHTML=`<span style="color:#4a4a3a">${opp.emoji} ${opp.name}</span> [${opp.score} pts]<br>Incoming Force: <span style="color:#e84a4a;font-weight:bold">${G.incomingForce}</span>`;
-}
-
-function renderPhaseHUD(){
-  const phN={cleanup:'1 · Cleanup',replenish:'2 · Replenish',sigMove:'3 · Signature',flip:'4 · Flip'};
-  document.getElementById('hph-title').textContent=phN[G.phase]||G.phase;
-  document.getElementById('hph-body').innerHTML=`Defending: <span style="color:${['#4ae04a','#e8d500','#e84a4a'][G.defenseZone]}">${['🟢 Green','🟡 Yellow','🔴 Red'][G.defenseZone]}</span><br>Round: ${G.round}`;
-}
-
-function showCardHUD(card){
-  if(!card){hideCardHUD();return;}
-  const ei=effInt(card),ef=effFrc(card);
-  document.getElementById('hud-card').classList.remove('hidden');
-  document.getElementById('hc-name').textContent=card.name;
-  document.getElementById('hc-stats').innerHTML=card.type==='strike'?`<span class="sstat i">🛡 ${ei}</span><span class="sstat f">⚡ ${ef}</span><span class="sstat" style="background:${ei>=G.incomingForce?'#1a3a1a':'#3a1a1a'};color:${ei>=G.incomingForce?'#4ae04a':'#e04a4a'}">${ei>=G.incomingForce?'✓ BLOCK':'✗ MISS'}</span>`:`<span class="sstat t">${card.type}</span>`;
-  document.getElementById('hc-text').textContent=card.text||'';
-}
-function hideCardHUD(){document.getElementById('hud-card').classList.add('hidden');}
-
-function renderActions(){
-  const phase=G.phase,p=G.players[G.turn];let h='';
-  if(phase==='cleanup'){
-    h=`<div style="color:#6b6b5a;font-size:clamp(7px,0.78vw,11px);margin-bottom:5px">Old strike &amp; advantages discarded.</div><button class="btn blue" onclick="doReplenish()">2 · Replenish →</button>`;
-  }else if(phase==='replenish'){
-    h=`<div style="color:#6b6b5a;font-size:clamp(7px,0.78vw,11px);margin-bottom:5px">Gain energy from opponent's attack zone.</div><button class="btn blue" onclick="doReplenish()">Replenish →</button>`;
-    // auto-trigger replenish
-    setTimeout(doReplenish,100);h='<div style="color:#6b6b5a;font-size:clamp(7px,0.78vw,11px)">Replenishing…</div>';
-  }else if(phase==='sigMove'){
-    const allChg=allCharged(G.turn);const sig=p.cf?p.cfm:p.cbm;
-    h=`<div style="color:#6b6b5a;font-size:clamp(7px,0.78vw,11px);margin-bottom:5px">${allChg?`⚡ <span style="color:#c8a04a">${sig.name}</span> available!`:'Zones not all charged.'}</div>
-    ${allChg&&(sig.int||0)>=G.incomingForce?`<button class="btn" style="border-color:#c8a04a;margin-bottom:4px" onclick="doSigMove()">⚔️ ${sig.name}</button>`:''}
-    <button class="btn blue" onclick="proceedToFlip()">4 · Flip →</button>`;
-  }else if(phase==='flip'){
-    if(!G.flippedCard){
-      h=`<div style="color:#6b6b5a;font-size:clamp(7px,0.78vw,11px);margin-bottom:4px">Click the <span style="color:#c8a04a">Deck</span> to draw into ${['🟢','🟡','🔴'][G.defenseZone]} zone.</div>`;
-    }else if(!G.flippedCard.faceDown){
-      const card=G.flippedCard;const cp=canPay(G.turn,card);const ei=effInt(card);const ef=effFrc(card);
-      const canBlock=card.type==='strike'&&ei>=G.incomingForce;
-      h=`<div style="color:#6b6b5a;font-size:clamp(7px,0.78vw,11px);margin-bottom:4px"><b style="color:#c8a04a">${card.name}</b></div>`;
-      if(card.type==='strike'&&canBlock&&cp) h+=`<button class="btn grn" onclick="doCounterattack()">⚔️ Counterattack (Frc ${ef})</button>`;
-      if(card.type==='advantage'&&cp) h+=`<button class="btn blue" onclick="doPlayAdv()">✨ Advantage</button>`;
-      if(card.type==='ally'&&cp) h+=`<button class="btn blue" onclick="doPlayAlly()">🤝 Ally</button>`;
-      h+=`<button class="btn" onclick="doFocusAction()">🔋 Focus</button>`;
-      h+=`<button class="btn red" onclick="doDiscard()">🗑️ Discard</button>`;
-    }else{
-      h=`<div style="color:#c8a04a;font-size:clamp(7px,0.78vw,11px)">Card drawn — click it to flip!</div>`;
+  if (advEl) {
+    advEl.innerHTML = '<span class="adv-area-label">ADVANTAGE AREA</span>';
+    for (const adv of p.advantageArea) {
+      const advMini = document.createElement('div');
+      advMini.className = 'adv-card-mini';
+      advMini.textContent = adv.name;
+      advMini.onclick = () => showCardZoom(adv);
+      advEl.appendChild(advMini);
     }
   }
-  document.getElementById('ha-btns').innerHTML=h;
 }
 
-function renderLog(){
-  document.getElementById('log-lines').innerHTML=G.log.slice(0,10).map(l=>`<div>${l}</div>`).join('');
+function makeTcgCard(card, faceUp) {
+  const el = document.createElement('div');
+  el.className = 'tcg-card';
+  el.onclick = () => showCardZoom(card);
+
+  const inner = document.createElement('div');
+  inner.className = 'card-inner';
+  if (card.type === 'ally') inner.classList.add('ally-card-inner');
+  if (card.type === 'advantage') inner.classList.add('adv-card-inner');
+
+  const imgDiv = document.createElement('div');
+  imgDiv.className = 'card-img';
+  if (faceUp && card.imgUrl) {
+    const img = document.createElement('img');
+    img.src = card.imgUrl;
+    img.alt = card.name;
+    img.onerror = () => { img.style.display='none'; };
+    imgDiv.appendChild(img);
+  } else if (!faceUp) {
+    const img = document.createElement('img');
+    img.src = CARD_BACK;
+    img.alt = 'card back';
+    imgDiv.appendChild(img);
+  }
+  inner.appendChild(imgDiv);
+
+  const nameDiv = document.createElement('div');
+  nameDiv.className = 'card-name';
+  nameDiv.textContent = card.name;
+  inner.appendChild(nameDiv);
+
+  if (faceUp && card.type === 'strike') {
+    const stats = document.createElement('div');
+    stats.className = 'card-stats';
+    stats.innerHTML = `<span class="stat-int">I:${card.int}</span><span class="stat-for">F:${card.for}</span>`;
+    inner.appendChild(stats);
+  }
+
+  el.appendChild(inner);
+  return el;
 }
 
-// ================================================================
-// BOOT
-// ================================================================
-render();
+function makeAllyCard(ally, pIdx, zoneName) {
+  const el = document.createElement('div');
+  el.className = 'tcg-card';
+  el.style.width = '52px';
+  el.style.height = '74px';
+
+  const inner = document.createElement('div');
+  inner.className = 'card-inner ally-card-inner';
+  inner.style.background = `linear-gradient(135deg, ${ally.color || '#2a1a4a'}, rgba(80,40,120,0.8))`;
+
+  const nameDiv = document.createElement('div');
+  nameDiv.className = 'card-name';
+  nameDiv.style.fontSize = '0.38rem';
+  nameDiv.style.padding = '2px';
+  nameDiv.textContent = ally.name;
+  inner.appendChild(nameDiv);
+
+  const statDiv = document.createElement('div');
+  statDiv.className = 'card-stats';
+  statDiv.style.justifyContent = 'center';
+  statDiv.style.fontSize = '0.5rem';
+  statDiv.style.color = '#a080e0';
+  statDiv.textContent = 'ALLY';
+  inner.appendChild(statDiv);
+
+  el.appendChild(inner);
+  el.onclick = () => showCardZoom(ally);
+  return el;
+}
+
+function makeChamberMini(chamber, charged) {
+  const el = document.createElement('div');
+  el.className = 'deck-pile';
+  el.style.background = `linear-gradient(135deg, ${chamber.color || '#1a1a1a'}, #3a3a3a)`;
+  el.style.border = charged ? '2px solid var(--charged-glow)' : '1px solid rgba(200,160,80,0.5)';
+  el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.4rem;color:${charged?'#ffd700':'#d4a843'};text-align:center;padding:2px;line-height:1.4;">${chamber.name.toUpperCase()}<br>CHAMBER</div>`;
+  return el;
+}
+
+function makeDeckPile(deck) {
+  const el = document.createElement('div');
+  el.className = 'deck-pile' + (deck.length === 0 ? ' empty' : '');
+  if (deck.length > 0) {
+    const img = document.createElement('img');
+    img.src = CARD_BACK;
+    img.alt = 'deck';
+    el.appendChild(img);
+    const cnt = document.createElement('div');
+    cnt.className = 'deck-count';
+    cnt.textContent = deck.length;
+    el.appendChild(cnt);
+  } else {
+    el.innerHTML = '<div style="font-size:0.5rem;color:rgba(200,160,80,0.4);text-align:center;">EMPTY</div>';
+  }
+  return el;
+}
+
+function makeDiscardPile(discard, charged) {
+  const el = document.createElement('div');
+  el.className = 'discard-pile' + (discard.length === 0 ? ' empty' : '');
+  el.style.border = charged ? '2px solid var(--charged-glow)' : '';
+  if (discard.length > 0) {
+    const top = discard[discard.length - 1];
+    if (top.imgUrl) {
+      const img = document.createElement('img');
+      img.src = top.imgUrl;
+      img.alt = top.name;
+      img.onerror = () => { el.innerHTML = `<div style="font-size:0.4rem;color:rgba(200,160,80,0.6);text-align:center;padding:2px;">${top.name}</div>`; };
+      el.appendChild(img);
+    } else {
+      el.innerHTML = `<div style="font-size:0.4rem;color:rgba(200,160,80,0.6);text-align:center;padding:2px;">${top.name}</div>`;
+    }
+  } else {
+    el.innerHTML = '<div style="font-size:0.4rem;color:rgba(200,160,80,0.3);text-align:center;">DISCARD</div>';
+  }
+  return el;
+}
+
+function renderCenterPanel() {
+  if (!G) return;
+  const phaseEl = document.getElementById('phase-display');
+  const btnsEl = document.getElementById('action-btns');
+  btnsEl.innerHTML = '';
+
+  const defender = G.players[G.defender];
+  const defName = defender ? defender.name : '';
+
+  if (G.phase === 'OPENING_CHOOSE') {
+    const chooser = G.players[G.choosingPlayer];
+    phaseEl.textContent = `${chooser.name}: Choose Defender`;
+    const bt1 = makeBtn(`${G.players[0].name} DEFENDS`, () => setOpeningAttackDefender(0));
+    const bt2 = makeBtn(`${G.players[1].name} DEFENDS`, () => setOpeningAttackDefender(1));
+    btnsEl.appendChild(bt1);
+    btnsEl.appendChild(bt2);
+    document.getElementById('turn-indicator').textContent = 'OPENING ATTACK — Choose Defender';
+    return;
+  }
+
+  if (G.phase === 'DEFENSE' && G.step === 'FLIP') {
+    phaseEl.textContent = `${defName} — ${G.currentZone.toUpperCase()} ZONE`;
+    document.getElementById('turn-indicator').textContent = `${defName} defending | Incoming Force: ${G.incomingForce}`;
+    const flipBtn = makeBtn('▶ FLIP CARD', () => { flipCardInZone(); }, 'primary');
+    btnsEl.appendChild(flipBtn);
+    return;
+  }
+
+  if (G.phase === 'DEFENSE' && G.step === 'CHOOSING') {
+    const zone = defender.zones[G.currentZone];
+    const card = zone.flipCard;
+    phaseEl.textContent = `${defName} — ${G.currentZone.toUpperCase()} ZONE | Incoming: ${G.incomingForce}`;
+    document.getElementById('turn-indicator').textContent = `Flipped: ${card ? card.name : '?'} — Choose action`;
+
+    if (card) {
+      // Play as strike
+      if (card.type === 'strike') {
+        const canPlay = (card.int + (zone.ally ? zone.ally.intBonus||0 : 0)) >= G.incomingForce
+                        && canAfford(defender, card.g, card.y, card.r);
+        const strikeBtn = makeBtn(`⚔ COUNTERATTACK (I:${card.int} F:${card.for})`,
+          () => playAsStrike(card), canPlay ? 'success' : null);
+        strikeBtn.disabled = !canPlay;
+        btnsEl.appendChild(strikeBtn);
+      }
+      // Play as ally
+      if (card.type === 'ally') {
+        const canPlay = canAfford(defender, card.g, card.y, card.r);
+        const allyBtn = makeBtn(`🤝 PLAY ALLY: ${card.name}`, () => playAsAlly(card), 'success');
+        allyBtn.disabled = !canPlay;
+        btnsEl.appendChild(allyBtn);
+      }
+      // Play as advantage
+      if (card.type === 'advantage') {
+        const canPlay = canAfford(defender, card.g, card.y, card.r);
+        const advBtn = makeBtn(`⭐ PLAY ADVANTAGE: ${card.name}`, () => playAsAdvantage(card), 'success');
+        advBtn.disabled = !canPlay;
+        btnsEl.appendChild(advBtn);
+      }
+      // Focus
+      const focusBtn = makeBtn('🔋 FOCUS (Add to Energy)', () => focusCard());
+      btnsEl.appendChild(focusBtn);
+      // Discard
+      const discBtn = makeBtn('🗑 DISCARD', () => discardCard(), 'danger');
+      btnsEl.appendChild(discBtn);
+      // View card
+      const viewBtn = makeBtn('🔍 VIEW CARD', () => showCardZoom(card));
+      btnsEl.appendChild(viewBtn);
+    }
+    return;
+  }
+
+  if (G.phase === 'PASS') {
+    phaseEl.textContent = 'Passing turn...';
+    document.getElementById('turn-indicator').textContent = 'Pass device to next player';
+    const passBtn = makeBtn('📲 PASS DEVICE', () => {
+      const name = G.players[G._nextTurnPlayer || 0].name;
+      document.getElementById('pass-title').textContent = `${name.toUpperCase()}'S TURN`;
+      document.getElementById('pass-msg').textContent = `Incoming Force: ${G.incomingForce}`;
+      document.getElementById('pass-screen').style.display = 'flex';
+    }, 'primary');
+    btnsEl.appendChild(passBtn);
+    return;
+  }
+
+  phaseEl.textContent = G.phase + ' / ' + (G.step || '');
+}
+
+function makeBtn(text, onclick, cls='') {
+  const btn = document.createElement('button');
+  btn.className = 'act-btn' + (cls ? ' '+cls : '');
+  btn.textContent = text;
+  btn.onclick = onclick;
+  return btn;
+}
+
+function updateScoreDisplay() {
+  if (!G) return;
+  const p0 = G.players[0], p1 = G.players[1];
+  for (let dot = 0; dot < 3; dot++) {
+    const d0 = document.getElementById('p1-dot-'+dot);
+    const d1 = document.getElementById('p2-dot-'+dot);
+    if (d0) d0.className = 'score-dot' + (p0.score > dot ? ' filled' : '');
+    if (d1) d1.className = 'score-dot' + (p1.score > dot ? ' filled' : '');
+  }
+  document.getElementById('p1-header-name').textContent = G.players[0].name;
+  document.getElementById('p2-header-name').textContent = G.players[1].name;
+}
+
+// ============================================================
+// CARD ZOOM MODAL
+// ============================================================
+function showCardZoom(card) {
+  if (!card) return;
+  const modal = document.getElementById('card-modal');
+  document.getElementById('modal-name').textContent = card.name;
+  const img = document.getElementById('modal-img');
+  if (card.imgUrl) {
+    img.src = card.imgUrl;
+    img.style.display = 'block';
+  } else {
+    img.style.display = 'none';
+  }
+  const intTxt = card.int !== undefined ? `⛨ Intercept: ${card.int}` : '';
+  const forTxt = card.for !== undefined ? `⚡ Force: ${card.for}` : '';
+  document.getElementById('modal-int').textContent = intTxt;
+  document.getElementById('modal-for').textContent = forTxt;
+  const costG = card.g || 0, costY = card.y || 0, costR = card.r || 0;
+  document.getElementById('modal-cost').textContent = `Cost: ${costG}G ${costY}Y ${costR}R`;
+  document.getElementById('modal-rules').textContent = card.rules || '';
+  document.getElementById('modal-flavor').textContent = card.flavor || '';
+  modal.style.display = 'flex';
+}
+
+function showChamberInfo(player) {
+  const ch = player.chamber;
+  const sig = player.chamberFrontActive ? ch.frontSig : ch.backSig;
+  const card = {
+    name: `${ch.name} — ${sig.name}`,
+    imgUrl: null,
+    int: sig.int, for: sig.for,
+    g: sig.g, y: sig.y, r: sig.r,
+    rules: `Signature Move: ${sig.rules}\n\nTraits: ${ch.traits.join(', ')}`
+  };
+  showCardZoom(card);
+}
+
+function closeCardModal() {
+  document.getElementById('card-modal').style.display = 'none';
+}
+
+// ============================================================
+// SETUP
+// ============================================================
+function selectChar(playerNum, charId, btn) {
+  selectedChars['p'+playerNum] = charId;
+  const parent = btn.parentElement;
+  parent.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
+}
+
+function startGame() {
+  document.getElementById('setup-screen').style.display = 'none';
+  document.getElementById('game-layout').style.display = 'flex';
+  initGame();
+  renderAll();
+}
+
+// ============================================================
+// INIT
+// ============================================================
+window.onload = () => {
+  // Ready
+  const startBtn = document.getElementById('start-btn');
+  if (startBtn) startBtn.disabled = false;
+};
 </script>
 </body>
 </html>
