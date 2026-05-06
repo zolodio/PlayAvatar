@@ -398,6 +398,7 @@ body {
 .sig-name { font-family: 'Cinzel', serif; font-size: 1rem; color: var(--parchment-text); margin: 8px 0; }
 .sig-stats { font-size: 0.9rem; color: var(--mat-parchment); margin: 4px 0; }
 .sig-rules { font-style: italic; color: #c0a860; font-size: 0.82rem; margin: 8px 0; line-height: 1.4; }
+.sig-flavor { font-size: 0.75rem; color: rgba(200,180,140,0.65); font-style: italic; margin-top: 6px; border-top: 1px solid rgba(212,168,67,0.2); padding-top: 6px; }
 .sig-btns { display: flex; gap: 10px; justify-content: center; margin-top: 14px; }
 
 /* ===================== ANIMATIONS ===================== */
@@ -578,6 +579,7 @@ body {
     <div class="sig-name" id="sig-name"></div>
     <div class="sig-stats" id="sig-stats"></div>
     <div class="sig-rules" id="sig-rules"></div>
+    <div class="sig-flavor" id="sig-flavor"></div>
     <div class="sig-btns">
       <button class="em-btn cancel" onclick="skipSig()">SKIP</button>
       <button class="em-btn confirm" onclick="useSig()">USE SIGNATURE MOVE</button>
@@ -589,8 +591,8 @@ body {
 // ============================================================
 // CONSTANTS
 // ============================================================
-const CSV_URL = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/Current-Development/Extended%20Database.csv';
-const CARD_BACK = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/Current-Development/cardback.jpg';
+const CSV_URL = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/main/Extended%20Database.csv';
+const CARD_BACK = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/main/cardback.jpg';
 
 // ============================================================
 // CARD DATABASE — loaded from CSV at startup
@@ -611,17 +613,16 @@ function parseCSV(text) {
 
   while (i < len) {
     const fields = [];
-    // Parse one record (may span lines if field is quoted)
     let endOfRecord = false;
     while (!endOfRecord) {
       let field = '';
       if (i < len && text[i] === '"') {
-        i++; // skip opening quote
+        i++;
         while (i < len) {
           if (text[i] === '"') {
             i++;
-            if (i < len && text[i] === '"') { field += '"'; i++; } // escaped quote
-            else break; // closing quote
+            if (i < len && text[i] === '"') { field += '"'; i++; }
+            else break;
           } else {
             field += text[i++];
           }
@@ -636,7 +637,7 @@ function parseCSV(text) {
       if (i >= len) { endOfRecord = true; break; }
       if (text[i] === '\r') i++;
       if (i < len && text[i] === '\n') { i++; endOfRecord = true; break; }
-      if (i < len && text[i] === ',') { i++; } // next field
+      if (i < len && text[i] === ',') { i++; }
     }
     if (fields.length > 1 && fields[0].trim()) {
       records.push(fields);
@@ -645,7 +646,6 @@ function parseCSV(text) {
   return records;
 }
 
-// Convert github.com raw URLs to raw.githubusercontent.com
 function fixImgUrl(url) {
   if (!url) return '';
   return url
@@ -653,7 +653,6 @@ function fixImgUrl(url) {
     .trim();
 }
 
-// Normalize rules text encoding issues
 function normalizeRules(raw) {
   if (!raw) return '';
   return raw
@@ -662,7 +661,42 @@ function normalizeRules(raw) {
     .trim();
 }
 
-// Build CARD_DB from parsed CSV records
+// ============================================================
+// CSV COLUMN MAP
+// Standard columns: 0–14 (unchanged)
+//   0  Number
+//   1  Name
+//   2  Image URL
+//   3  Type
+//   4  Rarity
+//   5  Set
+//   6  Back Image URL
+//   7  Traits
+//   8  Intercept (int)
+//   9  Force (for)
+//  10  Green cost (g)
+//  11  Yellow cost (y)
+//  12  Red cost (r)
+//  13  Rules
+//  14  Flavor
+//
+// Chamber-only columns: 15–28
+//  15  ChamberFrontI
+//  16  ChamberFrontF
+//  17  ChamberFrontG
+//  18  ChamberFrontY
+//  19  ChamberFrontR
+//  20  ChamberFrontRul
+//  21  ChamberFrontFlav
+//  22  ChamberBackI
+//  23  ChamberBackF
+//  24  ChamberBackG
+//  25  ChamberBackY
+//  26  ChamberBackR
+//  27  ChamberBackRul
+//  28  ChamberBackFlav
+// ============================================================
+
 function buildCardDB(records) {
   const db = {};
   const PLAYABLE_TYPES = new Set(['strike','advantage','ally','chamber']);
@@ -695,6 +729,28 @@ function buildCardDB(records) {
       backImgUrl: fixImgUrl(fields[6]),
       immediate: rules.toLowerCase().includes('immediate'),
     };
+
+    // ── Chamber-specific columns (cols 15–28) ──────────────
+    if (type === 'chamber') {
+      db[num].frontSig = {
+        int:    parseInt(fields[15]) || 0,
+        for:    parseInt(fields[16]) || 0,
+        g:      parseInt(fields[17]) || 0,
+        y:      parseInt(fields[18]) || 0,
+        r:      parseInt(fields[19]) || 0,
+        rules:  normalizeRules(fields[20]),
+        flavor: (fields[21] || '').trim(),
+      };
+      db[num].backSig = {
+        int:    parseInt(fields[22]) || 0,
+        for:    parseInt(fields[23]) || 0,
+        g:      parseInt(fields[24]) || 0,
+        y:      parseInt(fields[25]) || 0,
+        r:      parseInt(fields[26]) || 0,
+        rules:  normalizeRules(fields[27]),
+        flavor: (fields[28] || '').trim(),
+      };
+    }
   }
   return db;
 }
@@ -709,13 +765,12 @@ async function loadCardDatabase() {
 }
 
 // ============================================================
-// ALLY BONUS HELPERS — computed from rules text
+// ALLY BONUS HELPERS
 // ============================================================
 function getAllyBonuses(ally) {
   if (!ally || !ally.rules) return { int: 0, for: 0 };
   const r = ally.rules;
   let intBonus = 0, forBonus = 0;
-  // Match "strikes have +N Intercept" patterns
   const im = r.match(/strikes(?:[^.]*?)\+(\d+) Intercept/);
   if (im) intBonus = parseInt(im[1]);
   const fm = r.match(/strikes(?:[^.]*?)\+(\d+) Force/);
@@ -724,7 +779,9 @@ function getAllyBonuses(ally) {
 }
 
 // ============================================================
-// CHAMBER DEFINITIONS (signature moves not in CSV stats)
+// CHAMBER DEFINITIONS
+// Sig move names are preserved here; stats/rules/flavor are
+// overwritten at startup by buildChambersFromDB() using CSV data.
 // ============================================================
 const CHAMBERS = {
   aang: {
@@ -732,93 +789,88 @@ const CHAMBERS = {
     traits: ['fox','spirit','light','air'],
     color: '#1a3a5a',
     frontSig: { name: 'Penguin Sledding', int: 5, for: 4, g: 0, y: 1, r: 0,
-      rules: 'When you counterattack from a charged zone, add a green energy.' },
+      rules: 'When you counterattack from a charged zone, add a green energy.',
+      flavor: '' },
     backSig:  { name: 'Taming the Unagi', int: 7, for: 7, g: 1, y: 1, r: 0,
-      rules: 'When you counterattack, charge all of your zones.' }
+      rules: 'When you counterattack, charge all of your zones.',
+      flavor: '' }
   },
   zuko: {
     id: 'zuko', name: 'Zuko',
     traits: ['bull','spirit','shadow','fire'],
     color: '#5a1a0a',
     frontSig: { name: 'Royal Flame', int: 5, for: 6, g: 1, y: 0, r: 1,
-      rules: 'When you counterattack, your opponent uncharges one of his or her zones.' },
+      rules: 'When you counterattack, your opponent uncharges one of his or her zones.',
+      flavor: '' },
     backSig:  { name: 'Blue Flame', int: 7, for: 9, g: 1, y: 1, r: 1,
-      rules: "When you counterattack, eliminate all of your opponent's green energy." }
+      rules: "When you counterattack, eliminate all of your opponent's green energy.",
+      flavor: '' }
   }
 };
 
 // ============================================================
-// DECK TEMPLATES — all IDs are real card Numbers from CSV
-// Strikes: 1–165, Advantages: 81–118, Allies: 119–141
+// BUILD CHAMBERS FROM CSV
+// Called after loadCardDatabase(). Finds chamber-type cards,
+// matches them to a character by name, then overwrites stats,
+// rules, flavor, and traits from the CSV — preserving the
+// sig move names defined above.
+// ============================================================
+function buildChambersFromDB() {
+  for (const card of Object.values(CARD_DB)) {
+    if (card.type !== 'chamber') continue;
+    if (!card.frontSig && !card.backSig) continue; // no chamber columns present
+
+    const nameLower = card.name.toLowerCase();
+    let charId = null;
+    if (nameLower.includes('aang'))      charId = 'aang';
+    else if (nameLower.includes('zuko')) charId = 'zuko';
+    if (!charId || !CHAMBERS[charId]) continue;
+
+    const ch = CHAMBERS[charId];
+
+    // Update traits from CSV if the card has them
+    if (card.traits && card.traits.length > 0) ch.traits = card.traits;
+
+    // Merge CSV stats/rules/flavor into frontSig, keeping the name
+    if (card.frontSig) {
+      ch.frontSig = { name: ch.frontSig.name, ...card.frontSig };
+    }
+    // Merge CSV stats/rules/flavor into backSig, keeping the name
+    if (card.backSig) {
+      ch.backSig = { name: ch.backSig.name, ...card.backSig };
+    }
+
+    console.log(`Chamber loaded from CSV: ${card.name} (${charId})`);
+  }
+}
+
+// ============================================================
+// DECK TEMPLATES
 // ============================================================
 const AANG_DECK_TEMPLATE = [
-  // Strikes — lion/fox traits, water/air feel
-  { id:'41', count:2 }, // Bitter Batter
-  { id:'44', count:2 }, // Dancing Mists
-  { id:'45', count:2 }, // Double Crest
-  { id:'47', count:2 }, // Just Desserts
-  { id:'49', count:2 }, // Mischievous Downpour
-  { id:'50', count:1 }, // Sea Sphere
-  { id:'51', count:1 }, // Snowball Smash
-  { id:'52', count:1 }, // Stifling Breeze
-  { id:'54', count:1 }, // Surf Spray
-  { id:'55', count:1 }, // Sweet Revenge
-  { id:'24', count:1 }, // Careening Koi
-  { id:'40', count:1 }, // Wind on the Waves
-  { id:'56', count:1 }, // Tandem Attack
-  { id:'42', count:1 }, // Blowback
-  { id:'59', count:1 }, // Windmill Barrier
-  // Advantages
-  { id:'83',  count:1 }, // Dive for Cover
-  { id:'89',  count:1 }, // Take the High Ground
-  { id:'92',  count:1 }, // Contemplate (Immediate)
-  { id:'94',  count:1 }, // Meditate (Immediate)
-  { id:'98',  count:1 }, // Training Scroll
-  { id:'99',  count:1 }, // Water Kata
-  { id:'103', count:1 }, // Dust Storm
-  { id:'102', count:1 }, // Channel the Winds (Immediate)
-  { id:'107', count:1 }, // Glorious Feast (Immediate)
-  // Allies — light/shadow traits, from CSV rows 119–141
-  { id:'120', count:1 }, // Appa, flying bison
-  { id:'121', count:2 }, // Katara, waterbender in training
-  { id:'123', count:1 }, // Momo, hungry lemur
-  { id:'124', count:2 }, // Monk Gyatso, Aang's mentor
-  { id:'119', count:1 }, // Aang, the last airbender (ally)
+  { id:'41', count:2 }, { id:'44', count:2 }, { id:'45', count:2 },
+  { id:'47', count:2 }, { id:'49', count:2 }, { id:'50', count:1 },
+  { id:'51', count:1 }, { id:'52', count:1 }, { id:'54', count:1 },
+  { id:'55', count:1 }, { id:'24', count:1 }, { id:'40', count:1 },
+  { id:'56', count:1 }, { id:'42', count:1 }, { id:'59', count:1 },
+  { id:'83',  count:1 }, { id:'89',  count:1 }, { id:'92',  count:1 },
+  { id:'94',  count:1 }, { id:'98',  count:1 }, { id:'99',  count:1 },
+  { id:'103', count:1 }, { id:'102', count:1 }, { id:'107', count:1 },
+  { id:'120', count:1 }, { id:'121', count:2 }, { id:'123', count:1 },
+  { id:'124', count:2 }, { id:'119', count:1 },
 ];
 
 const ZUKO_DECK_TEMPLATE = [
-  // Strikes — bull/fox traits, fire feel
-  { id:'1',  count:2 }, // Blazing Axe Kick
-  { id:'2',  count:2 }, // Boiling Point
-  { id:'3',  count:2 }, // Burning Blade
-  { id:'4',  count:2 }, // Burning Disc
-  { id:'9',  count:2 }, // Flare
-  { id:'16', count:1 }, // Searing Cage
-  { id:'17', count:1 }, // Stoke the Flames
-  { id:'19', count:1 }, // Titanic Fireball
-  { id:'20', count:1 }, // Wildfire Arc
-  { id:'35', count:1 }, // Swirling Flames
-  { id:'63', count:1 }, // Canyon Crawler Clash
-  { id:'64', count:1 }, // Coal Rake
-  { id:'70', count:1 }, // Knuckle Sandwich
-  { id:'77', count:1 }, // Skewer
-  { id:'71', count:1 }, // Kyoshi Backhand
-  // Advantages
-  { id:'81',  count:1 }, // Churning Stomachs
-  { id:'85',  count:1 }, // Immobilize
-  { id:'87',  count:1 }, // Riding the Crest
-  { id:'93',  count:1 }, // Incinerate (Immediate)
-  { id:'104', count:1 }, // Expendable Troops (Immediate)
-  { id:'105', count:1 }, // Fiery Temper (Immediate)
-  { id:'88',  count:1 }, // Stand Firm
-  { id:'86',  count:1 }, // Misdirection
-  { id:'113', count:1 }, // Closed-Hand Form
-  // Allies — shadow/dark traits
-  { id:'130', count:2 }, // Uncle Iroh, Zuko's mentor
-  { id:'129', count:2 }, // Prince Zuko, exile
-  { id:'132', count:1 }, // Commander Zhao, ambitious leader
-  { id:'133', count:1 }, // Fire Nation Elite, hardened troops
-  { id:'135', count:1 }, // Prison Warden, breaker of spirits
+  { id:'1',  count:2 }, { id:'2',  count:2 }, { id:'3',  count:2 },
+  { id:'4',  count:2 }, { id:'9',  count:2 }, { id:'16', count:1 },
+  { id:'17', count:1 }, { id:'19', count:1 }, { id:'20', count:1 },
+  { id:'35', count:1 }, { id:'63', count:1 }, { id:'64', count:1 },
+  { id:'70', count:1 }, { id:'77', count:1 }, { id:'71', count:1 },
+  { id:'81',  count:1 }, { id:'85',  count:1 }, { id:'87',  count:1 },
+  { id:'93',  count:1 }, { id:'104', count:1 }, { id:'105', count:1 },
+  { id:'88',  count:1 }, { id:'86',  count:1 }, { id:'113', count:1 },
+  { id:'130', count:2 }, { id:'129', count:2 }, { id:'132', count:1 },
+  { id:'133', count:1 }, { id:'135', count:1 },
 ];
 
 // ============================================================
@@ -1013,6 +1065,7 @@ function checkSignatureMove(playerIdx) {
     document.getElementById('sig-stats').textContent =
       `Intercept: ${sig.int}  |  Force: ${sig.for}  |  Cost: ${sig.g}G ${sig.y}Y ${sig.r}R`;
     document.getElementById('sig-rules').textContent = sig.rules;
+    document.getElementById('sig-flavor').textContent = sig.flavor || '';
     document.getElementById('sig-modal').style.display = 'flex';
     return;
   }
@@ -1123,7 +1176,7 @@ function reshuffleDeck(player) {
 }
 
 // ============================================================
-// ADVANTAGE EFFECT HELPERS — text-based detection
+// ADVANTAGE EFFECT HELPERS
 // ============================================================
 function rulesMatchesIntInCharged(r) { return r.includes('+1 Intercept while in one of your charged zones'); }
 function rulesMatchesForInCharged(r) { return r.includes('+1 Force while in one of your charged zones'); }
@@ -1144,17 +1197,11 @@ function getAdvBonuses(p, zoneName, zone) {
     if (rulesMatchesForInCharged(r) && zone.charged) advFor += 1;
     if (rulesMatchesBothInCharged(r) && zone.charged) { advInt += 1; advFor += 1; }
     if (rulesMatchesForVsGreen(r) && zoneName === 'green') advFor += 2;
-    // Crystal Rampart: +2 Intercept unconditionally
     if (r.includes('Your strikes have +2 Intercept') && !r.includes('while')) advInt += 2;
-    // Closed-Hand Form: +1 Force
     if (r.includes('Your strikes have +1 Force') && !r.includes('while')) advFor += 1;
-    // Open-Hand Form: +1 Intercept
     if (r.includes('Your strikes have +1 Intercept') && !r.includes('while')) advInt += 1;
-    // Caution to the Wind: -1 Int +1 For
     if (r.includes('Your strikes have -1 Intercept and +1 Force')) { advInt -= 1; advFor += 1; }
-    // Lifesaver: +1 Int in red zone
     if (r.includes('Your strikes have +1 Intercept in your red zone') && zoneName === 'red') advInt += 1;
-    // Riding the Crest handled above via rulesMatchesForVsGreen
   }
   return { advInt, advFor };
 }
@@ -1196,7 +1243,6 @@ function afterStrikePayment(card, zoneName) {
   let forBonus = allyBon.for + advFor;
 
   const r = card.rules || '';
-  // Card-specific force bonuses
   if (r.includes('For each ally you have')) {
     forBonus += ['green','yellow','red'].filter(z => p.zones[z].ally).length;
   }
@@ -1205,10 +1251,8 @@ function afterStrikePayment(card, zoneName) {
   const effectiveForce = card.for + forBonus;
   addLog(`${p.name} counterattacks with ${card.name} (Force ${effectiveForce})!`);
 
-  // Apply counterattack effects
   applyCounterattackEffect(card, p, zoneName, effectiveForce);
 
-  // Charge-based effects on counterattack
   if (r.includes('When you counterattack, charge this zone')) {
     zone.charged = true; addLog(`${p.name}'s ${zoneName} zone charged!`);
   }
@@ -1220,14 +1264,11 @@ function afterStrikePayment(card, zoneName) {
     gainEnergy(p, 'green', cnt);
   }
 
-  // Advantage on-counterattack effects
   for (const adv of p.advantageArea) {
     const ar = adv.rules || '';
     if (rulesMatchesAddYellowCA(ar)) { gainEnergy(p, 'yellow', 1); addLog(`${adv.name}: gained yellow energy!`); }
-    if (rulesMatchesSwapCharge(ar)) { /* optional — skip auto-apply */ }
   }
 
-  // Ally on-counterattack effects
   if (zone.ally) {
     const ar = zone.ally.rules || '';
     if (ar.includes("counterattack from Momo's zone") || ar.includes("each player adds a green energy")) {
@@ -1318,13 +1359,10 @@ function afterAdvantagePayment(card, zoneName) {
   const p = G.players[G.defender];
   const zone = p.zones[zoneName];
   zone.flipCard = null;
-
-  // Charge this zone (all advantages charge the zone they're played in)
   if (!zone.charged) {
     zone.charged = true;
     addLog(`${p.name}'s ${zoneName} zone charged!`);
   }
-
   if (card.immediate) {
     applyImmediateEffect(card, p, zoneName);
     p.discard.push(card);
@@ -1332,7 +1370,6 @@ function afterAdvantagePayment(card, zoneName) {
     p.advantageArea.push(card);
     applyPassiveSetup(card, p, zoneName);
   }
-
   addLog(`${p.name} plays ${card.name}!`);
   G.step = 'FLIP';
   renderAll();
@@ -1357,7 +1394,6 @@ function applyImmediateEffect(card, player, zoneName) {
     if (uncharged.length > 0) { player.zones[uncharged[0]].charged = true; addLog(`${player.name} also charges ${uncharged[0]}!`); }
   }
   if (r.includes('If this zone is already charged') && r.includes('charge any zone')) {
-    // Flying Staff Technique / Bad Breath variants
     if (player.zones[zoneName].charged) {
       const uncharged = ['green','yellow','red'].filter(z => !player.zones[z].charged);
       if (uncharged.length > 0) { player.zones[uncharged[0]].charged = true; addLog(`${player.name} charges ${uncharged[0]}!`); }
@@ -1403,11 +1439,9 @@ function applyImmediateEffect(card, player, zoneName) {
     if (oa.length > 0) { opp.discard.push(opp.zones[oa[0]].ally); opp.zones[oa[0]].ally = null; addLog(`${opp.name}'s ally eliminated!`); }
   }
   if (r.includes("Your opponent moves one of his or her allies")) {
-    // Charisma — simplified: no auto-move, just log
     addLog(`Charisma: ${opp.name} would move an ally to your side!`);
   }
   if (r.includes("You may eliminate an energy in this zone. If you do, eliminate one of your opponent's energy")) {
-    // Volcanic Fountain
     if (player.zones[zoneName].energy.length > 0) {
       const myE = player.zones[zoneName].energy.pop();
       player.discard.push(myE);
@@ -1417,7 +1451,6 @@ function applyImmediateEffect(card, player, zoneName) {
     }
   }
   if (r.includes("You are now defending up one zone")) {
-    // Yip Yip! — skip one zone upward
     const zones = ['green','yellow','red'];
     const ci = zones.indexOf(zoneName);
     if (ci < zones.length - 1) {
@@ -1500,7 +1533,6 @@ function scorePoint(scorerIdx) {
   const loser  = G.players[1 - scorerIdx];
   scorer.score++;
   addLog(`⚡ ${scorer.name} scores! (${scorer.score}–${loser.score})`);
-  // Celebration: gain energy in zones with allies
   for (const zname of ['green','yellow','red']) {
     if (scorer.zones[zname].ally) { gainEnergy(scorer, zname, 1); addLog(`Celebration! ${scorer.name} gains ${zname} energy.`); }
   }
@@ -1565,9 +1597,9 @@ function canAfford(player, g, y, r) {
   let needY = Math.max(0, y - avY);
   if (needY > remR) return false;
   remR -= needY;
-  let avYnet = avY - (y - (y - needY));
+  let payY = Math.min(y, avY);
+  let avYsurplus = avY - payY;
   let needG = Math.max(0, g - avG);
-  const avYsurplus = avY - (y - needY < 0 ? 0 : y - needY > avY ? avY : y - needY);
   if (needG > avYsurplus + remR) return false;
   return true;
 }
@@ -1617,7 +1649,6 @@ function confirmPayment() {
   if (!pendingPayment || !pendingAction) return;
   const { player, costG, costY, costR, paidG, paidY, paidR } = pendingPayment;
 
-  // Validate overpayment rules
   if (paidR < costR) { showFeedback('Not enough RED!'); return; }
   const surplusR = paidR - costR;
   const yNet = paidY + surplusR;
@@ -1635,8 +1666,8 @@ function confirmPayment() {
   pendingPayment = null;
   pendingAction  = null;
 
-  if (action.type === 'strike')    afterStrikePayment(action.card, action.zone);
-  else if (action.type === 'ally') afterAllyPayment(action.card, action.zone);
+  if (action.type === 'strike')         afterStrikePayment(action.card, action.zone);
+  else if (action.type === 'ally')      afterAllyPayment(action.card, action.zone);
   else if (action.type === 'advantage') afterAdvantagePayment(action.card, action.zone);
   else if (action.type === 'signature') afterSigPayment(action.sig);
 }
@@ -1661,8 +1692,8 @@ function renderAll() {
 
 function renderPlayer(pIdx) {
   const p = G.players[pIdx];
-  const zonesEl = document.getElementById(`p${pIdx+1}-zones`);
-  const advEl   = document.getElementById(`p${pIdx+1}-adv-area`);
+  const zonesEl  = document.getElementById(`p${pIdx+1}-zones`);
+  const advEl    = document.getElementById(`p${pIdx+1}-adv-area`);
   const bannerEl = document.getElementById(`p${pIdx+1}-banner`);
   if (!zonesEl) return;
 
@@ -1681,14 +1712,12 @@ function renderPlayer(pIdx) {
     const inner = document.createElement('div');
     inner.className = 'zone-inner';
 
-    // Ally slot
     const allySlot = document.createElement('div');
     allySlot.className = 'card-slot ally-slot';
     if (zone.ally) allySlot.appendChild(makeAllyCard(zone.ally));
     else allySlot.innerHTML = '<div class="card-slot-label">ALLY</div>';
     inner.appendChild(allySlot);
 
-    // Flip slot
     const flipSlot = document.createElement('div');
     flipSlot.className = 'card-slot flip-slot';
     if (zone.flipCard) {
@@ -1700,7 +1729,6 @@ function renderPlayer(pIdx) {
     }
     inner.appendChild(flipSlot);
 
-    // Chamber / Deck / Discard
     const chargeSlot = document.createElement('div');
     chargeSlot.className = 'card-slot charge-slot';
     if (zname === 'green') {
@@ -1719,7 +1747,6 @@ function renderPlayer(pIdx) {
     }
     inner.appendChild(chargeSlot);
 
-    // Energy area
     const ea = document.createElement('div');
     ea.className = 'energy-area';
     ea.innerHTML = `<div class="energy-label">${zname.toUpperCase()}</div>
@@ -1733,7 +1760,6 @@ function renderPlayer(pIdx) {
     zonesEl.appendChild(zEl);
   }
 
-  // Advantage area
   if (advEl) {
     advEl.innerHTML = '<span class="adv-area-label">ADVANTAGE AREA</span>';
     for (const adv of p.advantageArea) {
@@ -1984,7 +2010,7 @@ function showChamberInfo(player) {
     g: sig.g, y: sig.y, r: sig.r,
     traits: ch.traits,
     rules: `Signature Move: ${sig.rules}`,
-    flavor: ''
+    flavor: sig.flavor || ''
   });
 }
 
@@ -2007,7 +2033,7 @@ function startGame() {
 }
 
 // ============================================================
-// INIT — load CSV then show setup
+// INIT — load CSV → merge chamber data → show setup
 // ============================================================
 window.onload = async () => {
   const msgEl = document.getElementById('loading-msg');
@@ -2016,12 +2042,17 @@ window.onload = async () => {
   try {
     msgEl.textContent = 'Fetching card database from GitHub…';
     const count = await loadCardDatabase();
-    msgEl.textContent = `Loaded ${count} cards. Ready!`;
 
+    // ── NEW: pull chamber stats/rules/flavor from CSV ──────
+    msgEl.textContent = 'Loading chamber data…';
+    buildChambersFromDB();
+    // ──────────────────────────────────────────────────────
+
+    msgEl.textContent = `Loaded ${count} cards. Ready!`;
     document.getElementById('db-count').textContent =
       `${count} cards loaded from live database`;
 
-    await new Promise(r => setTimeout(r, 600)); // brief "loaded" flash
+    await new Promise(r => setTimeout(r, 600));
 
     document.getElementById('loading-screen').style.display = 'none';
     document.getElementById('setup-screen').style.display = 'flex';
