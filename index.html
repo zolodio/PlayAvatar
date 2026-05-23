@@ -84,21 +84,36 @@ body {
   padding: 20px; text-align: center; min-width: 200px;
 }
 .player-card-setup h3 { font-family: 'Cinzel', serif; color: var(--gold); margin-bottom: 12px; font-size: 1rem; letter-spacing: 2px; }
-.char-options { display: flex; gap: 12px; justify-content: center; }
-.char-btn {
-  background: rgba(0,0,0,0.5);
-  border: 2px solid rgba(212,168,67,0.4);
-  border-radius: 8px; padding: 10px 16px;
-  cursor: pointer; color: var(--parchment-text);
-  font-family: 'Cinzel', serif; font-size: 0.85rem;
-  transition: all 0.2s; letter-spacing: 1px;
+/* ─── Dynamic character grid ─── */
+.char-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 5px; margin-bottom: 8px;
+  max-height: 150px; overflow-y: auto;
+  padding-right: 2px;
 }
-.char-btn:hover { border-color: var(--gold); background: rgba(212,168,67,0.15); }
-.char-btn.selected { border-color: var(--gold); background: rgba(212,168,67,0.25); color: var(--gold-light); }
-.char-btn.aang { border-color: rgba(100,180,255,0.6); }
-.char-btn.aang.selected { background: rgba(100,180,255,0.2); border-color: #64b4ff; color: #a0d4ff; }
-.char-btn.zuko { border-color: rgba(255,80,30,0.6); }
-.char-btn.zuko.selected { background: rgba(255,80,30,0.2); border-color: #ff501e; color: #ffb080; }
+.char-btn-grid {
+  background: rgba(0,0,0,0.5);
+  border: 2px solid rgba(212,168,67,0.3);
+  border-radius: 6px; padding: 6px 3px;
+  cursor: pointer; color: var(--parchment-text);
+  font-family: 'Cinzel', serif; font-size: 0.6rem;
+  transition: all 0.2s; letter-spacing: 0.5px; text-align: center;
+  line-height: 1.3;
+}
+.char-btn-grid:hover { border-color: var(--gold); background: rgba(212,168,67,0.15); }
+.char-btn-grid.selected { border-color: var(--gold); background: rgba(212,168,67,0.28); color: var(--gold-light); }
+.char-btn-grid.locked-out { opacity: 0.35; cursor: not-allowed; pointer-events: none; }
+
+.char-grid-locked {
+  background: rgba(212,168,67,0.08); border: 1px solid rgba(212,168,67,0.4);
+  border-radius: 8px; padding: 10px; text-align: center; margin-bottom: 8px;
+}
+.char-grid-locked-name { font-family:'Cinzel',serif; font-size:0.95rem; color:var(--gold); display:block; }
+.char-grid-locked-variant { font-family:'Cinzel',serif; font-size:0.55rem; color:rgba(200,160,80,0.65); display:block; margin-top:2px; }
+.char-grid-locked-sub { font-family:'Cinzel',serif; font-size:0.5rem; color:rgba(140,110,60,0.7); display:block; margin-top:4px; letter-spacing:1px; }
+
+.variant-section { margin-top:6px; margin-bottom:2px; }
+.variant-hint { font-size:0.55rem; color:rgba(200,160,80,0.45); font-family:'Cinzel',serif; margin-top:4px; min-height:12px; }
 .start-btn {
   background: linear-gradient(135deg, #8b6914, #d4a843, #8b6914);
   border: none; border-radius: 8px; padding: 14px 40px;
@@ -454,9 +469,9 @@ body {
   <div class="player-setup">
     <div class="player-card-setup" id="p1-setup">
       <h3>PLAYER 1</h3>
-      <div class="char-options">
-        <button class="char-btn aang selected" onclick="selectChar(1,'aang',this)">AANG</button>
-        <button class="char-btn zuko" onclick="selectChar(1,'zuko',this)">ZUKO</button>
+      <!-- Character area — populated dynamically by populateSetupScreen() -->
+      <div id="p1-char-area">
+        <div style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);text-align:center;padding:10px;">Loading characters…</div>
       </div>
       <div class="deck-picker-section">
         <span class="deck-picker-label">DECK</span>
@@ -468,9 +483,9 @@ body {
     </div>
     <div class="player-card-setup" id="p2-setup">
       <h3>PLAYER 2</h3>
-      <div class="char-options">
-        <button class="char-btn aang" onclick="selectChar(2,'aang',this)">AANG</button>
-        <button class="char-btn zuko selected" onclick="selectChar(2,'zuko',this)">ZUKO</button>
+      <!-- Character area — populated dynamically by populateSetupScreen() -->
+      <div id="p2-char-area">
+        <div style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);text-align:center;padding:10px;">Loading characters…</div>
       </div>
       <div class="deck-picker-section">
         <span class="deck-picker-label">DECK</span>
@@ -622,7 +637,7 @@ body {
 // ============================================================
 // CONSTANTS
 // ============================================================
-const CSV_URL = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/main/Extended%20Database.csv';
+const CSV_URL = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/TESTING-STOREFRONT/Extended%20Database.csv';
 const CARD_BACK = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/main/cardback.jpg';
 
 // ============================================================
@@ -810,70 +825,160 @@ function getAllyBonuses(ally) {
 }
 
 // ============================================================
-// CHAMBER DEFINITIONS
-// Sig move names are preserved here; stats/rules/flavor are
-// overwritten at startup by buildChambersFromDB() using CSV data.
+// CHARACTER IDENTITY HELPERS
+// ============================================================
+
+// Avatar TCG known characters (all 10). Used to validate extracted names.
+const KNOWN_CHAR_NAMES = new Set([
+  'aang','zuko','katara','sokka','toph','azula','iroh','ozai','suki','jet'
+]);
+
+// Extract a canonical character ID (lowercase first meaningful word) from a card name.
+// e.g. "Aang, Air Nomad" → "aang", "Toph Beifong" → "toph"
+function extractCharId(cardName) {
+  if (!cardName) return null;
+  const first = cardName.toLowerCase().split(/[\s,\-\—\u2014]+/)[0].replace(/[^a-z]/g,'');
+  return first || null;
+}
+
+// Assign a thematic color per character
+const CHAR_COLORS = {
+  aang:   '#1a3a5a',  // Air / blue
+  zuko:   '#5a1a0a',  // Fire / red-orange
+  katara: '#0a2a4a',  // Water / deep blue
+  sokka:  '#2a2a1a',  // Earth / olive
+  toph:   '#2a3a1a',  // Earth / green
+  azula:  '#1a0a4a',  // Blue fire / deep purple
+  iroh:   '#3a2a0a',  // Tea / warm brown
+  ozai:   '#4a0a1a',  // Dark fire / crimson
+  suki:   '#1a3a2a',  // Kyoshi / green
+  jet:    '#1a2a0a',  // Freedom fighters
+};
+function _charColor(charId) { return CHAR_COLORS[charId] || '#1a1a2a'; }
+
+// Hardcoded signature move names for known characters.
+// Front = first sig, Back = second (flipped chamber) sig.
+const SIG_NAMES = {
+  aang:   { front: 'Penguin Sledding',    back: 'Taming the Unagi'   },
+  zuko:   { front: 'Royal Flame',         back: 'Blue Flame'         },
+  katara: { front: 'Healing Stream',      back: 'Blood Moon'         },
+  sokka:  { front: 'Boomerang Throw',     back: 'Space Sword'        },
+  toph:   { front: 'Earthen Fist',        back: 'Metal Bend'         },
+  azula:  { front: 'Blue Inferno',        back: 'Lightning Strike'   },
+  iroh:   { front: 'Dragon Breath',       back: 'Clouds of Tea'      },
+  ozai:   { front: 'Phoenix King',        back: 'Sozin\'s Comet'     },
+  suki:   { front: 'Fan Dance',           back: 'Kyoshi\'s Strike'   },
+  jet:    { front: 'Twin Hook Swords',    back: 'Freedom Charge'     },
+};
+function getSigNames(charId) {
+  return SIG_NAMES[charId] || {
+    front: charId.charAt(0).toUpperCase() + charId.slice(1) + '\'s Signature',
+    back:  charId.charAt(0).toUpperCase() + charId.slice(1) + '\'s Ultimate',
+  };
+}
+
+
+// ============================================================
+// CHAMBER DEFINITIONS — seed data; expanded by buildChambersFromDB()
 // ============================================================
 const CHAMBERS = {
   aang: {
     id: 'aang', name: 'Aang',
     traits: ['fox','spirit','light','air'],
-    color: '#1a3a5a',
+    color: _charColor('aang'),
     frontSig: { name: 'Penguin Sledding', int: 5, for: 4, g: 0, y: 1, r: 0,
       rules: 'When you counterattack from a charged zone, add a green energy.',
       flavor: '' },
     backSig:  { name: 'Taming the Unagi', int: 7, for: 7, g: 1, y: 1, r: 0,
       rules: 'When you counterattack, charge all of your zones.',
-      flavor: '' }
+      flavor: '' },
+    cardId: null, variants: {}
   },
   zuko: {
     id: 'zuko', name: 'Zuko',
     traits: ['bull','spirit','shadow','fire'],
-    color: '#5a1a0a',
+    color: _charColor('zuko'),
     frontSig: { name: 'Royal Flame', int: 5, for: 6, g: 1, y: 0, r: 1,
       rules: 'When you counterattack, your opponent uncharges one of his or her zones.',
       flavor: '' },
     backSig:  { name: 'Blue Flame', int: 7, for: 9, g: 1, y: 1, r: 1,
       rules: "When you counterattack, eliminate all of your opponent's green energy.",
-      flavor: '' }
+      flavor: '' },
+    cardId: null, variants: {}
   }
 };
 
 // ============================================================
-// BUILD CHAMBERS FROM CSV
-// Called after loadCardDatabase(). Finds chamber-type cards,
-// matches them to a character by name, then overwrites stats,
-// rules, flavor, and traits from the CSV — preserving the
-// sig move names defined above.
+// BUILD CHAMBERS FROM CSV — called after loadCardDatabase()
+// Dynamically builds/updates CHAMBERS for ALL characters found
+// in the database. Each character may have up to 6 variants
+// (different chamber card IDs stored in CHAMBERS[id].variants).
 // ============================================================
 function buildChambersFromDB() {
+  const byChar = {}; // charId -> [card, ...]
+
   for (const card of Object.values(CARD_DB)) {
     if (card.type !== 'chamber') continue;
-    if (!card.frontSig && !card.backSig) continue; // no chamber columns present
+    const charId = extractCharId(card.name);
+    if (!charId) continue;
+    if (!byChar[charId]) byChar[charId] = [];
+    byChar[charId].push(card);
+  }
 
-    const nameLower = card.name.toLowerCase();
-    let charId = null;
-    if (nameLower.includes('aang'))      charId = 'aang';
-    else if (nameLower.includes('zuko')) charId = 'zuko';
-    if (!charId || !CHAMBERS[charId]) continue;
+  for (const [charId, cards] of Object.entries(byChar)) {
+    cards.sort((a, b) => parseInt(a.id) - parseInt(b.id));
+    const sigNames = getSigNames(charId);
+    const existing = CHAMBERS[charId];
 
-    const ch = CHAMBERS[charId];
-
-    // Update traits from CSV if the card has them
-    if (card.traits && card.traits.length > 0) ch.traits = card.traits;
-
-    // Merge CSV stats/rules/flavor into frontSig, keeping the name
-    if (card.frontSig) {
-      ch.frontSig = { name: ch.frontSig.name, ...card.frontSig };
+    const variants = {};
+    for (const c of cards) {
+      variants[c.id] = {
+        cardId:   c.id,
+        cardName: c.name,
+        frontSig: c.frontSig ? { name: sigNames.front, ...c.frontSig } : null,
+        backSig:  c.backSig  ? { name: sigNames.back,  ...c.backSig  } : null,
+        traits:   c.traits || [],
+      };
     }
-    // Merge CSV stats/rules/flavor into backSig, keeping the name
-    if (card.backSig) {
-      ch.backSig = { name: ch.backSig.name, ...card.backSig };
-    }
 
-    console.log(`Chamber loaded from CSV: ${card.name} (${charId})`);
+    const first    = cards[0];
+    const firstVar = variants[first.id];
+    const frontSig = firstVar.frontSig ||
+      (existing?.frontSig ? { ...existing.frontSig } : { name: sigNames.front, int:0, for:0, g:0, y:0, r:0, rules:'', flavor:'' });
+    const backSig  = firstVar.backSig  ||
+      (existing?.backSig  ? { ...existing.backSig  } : { name: sigNames.back,  int:0, for:0, g:0, y:0, r:0, rules:'', flavor:'' });
+    const traits   = first.traits?.length ? first.traits : (existing?.traits || []);
+    const displayName = charId.charAt(0).toUpperCase() + charId.slice(1);
+
+    CHAMBERS[charId] = {
+      id: charId, name: displayName, traits,
+      color:    existing?.color || _charColor(charId),
+      frontSig, backSig,
+      cardId:   first.id,
+      variants,
+    };
+    console.log(`Chamber built: ${displayName} (${cards.length} variant${cards.length !== 1 ? 's' : ''})`);
   }
 }
+
+// Resolve the chamber object for a player.
+// Uses their deck's specific chamber variant if available; otherwise character default.
+function getChamberForPlayer(pKey, charId) {
+  const ch = CHAMBERS[charId];
+  if (!ch) return null;
+  const specificId = selectedChamberIds[pKey];
+  if (specificId && ch.variants?.[specificId]) {
+    const v = ch.variants[specificId];
+    return {
+      ...ch,
+      frontSig: v.frontSig || ch.frontSig,
+      backSig:  v.backSig  || ch.backSig,
+      traits:   v.traits.length ? v.traits : ch.traits,
+    };
+  }
+  return ch;
+}
+
 
 // ============================================================
 // DECK TEMPLATES
@@ -909,6 +1014,7 @@ const ZUKO_DECK_TEMPLATE = [
 // ============================================================
 let G = null;
 let selectedChars = { p1: 'aang', p2: 'zuko' };
+let selectedChamberIds = { p1: null, p2: null }; // specific chamber card ID; null = use character default
 let pendingPayment = null;
 let pendingAction = null;
 
@@ -938,8 +1044,8 @@ function buildDeck(template, charId) {
   return shuffle(cards);
 }
 
-function makePlayer(pIdx, charId, template) {
-  const chamber = CHAMBERS[charId];
+function makePlayer(pIdx, charId, template, pKey) {
+  const chamber = getChamberForPlayer(pKey || ('p' + (pIdx + 1)), charId) || CHAMBERS[charId];
   const deck = buildDeck(template, charId);
   const green_energy  = deck.splice(0, 3);
   const yellow_energy = deck.splice(0, 3);
@@ -981,14 +1087,21 @@ function initGame() {
       const filtered = saved.template.filter(e => CARD_DB[e.id]);
       if (filtered.length > 0) return filtered;
     }
-    return charId === 'aang' ? AANG_DECK_TEMPLATE : ZUKO_DECK_TEMPLATE;
+    // Default decks: use hardcoded templates for aang/zuko; for others build from DB
+    if (charId === 'aang') return AANG_DECK_TEMPLATE;
+    if (charId === 'zuko') return ZUKO_DECK_TEMPLATE;
+    // Generic fallback: all non-chamber cards as equal 1-copy deck
+    const fallback = Object.values(CARD_DB)
+      .filter(c => c.type !== 'chamber')
+      .map(c => ({ id: c.id, count: 1 }));
+    return fallback.length > 0 ? fallback : AANG_DECK_TEMPLATE;
   }
 
   const p1tpl = resolveTemplate('p1', p1char);
   const p2tpl = resolveTemplate('p2', p2char);
 
-  const p1 = makePlayer(0, p1char, p1tpl);
-  const p2 = makePlayer(1, p2char, p2tpl);
+  const p1 = makePlayer(0, p1char, p1tpl, 'p1');
+  const p2 = makePlayer(1, p2char, p2tpl, 'p2');
   p1.name = 'Player 1 (' + CHAMBERS[p1char].name + ')';
   p2.name = 'Player 2 (' + CHAMBERS[p2char].name + ')';
 
@@ -2086,15 +2199,12 @@ function _decodeDeckCode(code) {
   } catch(e) { return null; }
 }
 
-// Look up a chamber card ID in CARD_DB and return 'aang', 'zuko', or null
+// Look up a chamber card ID in CARD_DB and return the character's charId (e.g. 'aang', 'katara')
 function _inferCharFromChamber(chamberId) {
   if (!chamberId) return null;
   const card = CARD_DB[String(chamberId)];
   if (!card) return null;
-  const n = card.name.toLowerCase();
-  if (n.includes('aang')) return 'aang';
-  if (n.includes('zuko')) return 'zuko';
-  return null;
+  return extractCharId(card.name);
 }
 
 // Read all saved decks from localStorage, normalize to internal format:
@@ -2139,9 +2249,9 @@ function _loadAllSavedDecks() {
           const template = Object.entries(decoded.cards)
             .map(([id, count]) => ({ id: String(id), count: Number(count) }))
             .filter(e => e.count > 0);
-          // characterId may be 'aang'/'zuko' directly, or a chamber card number
+          // characterId may be a charId string directly, or a chamber card number
           let charId = null;
-          if (d.characterId === 'aang' || d.characterId === 'zuko') {
+          if (d.characterId && typeof d.characterId === 'string' && CHAMBERS[d.characterId]) {
             charId = d.characterId;
           } else {
             charId = _inferCharFromChamber(d.characterId) || _inferCharFromChamber(decoded.chamber);
@@ -2207,8 +2317,11 @@ function onDeckPick(playerNum, deckId) {
   const info = document.getElementById('p' + playerNum + '-deck-info');
 
   if (!deckId) {
+    // Deck cleared — restore manual character selection
     selectedDecks[pKey] = null;
+    selectedChamberIds[pKey] = null;
     if (info) info.textContent = '';
+    _renderCharArea(playerNum, false, null, null);
     return;
   }
 
@@ -2227,25 +2340,115 @@ function onDeckPick(playerNum, deckId) {
     info.style.color = known > 0 ? 'rgba(106,202,106,0.7)' : 'rgba(200,80,80,0.7)';
   }
 
-  // Auto-select character when the chamber card matches a known character
-  if (deck.charId && CHAMBERS[deck.charId]) {
-    selectedChars[pKey] = deck.charId;
-    const setupEl = document.getElementById('p' + playerNum + '-setup');
-    if (setupEl) {
-      setupEl.querySelectorAll('.char-btn').forEach(b => {
-        b.classList.toggle('selected', b.classList.contains(deck.charId));
-      });
-    }
+  // Find the chamber card in the deck template
+  let deckChamberCardId = null;
+  let deckChamberCard   = null;
+  for (const entry of deck.template) {
+    const c = CARD_DB[entry.id];
+    if (c && c.type === 'chamber') { deckChamberCardId = entry.id; deckChamberCard = c; break; }
   }
+
+  // Determine character from chamber card (or deck's charId field)
+  let charId = deck.charId;
+  if (!charId && deckChamberCardId) charId = extractCharId(deckChamberCard.name);
+  if (!charId) charId = 'aang'; // ultimate fallback
+
+  // If CHAMBERS doesn't have this character yet, fall back
+  if (!CHAMBERS[charId]) charId = 'aang';
+
+  selectedChars[pKey]      = charId;
+  selectedChamberIds[pKey] = deckChamberCardId;
+
+  // Render locked state
+  const variantLabel = deckChamberCard ? deckChamberCard.name : null;
+  _renderCharArea(playerNum, true, charId, variantLabel);
+}
+
+// Render the character area for a player.
+// locked=true → show locked display; locked=false → show interactive grid
+function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
+  const area = document.getElementById('p' + playerNum + '-char-area');
+  if (!area) return;
+  const pKey = 'p' + playerNum;
+
+  if (locked && lockedCharId) {
+    const ch = CHAMBERS[lockedCharId];
+    area.innerHTML = `
+      <div class="char-grid-locked">
+        <span class="char-grid-locked-name">🔒 ${ch ? ch.name.toUpperCase() : lockedCharId.toUpperCase()}</span>
+        ${lockedVariantLabel ? `<span class="char-grid-locked-variant">${lockedVariantLabel}</span>` : ''}
+        <span class="char-grid-locked-sub">SET BY DECK</span>
+      </div>`;
+    return;
+  }
+
+  // Interactive grid
+  const charIds = Object.keys(CHAMBERS).sort();
+  const currentChar = selectedChars[pKey] || charIds[0];
+
+  let gridHtml = '<div class="char-grid">';
+  for (const cid of charIds) {
+    const ch = CHAMBERS[cid];
+    const variantCount = Object.keys(ch.variants || {}).length;
+    const isSelected = cid === currentChar;
+    gridHtml += `<button class="char-btn-grid${isSelected ? ' selected' : ''}"
+      onclick="selectChar(${playerNum},'${cid}',this)"
+      title="${ch.name}${variantCount ? ' — ' + variantCount + ' variant' + (variantCount !== 1 ? 's' : '') : ''}"
+    >${ch.name.toUpperCase()}</button>`;
+  }
+  gridHtml += '</div>';
+
+  // Variant picker for selected character
+  const selectedCh = CHAMBERS[currentChar];
+  let variantHtml = '';
+  if (selectedCh && Object.keys(selectedCh.variants || {}).length > 1) {
+    const currentVariantId = selectedChamberIds[pKey] || selectedCh.cardId;
+    variantHtml = `<div class="variant-section">
+      <span class="deck-picker-label">VARIANT</span>
+      <select class="deck-picker-select" id="p${playerNum}-variant-select" onchange="onVariantPick(${playerNum},this.value)">`;
+    for (const [vid, v] of Object.entries(selectedCh.variants)) {
+      variantHtml += `<option value="${vid}"${vid === currentVariantId ? ' selected' : ''}>${v.cardName}</option>`;
+    }
+    variantHtml += `</select><div class="variant-hint">Choose a chamber variant for this character</div></div>`;
+  }
+
+  area.innerHTML = gridHtml + variantHtml;
+}
+
+// Called when a player picks a variant from the variant dropdown
+function onVariantPick(playerNum, variantCardId) {
+  const pKey = 'p' + playerNum;
+  selectedChamberIds[pKey] = variantCardId || null;
 }
 
 // ============================================================
 // SETUP
 // ============================================================
+
+// Populate the character selection areas for both players.
+// Called once after buildChambersFromDB() completes.
+function populateSetupScreen() {
+  // Apply defaults: aang vs zuko (if they exist in CHAMBERS)
+  const defaultP1 = CHAMBERS['aang'] ? 'aang' : Object.keys(CHAMBERS)[0];
+  const defaultP2 = CHAMBERS['zuko'] ? 'zuko' : Object.keys(CHAMBERS)[1] || Object.keys(CHAMBERS)[0];
+  selectedChars.p1 = defaultP1;
+  selectedChars.p2 = defaultP2;
+  selectedChamberIds.p1 = CHAMBERS[defaultP1]?.cardId || null;
+  selectedChamberIds.p2 = CHAMBERS[defaultP2]?.cardId || null;
+
+  _renderCharArea(1, false, null, null);
+  _renderCharArea(2, false, null, null);
+}
+
 function selectChar(playerNum, charId, btn) {
-  selectedChars['p' + playerNum] = charId;
-  btn.parentElement.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
-  btn.classList.add('selected');
+  const pKey = 'p' + playerNum;
+  // If a deck is selected, don't allow manual character change
+  if (selectedDecks[pKey]) return;
+  selectedChars[pKey] = charId;
+  // Reset variant to the character's default
+  selectedChamberIds[pKey] = CHAMBERS[charId]?.cardId || null;
+  // Re-render area to update selection state + variant picker
+  _renderCharArea(playerNum, false, null, null);
 }
 
 function startGame() {
@@ -2269,7 +2472,8 @@ window.onload = async () => {
     msgEl.textContent = 'Loading chamber data…';
     buildChambersFromDB();
 
-    // Populate deck pickers now that CARD_DB is ready
+    // Populate character selectors and deck pickers now that CARD_DB is ready
+    populateSetupScreen();
     populateDeckPickers();
 
     msgEl.textContent = `Loaded ${count} cards. Ready!`;
