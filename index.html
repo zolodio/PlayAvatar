@@ -2372,11 +2372,19 @@ function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
   const pKey = 'p' + playerNum;
 
   if (locked && lockedCharId) {
-    const ch = CHAMBERS[lockedCharId];
+    const ch  = CHAMBERS[lockedCharId];
+    const cid = selectedChamberIds['p' + playerNum];
+    const v   = cid && ch?.variants?.[cid];
+    const rarity = cid ? (CARD_DB[cid]?.rarity || '') : '';
+    const sigF   = v?.frontSig?.name || ch?.frontSig?.name || '';
+    const sigB   = v?.backSig?.name  || ch?.backSig?.name  || '';
+    const variantLine = cid
+      ? `#${cid}${rarity ? ' · ' + rarity : ''} · ${sigF} / ${sigB}`
+      : (lockedVariantLabel || '');
     area.innerHTML = `
       <div class="char-grid-locked">
         <span class="char-grid-locked-name">🔒 ${ch ? ch.name.toUpperCase() : lockedCharId.toUpperCase()}</span>
-        ${lockedVariantLabel ? `<span class="char-grid-locked-variant">${lockedVariantLabel}</span>` : ''}
+        ${variantLine ? `<span class="char-grid-locked-variant">${variantLine}</span>` : ''}
         <span class="char-grid-locked-sub">SET BY DECK</span>
       </div>`;
     return;
@@ -2407,7 +2415,11 @@ function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
       <span class="deck-picker-label">VARIANT</span>
       <select class="deck-picker-select" id="p${playerNum}-variant-select" onchange="onVariantPick(${playerNum},this.value)">`;
     for (const [vid, v] of Object.entries(selectedCh.variants)) {
-      variantHtml += `<option value="${vid}"${vid === currentVariantId ? ' selected' : ''}>${v.cardName}</option>`;
+      const rarity  = CARD_DB[vid]?.rarity || '';
+      const sigF    = v.frontSig?.name || '—';
+      const sigB    = v.backSig?.name  || '—';
+      const label   = `#${vid}${rarity ? ' · ' + rarity : ''} · ${sigF} / ${sigB}`;
+      variantHtml += `<option value="${vid}"${vid === currentVariantId ? ' selected' : ''}>${label}</option>`;
     }
     variantHtml += `</select><div class="variant-hint">Choose a chamber variant for this character</div></div>`;
   }
