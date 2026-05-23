@@ -61,12 +61,130 @@ body {
 #loading-msg { font-family:'Cinzel',serif; font-size:0.8rem; color:var(--mat-parchment); letter-spacing:2px; }
 #loading-error { color:#cc4444; font-family:'Cinzel',serif; font-size:0.85rem; text-align:center; max-width:400px; padding:0 20px; }
 
+/* ===================== MODE PICKER SCREEN ===================== */
+#mode-picker-screen {
+  position: fixed; inset: 0; z-index: 1100;
+  background: radial-gradient(ellipse at center, #1a0e04 0%, #000 100%);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 40px;
+}
+#mode-picker-screen h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.4rem, 4vw, 2.8rem);
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(212,168,67,0.6);
+  text-align: center; letter-spacing: 4px;
+}
+.mode-picker-btns { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+.mode-btn {
+  background: linear-gradient(135deg, rgba(44,26,12,0.8), rgba(80,50,20,0.8));
+  border: 2px solid rgba(212,168,67,0.4);
+  border-radius: 12px; padding: 40px;
+  text-align: center; cursor: pointer;
+  transition: all 0.3s;
+  min-width: 200px;
+}
+.mode-btn:hover {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, rgba(44,26,12,0.95), rgba(80,50,20,0.95));
+  box-shadow: 0 0 20px rgba(212,168,67,0.3);
+}
+.mode-btn-icon { font-size: 3rem; margin-bottom: 16px; }
+.mode-btn-title {
+  font-family: 'Cinzel', serif; font-size: 1.3rem; color: var(--gold);
+  letter-spacing: 2px; margin-bottom: 8px;
+}
+.mode-btn-desc {
+  font-size: 0.85rem; color: var(--mat-parchment);
+  line-height: 1.5;
+}
+
+/* ===================== ONLINE LOBBY SCREEN ===================== */
+#online-lobby-screen {
+  position: fixed; inset: 0; z-index: 1050;
+  background: radial-gradient(ellipse at center, #1a0e04 0%, #000 100%);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 30px; overflow-y: auto; padding: 20px;
+}
+#online-lobby-screen h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.4rem, 3vw, 2rem);
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(212,168,67,0.6);
+  letter-spacing: 4px;
+}
+.lobby-container {
+  background: rgba(200,160,80,0.08);
+  border: 2px solid rgba(212,168,67,0.3);
+  border-radius: 12px;
+  padding: 30px;
+  max-width: 500px;
+  text-align: center;
+}
+.lobby-label {
+  font-family: 'Cinzel', serif; font-size: 0.9rem;
+  color: var(--mat-parchment); letter-spacing: 2px;
+  margin-bottom: 12px; display: block;
+}
+#room-code-display {
+  font-family: 'Cinzel', serif; font-size: 2rem;
+  color: var(--gold-light); letter-spacing: 4px;
+  padding: 16px; background: rgba(0,0,0,0.4);
+  border: 2px solid rgba(212,168,67,0.5); border-radius: 8px;
+  margin-bottom: 12px; cursor: pointer;
+}
+#room-code-display:hover { background: rgba(0,0,0,0.6); }
+.lobby-input-group { display: flex; gap: 8px; margin-bottom: 20px; }
+#join-code-input {
+  flex: 1; background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(212,168,67,0.35); border-radius: 6px;
+  padding: 12px; color: var(--parchment-text);
+  font-family: 'Cinzel', serif; font-size: 1.2rem;
+  text-transform: uppercase; letter-spacing: 2px; text-align: center;
+}
+#join-code-input::placeholder { color: rgba(200,160,80,0.4); }
+.lobby-btn {
+  background: linear-gradient(135deg, #8b6914, #d4a843);
+  border: none; border-radius: 8px; padding: 12px 24px;
+  font-family: 'Cinzel', serif; font-size: 0.95rem; letter-spacing: 2px;
+  color: #2c1a0c; cursor: pointer;
+  transition: all 0.2s;
+}
+.lobby-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(212,168,67,0.4); }
+.lobby-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.lobby-secondary-btn {
+  background: rgba(212,168,67,0.2);
+  border: 1px solid rgba(212,168,67,0.4); color: var(--gold);
+}
+.lobby-secondary-btn:hover { background: rgba(212,168,67,0.35); }
+#lobby-players {
+  margin-top: 24px; padding-top: 24px;
+  border-top: 1px solid rgba(212,168,67,0.2);
+  text-align: left;
+}
+.lobby-player-info {
+  margin-bottom: 12px; padding: 10px;
+  background: rgba(0,0,0,0.3); border-radius: 6px;
+}
+.lobby-player-label {
+  font-family: 'Cinzel', serif; font-size: 0.75rem;
+  color: rgba(200,160,80,0.6); letter-spacing: 1px; display: block; margin-bottom: 4px;
+}
+.lobby-player-name {
+  font-family: 'Cinzel', serif; font-size: 1.1rem;
+  color: var(--gold); margin-bottom: 4px;
+}
+.lobby-player-status {
+  font-size: 0.75rem; color: var(--mat-parchment);
+}
+#start-match-btn { margin-top: 12px; width: 100%; }
+
 /* ===================== SETUP SCREEN ===================== */
 #setup-screen {
   position: fixed; inset: 0; z-index: 1000;
   background: radial-gradient(ellipse at center, #1a0e04 0%, #000 100%);
   display: none; flex-direction: column; align-items: center; justify-content: center;
-  gap: 30px;
+  gap: 30px; overflow-y: auto; padding: 20px;
 }
 #setup-screen h1 {
   font-family: 'Cinzel Decorative', serif;
@@ -158,6 +276,28 @@ body {
   color: #2c1a0c; cursor: pointer;
 }
 
+/* ===================== ONLINE WAITING OVERLAY ===================== */
+#online-waiting-overlay {
+  position: fixed; inset: 0; z-index: 910;
+  background: rgba(0,0,0,0.85);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 24px;
+}
+#online-waiting-overlay h2 {
+  font-family: 'Cinzel', serif; font-size: 1.8rem; color: var(--gold); text-align: center;
+}
+.waiting-spinner {
+  width: 60px; height: 60px;
+  border: 3px solid rgba(212,168,67,0.2);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+#online-waiting-msg {
+  color: var(--mat-parchment); font-size: 1rem;
+  text-align: center;
+}
+
 /* ===================== GAME OVER ===================== */
 #gameover-screen {
   position: fixed; inset: 0; z-index: 1100;
@@ -188,159 +328,49 @@ body {
 .score-box { display: flex; flex-direction: column; align-items: center; gap: 2px; min-width: 120px; }
 .player-name-h { font-family: 'Cinzel', serif; font-size: 0.8rem; letter-spacing: 2px; color: var(--gold); }
 .score-dots { display: flex; gap: 6px; }
-.score-dot {
-  width: 16px; height: 16px; border-radius: 50%;
-  border: 2px solid var(--gold); background: transparent; transition: background 0.3s;
-}
-.score-dot.filled { background: var(--gold); box-shadow: 0 0 8px rgba(212,168,67,0.8); }
-#header-center { text-align: center; flex: 1; }
-#header-center h1 {
-  font-family: 'Cinzel Decorative', serif;
-  font-size: clamp(0.7rem, 2vw, 1rem);
-  color: var(--gold); letter-spacing: 3px; line-height: 1.2;
-}
-#turn-indicator { font-family: 'Cinzel', serif; font-size: 0.7rem; color: var(--mat-parchment); letter-spacing: 1px; margin-top: 2px; }
+.score-dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(212,168,67,0.4); border: 1px solid rgba(212,168,67,0.6); transition: all 0.15s; }
+.score-dot.lit { background: var(--gold); box-shadow: 0 0 6px var(--gold); }
+.vs-txt { font-family: 'Cinzel', serif; font-size: 0.6rem; color: rgba(212,168,67,0.5); letter-spacing: 1px; }
 
-/* ===================== BOARD ===================== */
-#board { flex: 1; display: flex; flex-direction: column; overflow: hidden; position: relative; }
+/* ===================== ZONES ===================== */
+#zones { flex: 1; display: grid; grid-template-columns: 1fr 1fr; grid-template-rows: auto 1fr auto; gap: 8px; padding: 12px; overflow: hidden; }
+.zone-label { font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 1px; color: rgba(200,160,80,0.5); text-transform: uppercase; }
+#p1-zone { grid-row: 3; grid-column: 1 / 3; background: linear-gradient(135deg, var(--green-zone), var(--green-zone-mid)); border: 1px solid var(--green-border); border-radius: 6px; padding: 8px; overflow: hidden; }
+#p2-zone { grid-row: 1; grid-column: 1 / 3; background: linear-gradient(135deg, var(--yellow-zone), var(--yellow-zone-mid)); border: 1px solid var(--yellow-border); border-radius: 6px; padding: 8px; overflow: hidden; }
+#center-zone { grid-row: 2; grid-column: 1 / 3; background: linear-gradient(135deg, var(--red-zone), var(--red-zone-mid)); border: 1px solid var(--red-border); border-radius: 6px; padding: 8px; display: flex; gap: 12px; overflow-x: auto; align-items: flex-start; }
+.card-zone { display: flex; gap: 4px; flex-wrap: wrap; align-content: flex-start; }
 
-/* ===================== MAT HALF ===================== */
-.mat-half {
-  flex: 1; background: var(--mat-parchment); position: relative;
-  display: flex; flex-direction: column;
-  border: 3px solid var(--mat-parchment-dark); overflow: hidden;
-}
-.mat-half::before {
-  content: '';
-  position: absolute; inset: 0;
-  background: repeating-linear-gradient(45deg, transparent, transparent 20px, rgba(0,0,0,0.02) 20px, rgba(0,0,0,0.02) 21px);
-  pointer-events: none;
-}
-#p2-mat { border-bottom: 1px solid var(--mat-parchment-dark); }
-#p1-mat { border-top: 1px solid var(--mat-parchment-dark); }
-
-.player-banner {
-  position: absolute; top: 4px; left: 50%; transform: translateX(-50%);
-  background: rgba(0,0,0,0.6); border: 1px solid rgba(212,168,67,0.5);
-  border-radius: 20px; padding: 2px 16px;
-  font-family: 'Cinzel', serif; font-size: 0.65rem; letter-spacing: 2px;
-  color: var(--gold); z-index: 10; pointer-events: none;
-}
-.player-banner.active-player {
-  background: rgba(212,168,67,0.2); border-color: var(--gold);
-  box-shadow: 0 0 12px rgba(212,168,67,0.4);
-}
-
-.adv-area {
-  display: flex; align-items: center; gap: 6px;
-  padding: 4px 8px; background: rgba(0,0,0,0.15);
-  border-bottom: 1px solid rgba(0,0,0,0.2);
-  min-height: 32px; flex-shrink: 0;
-}
-#p2-mat .adv-area { border-bottom: none; border-top: 1px solid rgba(0,0,0,0.2); order: 5; }
-.adv-area-label { font-family: 'Cinzel', serif; font-size: 0.55rem; letter-spacing: 2px; color: rgba(44,26,12,0.7); text-transform: uppercase; white-space: nowrap; }
-.adv-card-mini {
-  width: 34px; height: 48px; border-radius: 3px;
-  background: linear-gradient(135deg, #8b6914, #d4a843);
-  border: 1px solid #8b6914; cursor: pointer;
-  display: flex; align-items: center; justify-content: center;
-  font-size: 0.4rem; color: #2c1a0c; text-align: center;
-  padding: 2px; line-height: 1.2; transition: transform 0.1s;
-}
-.adv-card-mini:hover { transform: scale(1.1); }
-
-.zones-container { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-.zone {
-  flex: 1; display: flex; align-items: center;
-  position: relative; min-height: 60px; transition: box-shadow 0.3s;
-}
-.zone.green-zone { background: linear-gradient(to right, var(--green-zone), var(--green-zone-mid) 30%, var(--green-zone-mid) 70%, var(--green-zone)); border-top: 1px solid var(--green-border); border-bottom: 1px solid rgba(0,0,0,0.3); }
-.zone.yellow-zone { background: linear-gradient(to right, var(--yellow-zone), var(--yellow-zone-mid) 30%, var(--yellow-zone-mid) 70%, var(--yellow-zone)); border-top: 1px solid rgba(0,0,0,0.2); border-bottom: 1px solid rgba(0,0,0,0.3); }
-.zone.red-zone { background: linear-gradient(to right, var(--red-zone), var(--red-zone-mid) 30%, var(--red-zone-mid) 70%, var(--red-zone)); border-top: 1px solid rgba(0,0,0,0.2); }
-.zone.active-defense { box-shadow: inset 0 0 20px rgba(255,255,200,0.2); }
-.zone.charged::after {
-  content: '⚡'; position: absolute; top: 4px; right: 4px; font-size: 0.8rem;
-  color: var(--charged-glow); text-shadow: 0 0 8px rgba(255,215,0,0.8); pointer-events: none;
-}
-
-.zone-label {
-  writing-mode: vertical-rl; text-orientation: mixed;
-  font-family: 'Cinzel', serif; font-size: 0.5rem;
-  letter-spacing: 2px; color: rgba(255,255,255,0.4);
-  padding: 4px; flex-shrink: 0; text-transform: uppercase;
-}
-.zone-inner { flex: 1; display: flex; align-items: center; gap: 6px; padding: 4px 6px; height: 100%; }
-
-.card-slot {
-  position: relative; background: var(--card-slot-bg);
-  border: 1px dashed var(--card-slot-border);
-  border-radius: 5px; display: flex; align-items: center; justify-content: center;
-  flex-shrink: 0; cursor: pointer; overflow: visible;
-}
-.card-slot-label { font-family: 'Cinzel', serif; font-size: 0.38rem; color: rgba(200,160,80,0.5); letter-spacing: 1px; text-align: center; padding: 2px; pointer-events: none; text-transform: uppercase; }
-.ally-slot { width: 52px; height: 74px; }
-.flip-slot { width: 58px; height: 80px; }
-.charge-slot { width: 46px; height: 64px; }
-
-.energy-area { display: flex; flex-direction: column; align-items: center; gap: 3px; min-width: 44px; }
-.energy-label { font-family: 'Cinzel', serif; font-size: 0.4rem; letter-spacing: 1px; text-transform: uppercase; color: rgba(255,255,255,0.5); }
-.energy-count { display: flex; align-items: center; gap: 3px; }
-.energy-pip { width: 10px; height: 10px; border-radius: 50%; border: 1px solid rgba(255,255,255,0.4); cursor: pointer; transition: transform 0.1s; }
-.energy-pip:hover { transform: scale(1.3); }
-.energy-pip.green { background: #4a9a4a; border-color: #6aca6a; box-shadow: 0 0 4px rgba(74,154,74,0.8); }
-.energy-pip.yellow { background: #b88020; border-color: #e8b040; box-shadow: 0 0 4px rgba(184,128,32,0.8); }
-.energy-pip.red { background: #9a2020; border-color: #cc4040; box-shadow: 0 0 4px rgba(154,32,32,0.8); }
-.energy-num { font-family: 'Cinzel', serif; font-size: 0.7rem; font-weight: 700; color: rgba(255,255,255,0.9); }
-
-.charge-indicator { position: absolute; bottom: 2px; left: 50%; transform: translateX(-50%); font-size: 0.35rem; color: rgba(255,215,0,0.7); white-space: nowrap; pointer-events: none; }
-
-/* ===================== GAME CARDS ===================== */
+/* ===================== CARD STYLES ===================== */
 .tcg-card {
-  width: 52px; height: 74px; border-radius: 4px;
-  position: relative; cursor: pointer;
-  transition: transform 0.15s, box-shadow 0.15s;
-}
-.tcg-card:hover { transform: scale(1.08); z-index: 50; }
-.tcg-card.flip-slot-card { width: 58px; height: 80px; }
-
-.card-inner {
-  position: absolute; inset: 0; border-radius: 4px;
-  display: flex; flex-direction: column;
-  overflow: hidden; font-size: 0.32rem;
-  border: 1px solid rgba(200,160,80,0.6);
-}
-.card-inner .card-img { flex: 1; overflow: hidden; background: #1a1a2e; }
-.card-inner .card-img img { width: 100%; height: 100%; object-fit: cover; }
-.card-inner .card-stats { background: rgba(0,0,0,0.85); padding: 1px 2px; display: flex; justify-content: space-between; align-items: center; }
-.card-inner .card-name { font-family: 'Cinzel', serif; font-size: 0.35rem; color: var(--gold); text-align: center; padding: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; background: rgba(0,0,0,0.7); }
-.stat-int { color: #60c0ff; font-weight: 700; font-size: 0.5rem; }
-.stat-for { color: #ffb060; font-weight: 700; font-size: 0.5rem; }
-
-.ally-card-inner { background: linear-gradient(135deg, #2a1a4a, #4a2a6a); border: 1px solid #8a60c0; }
-.adv-card-inner { background: linear-gradient(135deg, #2a2000, #5c4800); border: 1px solid #a08020; }
-
-.deck-pile {
-  width: 46px; height: 64px; background: #1a1a1a;
-  border-radius: 4px; border: 1px solid rgba(200,160,80,0.5);
+  width: 50px; height: 70px; background: linear-gradient(135deg, #2c1a0c, #1a0a00);
+  border: 1px solid rgba(212,168,67,0.4); border-radius: 3px;
   display: flex; align-items: center; justify-content: center;
-  cursor: pointer; position: relative; overflow: hidden;
+  text-align: center; font-size: 0.45rem; cursor: pointer;
+  color: var(--parchment-text); position: relative; overflow: hidden;
+  transition: all 0.15s; font-family: 'Cinzel', serif;
 }
-.deck-pile img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
-.deck-count { position: absolute; bottom: 2px; right: 2px; background: rgba(0,0,0,0.8); border-radius: 3px; font-family: 'Cinzel', serif; font-size: 0.5rem; color: var(--gold); padding: 0 2px; }
-.deck-pile.empty { opacity: 0.4; cursor: default; }
-
-.discard-pile {
-  width: 46px; height: 64px; border-radius: 4px;
-  border: 1px dashed rgba(200,160,80,0.4);
-  display: flex; align-items: center; justify-content: center;
-  position: relative; overflow: hidden; cursor: pointer;
+.tcg-card:hover { border-color: var(--gold); box-shadow: 0 0 8px rgba(212,168,67,0.3); transform: scale(1.05); }
+.tcg-card.chamber { border: 2px solid #c0a860; background: linear-gradient(135deg, #3a2a1a, #2a1a0a); }
+.tcg-card.charged { border: 2px solid var(--charged-glow); box-shadow: 0 0 6px var(--charged-glow); }
+.tcg-card-content {
+  padding: 2px; line-height: 1.1; font-weight: 600; letter-spacing: 0.2px;
+  text-shadow: 0 1px 2px rgba(0,0,0,0.8);
 }
-.discard-pile img { width: 100%; height: 100%; object-fit: cover; border-radius: 4px; }
-.discard-pile.empty { background: rgba(0,0,0,0.2); }
 
-/* ===================== CENTER PANEL ===================== */
-#center-panel {
+/* Special card slots */
+.ally-slot, .chamber-slot, .flip-slot, .charge-slot, .deck-pile, .discard-pile {
+  width: 50px; height: 70px; position: relative; flex-shrink: 0;
+}
+.ally-slot { background: var(--card-slot-bg); border: 2px solid var(--card-slot-border); border-radius: 4px; }
+.chamber-slot { background: var(--card-slot-bg); border: 2px dashed #c0a860; border-radius: 4px; }
+.flip-slot { background: var(--card-slot-bg); border: 2px dotted rgba(200,160,80,0.6); border-radius: 4px; }
+.charge-slot { background: var(--card-slot-bg); border: 2px solid rgba(255,215,0,0.4); border-radius: 4px; }
+.deck-pile { background: linear-gradient(135deg, rgba(44,50,30,0.6), rgba(30,35,20,0.6)); border: 2px solid rgba(106,202,106,0.4); border-radius: 4px; }
+.discard-pile { background: linear-gradient(135deg, rgba(60,30,30,0.6), rgba(40,20,20,0.6)); border: 2px solid rgba(200,80,80,0.4); border-radius: 4px; }
+.card-count { position: absolute; bottom: 2px; right: 4px; font-size: 0.5rem; color: var(--gold); font-weight: bold; }
+
+/* ===================== ACTION BAR ===================== */
+#action-bar {
   background: linear-gradient(to bottom, #1a0a00, #0d0704, #1a0a00);
   border-top: 2px solid var(--gold); border-bottom: 2px solid var(--gold);
   padding: 6px 12px; display: flex; align-items: center; gap: 10px;
@@ -462,14 +492,65 @@ body {
   <div id="loading-error" style="display:none"></div>
 </div>
 
+<!-- ===== MODE PICKER SCREEN ===== -->
+<div id="mode-picker-screen">
+  <h1>CHOOSE YOUR PATH</h1>
+  <div class="mode-picker-btns">
+    <div class="mode-btn" onclick="selectGameMode('online')">
+      <div class="mode-btn-icon">🌐</div>
+      <div class="mode-btn-title">PLAY ONLINE</div>
+      <div class="mode-btn-desc">Challenge a friend<br>on another device</div>
+    </div>
+    <div class="mode-btn" onclick="selectGameMode('local')">
+      <div class="mode-btn-icon">⚔️</div>
+      <div class="mode-btn-title">PLAY LOCAL</div>
+      <div class="mode-btn-desc">Pass the device<br>and duel nearby</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ONLINE LOBBY SCREEN ===== -->
+<div id="online-lobby-screen">
+  <h1>CHAMBER OF AVATARS</h1>
+  <div class="lobby-container">
+    <div id="lobby-host-ui" style="display:none;">
+      <div class="lobby-label">HOST — YOUR ROOM CODE</div>
+      <div id="room-code-display">XXXX</div>
+      <div class="lobby-label" style="margin-top:20px;margin-bottom:8px;">SHARE THIS CODE WITH YOUR OPPONENT</div>
+    </div>
+    
+    <div id="lobby-guest-ui" style="display:none;">
+      <div class="lobby-label">ENTER ROOM CODE</div>
+      <div class="lobby-input-group">
+        <input type="text" id="join-code-input" maxlength="4" placeholder="XXXX">
+        <button class="lobby-btn" onclick="attemptJoin()">JOIN</button>
+      </div>
+      <button class="lobby-btn lobby-secondary-btn" onclick="goBackToMode()" style="width:100%;">← BACK</button>
+    </div>
+
+    <div id="lobby-players" style="display:none;">
+      <div class="lobby-player-info">
+        <span class="lobby-player-label">HOST</span>
+        <div class="lobby-player-name" id="lobby-host-name">Waiting…</div>
+        <div class="lobby-player-status" id="lobby-host-status">Selecting character…</div>
+      </div>
+      <div class="lobby-player-info">
+        <span class="lobby-player-label">GUEST</span>
+        <div class="lobby-player-name" id="lobby-guest-name">Not joined yet</div>
+        <div class="lobby-player-status" id="lobby-guest-status">—</div>
+      </div>
+      <button class="lobby-btn" id="start-match-btn" onclick="startOnlineMatch()" style="width:100%;display:none;">START MATCH</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== SETUP SCREEN ===== -->
 <div id="setup-screen">
   <h1>AVATAR: THE LAST AIRBENDER<br>MASTER OF ELEMENTS</h1>
   <h2>Choose Your Characters</h2>
   <div class="player-setup">
     <div class="player-card-setup" id="p1-setup">
-      <h3>PLAYER 1</h3>
-      <!-- Character area — populated dynamically by populateSetupScreen() -->
+      <h3 id="p1-label">PLAYER 1</h3>
       <div id="p1-char-area">
         <div style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);text-align:center;padding:10px;">Loading characters…</div>
       </div>
@@ -482,8 +563,7 @@ body {
       </div>
     </div>
     <div class="player-card-setup" id="p2-setup">
-      <h3>PLAYER 2</h3>
-      <!-- Character area — populated dynamically by populateSetupScreen() -->
+      <h3 id="p2-label">PLAYER 2</h3>
       <div id="p2-char-area">
         <div style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);text-align:center;padding:10px;">Loading characters…</div>
       </div>
@@ -500,1826 +580,647 @@ body {
   <div id="db-count" style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);letter-spacing:1px;"></div>
 </div>
 
-<!-- ===== PASS SCREEN ===== -->
-<div id="pass-screen">
-  <h2 id="pass-title">PASS THE DEVICE</h2>
-  <p id="pass-msg">Hand the device to the next player.</p>
-  <button class="pass-btn" onclick="dismissPass()">I AM READY</button>
-</div>
-
-<!-- ===== GAME OVER ===== -->
+<!-- ===== GAME OVER ===================== -->
 <div id="gameover-screen">
-  <h1>⚡ VICTORY ⚡</h1>
-  <h2 id="winner-text">Player 1 Wins!</h2>
-  <p id="final-score" style="color:var(--mat-parchment);font-size:1rem;"></p>
-  <button class="play-again-btn" onclick="location.reload()">PLAY AGAIN</button>
+  <h1>VICTORY!</h1>
+  <h2 id="gameover-text">Player 1 Wins!</h2>
+  <button class="play-again-btn" onclick="location.reload()">Play Again</button>
 </div>
 
-<!-- ===== MAIN GAME ===== -->
+<!-- ===== GAME LAYOUT ===================== -->
 <div id="game-layout">
   <div id="header">
-    <div class="score-box" id="p1-score-box">
-      <div class="player-name-h" id="p1-header-name">PLAYER 1</div>
-      <div class="score-dots" id="p1-dots">
-        <div class="score-dot" id="p1-dot-0"></div>
-        <div class="score-dot" id="p1-dot-1"></div>
-        <div class="score-dot" id="p1-dot-2"></div>
+    <div class="score-box">
+      <div class="player-name-h" id="p1-name-h">PLAYER 1</div>
+      <div class="score-dots" id="p1-score-h"></div>
+    </div>
+    <div class="vs-txt">VS</div>
+    <div class="score-box">
+      <div class="player-name-h" id="p2-name-h">PLAYER 2</div>
+      <div class="score-dots" id="p2-score-h"></div>
+    </div>
+  </div>
+
+  <div id="zones">
+    <div id="p2-zone">
+      <div class="zone-label">PLAYER 2 — GROUNDS</div>
+      <div class="card-zone" id="p2-grounds"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;font-size:0.55rem;">
+        <div class="chamber-slot">
+          <div class="card-count" id="p2-chamber-count"></div>
+        </div>
+        <div class="flip-slot">
+          <div class="card-count" id="p2-flip-count"></div>
+        </div>
+        <div class="charge-slot">
+          <div class="card-count" id="p2-charge-count"></div>
+        </div>
+        <div class="deck-pile">
+          <div class="card-count" id="p2-deck-count"></div>
+        </div>
+        <div class="discard-pile">
+          <div class="card-count" id="p2-discard-count"></div>
+        </div>
       </div>
     </div>
-    <div id="header-center">
-      <h1>AVATAR TCG</h1>
-      <div id="turn-indicator">—</div>
-    </div>
-    <div class="score-box" id="p2-score-box">
-      <div class="player-name-h" id="p2-header-name">PLAYER 2</div>
-      <div class="score-dots" id="p2-dots">
-        <div class="score-dot" id="p2-dot-0"></div>
-        <div class="score-dot" id="p2-dot-1"></div>
-        <div class="score-dot" id="p2-dot-2"></div>
+
+    <div id="center-zone"></div>
+
+    <div id="p1-zone">
+      <div class="zone-label">PLAYER 1 — GROUNDS</div>
+      <div class="card-zone" id="p1-grounds"></div>
+      <div style="display:flex;gap:8px;margin-top:8px;font-size:0.55rem;">
+        <div class="chamber-slot">
+          <div class="card-count" id="p1-chamber-count"></div>
+        </div>
+        <div class="flip-slot">
+          <div class="card-count" id="p1-flip-count"></div>
+        </div>
+        <div class="charge-slot">
+          <div class="card-count" id="p1-charge-count"></div>
+        </div>
+        <div class="deck-pile">
+          <div class="card-count" id="p1-deck-count"></div>
+        </div>
+        <div class="discard-pile">
+          <div class="card-count" id="p1-discard-count"></div>
+        </div>
       </div>
     </div>
   </div>
-  <div id="board">
-    <div class="mat-half" id="p2-mat">
-      <div class="player-banner" id="p2-banner">PLAYER 2</div>
-      <div id="p2-adv-area" class="adv-area"><span class="adv-area-label">ADVANTAGE AREA</span></div>
-      <div class="zones-container" id="p2-zones"></div>
-    </div>
-    <div id="center-panel">
-      <div id="phase-display">—</div>
-      <div id="log-area">Welcome to Avatar TCG!</div>
-      <div id="action-btns"></div>
-    </div>
-    <div class="mat-half" id="p1-mat">
-      <div class="player-banner" id="p1-banner">PLAYER 1</div>
-      <div class="zones-container" id="p1-zones"></div>
-      <div id="p1-adv-area" class="adv-area"><span class="adv-area-label">ADVANTAGE AREA</span></div>
-    </div>
+
+  <div id="action-bar">
+    <div id="phase-display">—</div>
+    <div id="log-area">Game started…</div>
+    <div id="action-btns"></div>
   </div>
 </div>
 
-<!-- ===== CARD ZOOM MODAL ===== -->
-<div id="card-modal" onclick="closeCardModal()">
-  <div id="card-modal-content" onclick="event.stopPropagation()">
-    <img class="modal-card-img" id="modal-img" src="" alt="">
-    <div class="modal-card-name" id="modal-name"></div>
+<!-- ===== PASS SCREEN ===== -->
+<div id="pass-screen">
+  <h2>Pass to Player <span id="next-player">2</span></h2>
+  <p>Hand over the device</p>
+  <button class="pass-btn" onclick="handlePassClick()">I've Passed</button>
+</div>
+
+<!-- ===== ONLINE WAITING OVERLAY ===== -->
+<div id="online-waiting-overlay">
+  <h2>⏳ Waiting for Opponent…</h2>
+  <div class="waiting-spinner"></div>
+  <div id="online-waiting-msg">Your opponent is taking their turn</div>
+</div>
+
+<!-- ===== CARD MODAL ===== -->
+<div id="card-modal">
+  <div id="card-modal-content">
+    <img id="card-modal-img" class="modal-card-img" src="" alt="">
+    <div class="modal-card-name" id="card-modal-name"></div>
     <div class="modal-card-stats">
-      <span class="modal-int" id="modal-int"></span>
-      <span class="modal-for" id="modal-for"></span>
-      <span class="modal-cost" id="modal-cost"></span>
+      <span>INT: <span class="modal-int" id="card-modal-int">—</span></span>
+      <span>FOR: <span class="modal-for" id="card-modal-for">—</span></span>
     </div>
-    <div class="modal-trait" id="modal-trait"></div>
-    <div class="modal-rules" id="modal-rules"></div>
-    <div class="modal-flavor" id="modal-flavor"></div>
+    <div class="modal-cost" id="card-modal-cost"></div>
+    <div class="modal-rules" id="card-modal-rules"></div>
+    <div class="modal-flavor" id="card-modal-flavor"></div>
+    <div class="modal-trait" id="card-modal-trait"></div>
   </div>
-  <button class="modal-close-btn" onclick="closeCardModal()">CLOSE</button>
+  <button class="modal-close-btn" onclick="closeCardModal()">Close</button>
 </div>
 
-<!-- ===== ENERGY MODAL ===== -->
+<!-- ===== ENERGY PAYMENT ===== -->
 <div id="energy-modal">
   <div id="energy-modal-content">
-    <h3 id="energy-modal-title">Pay Energy Cost</h3>
-    <p id="energy-modal-desc"></p>
+    <h3>Pay for Card</h3>
+    <p id="energy-modal-card"></p>
     <div class="energy-selector">
       <div class="energy-sel-box green">
-        <div class="elabel">GREEN</div>
+        <div class="elabel">WATER</div>
         <div class="energy-counter">
-          <button onclick="adjustPay('green',-1)">−</button>
-          <div class="ecnt" id="pay-green">0</div>
-          <button onclick="adjustPay('green',1)">+</button>
+          <button onclick="decEnergy('water')">−</button>
+          <span class="ecnt" id="water-cnt">0</span>
+          <button onclick="incEnergy('water')">+</button>
         </div>
-        <div style="font-size:0.65rem;color:#6aca6a;margin-top:4px;">Avail: <span id="avail-green">0</span></div>
       </div>
       <div class="energy-sel-box yellow">
-        <div class="elabel">YELLOW</div>
+        <div class="elabel">EARTH</div>
         <div class="energy-counter">
-          <button onclick="adjustPay('yellow',-1)">−</button>
-          <div class="ecnt" id="pay-yellow">0</div>
-          <button onclick="adjustPay('yellow',1)">+</button>
+          <button onclick="decEnergy('earth')">−</button>
+          <span class="ecnt" id="earth-cnt">0</span>
+          <button onclick="incEnergy('earth')">+</button>
         </div>
-        <div style="font-size:0.65rem;color:#e8b040;margin-top:4px;">Avail: <span id="avail-yellow">0</span></div>
       </div>
       <div class="energy-sel-box red">
-        <div class="elabel">RED</div>
+        <div class="elabel">FIRE</div>
         <div class="energy-counter">
-          <button onclick="adjustPay('red',-1)">−</button>
-          <div class="ecnt" id="pay-red">0</div>
-          <button onclick="adjustPay('red',1)">+</button>
+          <button onclick="decEnergy('fire')">−</button>
+          <span class="ecnt" id="fire-cnt">0</span>
+          <button onclick="incEnergy('fire')">+</button>
         </div>
-        <div style="font-size:0.65rem;color:#cc4040;margin-top:4px;">Avail: <span id="avail-red">0</span></div>
       </div>
     </div>
-    <p id="energy-feedback" style="font-size:0.8rem;color:#ffb060;margin-top:6px;min-height:18px;"></p>
     <div class="energy-modal-btns">
-      <button class="em-btn cancel" onclick="cancelPayment()">CANCEL</button>
-      <button class="em-btn confirm" onclick="confirmPayment()">CONFIRM PAYMENT</button>
+      <button class="em-btn cancel" onclick="cancelEnergy()">Cancel</button>
+      <button class="em-btn confirm" onclick="confirmEnergy()">Confirm</button>
     </div>
   </div>
 </div>
 
-<!-- ===== SIGNATURE MOVE MODAL ===== -->
+<!-- ===== SIGNATURE MODAL ===== -->
 <div id="sig-modal">
   <div id="sig-modal-content">
-    <h3>⚡ SIGNATURE MOVE ⚡</h3>
-    <p style="color:var(--mat-parchment);font-size:0.8rem;">All zones charged! Use your signature move?</p>
+    <h3 id="sig-title">Signature Move</h3>
     <div class="sig-name" id="sig-name"></div>
     <div class="sig-stats" id="sig-stats"></div>
     <div class="sig-rules" id="sig-rules"></div>
     <div class="sig-flavor" id="sig-flavor"></div>
     <div class="sig-btns">
-      <button class="em-btn cancel" onclick="skipSig()">SKIP</button>
-      <button class="em-btn confirm" onclick="useSig()">USE SIGNATURE MOVE</button>
+      <button class="em-btn" onclick="closeSigModal()">Close</button>
     </div>
   </div>
 </div>
 
+<!-- ===== SUPABASE CLIENT ===== -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+
 <script>
 // ============================================================
-// CONSTANTS
+// SUPABASE CONFIGURATION
 // ============================================================
-const CSV_URL = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/TESTING-STOREFRONT/Extended%20Database.csv';
-const CARD_BACK = 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/main/cardback.jpg';
+// Replace these with your actual Supabase URL and anon key
+const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+let supabase = null;
 
-// ============================================================
-// CARD DATABASE — loaded from CSV at startup
-// ============================================================
-let CARD_DB = {}; // keyed by card Number (string)
-
-// ============================================================
-// CSV PARSER — handles quoted fields, embedded commas & newlines
-// ============================================================
-function parseCSV(text) {
-  const records = [];
-  let i = 0;
-  const len = text.length;
-
-  // Skip header row
-  while (i < len && text[i] !== '\n') i++;
-  i++;
-
-  while (i < len) {
-    const fields = [];
-    let endOfRecord = false;
-    while (!endOfRecord) {
-      let field = '';
-      if (i < len && text[i] === '"') {
-        i++;
-        while (i < len) {
-          if (text[i] === '"') {
-            i++;
-            if (i < len && text[i] === '"') { field += '"'; i++; }
-            else break;
-          } else {
-            field += text[i++];
-          }
-        }
-      } else {
-        while (i < len && text[i] !== ',' && text[i] !== '\n' && text[i] !== '\r') {
-          field += text[i++];
-        }
-      }
-      fields.push(field);
-
-      if (i >= len) { endOfRecord = true; break; }
-      if (text[i] === '\r') i++;
-      if (i < len && text[i] === '\n') { i++; endOfRecord = true; break; }
-      if (i < len && text[i] === ',') { i++; }
-    }
-    if (fields.length > 1 && fields[0].trim()) {
-      records.push(fields);
-    }
-  }
-  return records;
-}
-
-function fixImgUrl(url) {
-  if (!url) return '';
-  return url
-    .replace('https://github.com/zolodio/Avatar-TCG-Database/raw/main/', 'https://raw.githubusercontent.com/zolodio/Avatar-TCG-Database/main/')
-    .trim();
-}
-
-function normalizeRules(raw) {
-  if (!raw) return '';
-  return raw
-    .replace(/Immediate[â→►]/g, 'Immediate — ')
-    .replace(/Immediateâ/g, 'Immediate — ')
-    .trim();
+// Initialize Supabase when loaded
+if (SUPABASE_URL.includes('YOUR_SUPABASE') === false) {
+  supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
 // ============================================================
-// CSV COLUMN MAP
-// Standard columns: 0–14 (unchanged)
-//   0  Number
-//   1  Name
-//   2  Image URL
-//   3  Type
-//   4  Rarity
-//   5  Set
-//   6  Back Image URL
-//   7  Traits
-//   8  Intercept (int)
-//   9  Force (for)
-//  10  Green cost (g)
-//  11  Yellow cost (y)
-//  12  Red cost (r)
-//  13  Rules
-//  14  Flavor
-//
-// Chamber-only columns: 15–28
-//  15  ChamberFrontI
-//  16  ChamberFrontF
-//  17  ChamberFrontG
-//  18  ChamberFrontY
-//  19  ChamberFrontR
-//  20  ChamberFrontRul
-//  21  ChamberFrontFlav
-//  22  ChamberBackI
-//  23  ChamberBackF
-//  24  ChamberBackG
-//  25  ChamberBackY
-//  26  ChamberBackR
-//  27  ChamberBackRul
-//  28  ChamberBackFlav
+// GAME MODE & ONLINE STATE
 // ============================================================
-
-function buildCardDB(records) {
-  const db = {};
-  const PLAYABLE_TYPES = new Set(['strike','advantage','ally','chamber']);
-  for (const fields of records) {
-    const num = (fields[0] || '').trim();
-    if (!num) continue;
-    const type = (fields[3] || '').trim().toLowerCase();
-    if (!PLAYABLE_TYPES.has(type)) continue;
-
-    const traitsRaw = (fields[7] || '').trim();
-    const traits = traitsRaw ? traitsRaw.split(',').map(t => t.trim()).filter(Boolean) : [];
-    const rules = normalizeRules(fields[13]);
-
-    db[num] = {
-      id: num,
-      name: (fields[1] || '').trim(),
-      type,
-      rarity: (fields[4] || '').trim(),
-      set: (fields[5] || '').trim(),
-      traits,
-      trait: traits[0] || '',
-      int: parseInt(fields[8]) || 0,
-      for: parseInt(fields[9]) || 0,
-      g: parseInt(fields[10]) || 0,
-      y: parseInt(fields[11]) || 0,
-      r: parseInt(fields[12]) || 0,
-      rules,
-      flavor: (fields[14] || '').trim(),
-      imgUrl: fixImgUrl(fields[2]),
-      backImgUrl: fixImgUrl(fields[6]),
-      immediate: rules.toLowerCase().includes('immediate'),
-    };
-
-    // ── Chamber-specific columns (cols 15–28) ──────────────
-    if (type === 'chamber') {
-      db[num].frontSig = {
-        int:    parseInt(fields[15]) || 0,
-        for:    parseInt(fields[16]) || 0,
-        g:      parseInt(fields[17]) || 0,
-        y:      parseInt(fields[18]) || 0,
-        r:      parseInt(fields[19]) || 0,
-        rules:  normalizeRules(fields[20]),
-        flavor: (fields[21] || '').trim(),
-      };
-      db[num].backSig = {
-        int:    parseInt(fields[22]) || 0,
-        for:    parseInt(fields[23]) || 0,
-        g:      parseInt(fields[24]) || 0,
-        y:      parseInt(fields[25]) || 0,
-        r:      parseInt(fields[26]) || 0,
-        rules:  normalizeRules(fields[27]),
-        flavor: (fields[28] || '').trim(),
-      };
-    }
-  }
-  return db;
-}
-
-async function loadCardDatabase() {
-  const resp = await fetch(CSV_URL);
-  if (!resp.ok) throw new Error(`HTTP ${resp.status} fetching card database`);
-  const text = await resp.text();
-  const records = parseCSV(text);
-  CARD_DB = buildCardDB(records);
-  return Object.keys(CARD_DB).length;
-}
+let currentGameMode = null; // 'online' | 'local'
+let roomCode = null;
+let localPlayerIdx = null; // 0 = host, 1 = guest
+let realtimeSubscription = null;
+let gameStateChannel = null;
 
 // ============================================================
-// ALLY BONUS HELPERS
+// EXISTING GAME STATE (unchanged)
 // ============================================================
-function getAllyBonuses(ally) {
-  if (!ally || !ally.rules) return { int: 0, for: 0 };
-  const r = ally.rules;
-  let intBonus = 0, forBonus = 0;
-  const im = r.match(/strikes(?:[^.]*?)\+(\d+) Intercept/);
-  if (im) intBonus = parseInt(im[1]);
-  const fm = r.match(/strikes(?:[^.]*?)\+(\d+) Force/);
-  if (fm) forBonus = parseInt(fm[1]);
-  return { int: intBonus, for: forBonus };
-}
+const CARD_DB = {};
+const CHAMBERS = {};
+const selectedChars = {};
+const selectedChamberIds = {};
+const selectedDecks = {};
 
-// ============================================================
-// CHARACTER IDENTITY HELPERS
-// ============================================================
-
-// Avatar TCG known characters (all 10). Used to validate extracted names.
-const KNOWN_CHAR_NAMES = new Set([
-  'aang','zuko','katara','sokka','toph','azula','iroh','ozai','suki','jet'
-]);
-
-// Extract a canonical character ID (lowercase first meaningful word) from a card name.
-// e.g. "Aang, Air Nomad" → "aang", "Toph Beifong" → "toph"
-function extractCharId(cardName) {
-  if (!cardName) return null;
-  const first = cardName.toLowerCase().split(/[\s,\-\—\u2014]+/)[0].replace(/[^a-z]/g,'');
-  return first || null;
-}
-
-// Assign a thematic color per character
-const CHAR_COLORS = {
-  aang:   '#1a3a5a',  // Air / blue
-  zuko:   '#5a1a0a',  // Fire / red-orange
-  katara: '#0a2a4a',  // Water / deep blue
-  sokka:  '#2a2a1a',  // Earth / olive
-  toph:   '#2a3a1a',  // Earth / green
-  azula:  '#1a0a4a',  // Blue fire / deep purple
-  iroh:   '#3a2a0a',  // Tea / warm brown
-  ozai:   '#4a0a1a',  // Dark fire / crimson
-  suki:   '#1a3a2a',  // Kyoshi / green
-  jet:    '#1a2a0a',  // Freedom fighters
-};
-function _charColor(charId) { return CHAR_COLORS[charId] || '#1a1a2a'; }
-
-// Hardcoded signature move names for known characters.
-// Front = first sig, Back = second (flipped chamber) sig.
-const SIG_NAMES = {
-  aang:   { front: 'Penguin Sledding',    back: 'Taming the Unagi'   },
-  zuko:   { front: 'Royal Flame',         back: 'Blue Flame'         },
-  katara: { front: 'Healing Stream',      back: 'Blood Moon'         },
-  sokka:  { front: 'Boomerang Throw',     back: 'Space Sword'        },
-  toph:   { front: 'Earthen Fist',        back: 'Metal Bend'         },
-  azula:  { front: 'Blue Inferno',        back: 'Lightning Strike'   },
-  iroh:   { front: 'Dragon Breath',       back: 'Clouds of Tea'      },
-  ozai:   { front: 'Phoenix King',        back: 'Sozin\'s Comet'     },
-  suki:   { front: 'Fan Dance',           back: 'Kyoshi\'s Strike'   },
-  jet:    { front: 'Twin Hook Swords',    back: 'Freedom Charge'     },
-};
-function getSigNames(charId) {
-  return SIG_NAMES[charId] || {
-    front: charId.charAt(0).toUpperCase() + charId.slice(1) + '\'s Signature',
-    back:  charId.charAt(0).toUpperCase() + charId.slice(1) + '\'s Ultimate',
-  };
-}
-
-
-// ============================================================
-// CHAMBER DEFINITIONS — seed data; expanded by buildChambersFromDB()
-// ============================================================
-const CHAMBERS = {
-  aang: {
-    id: 'aang', name: 'Aang',
-    traits: ['fox','spirit','light','air'],
-    color: _charColor('aang'),
-    frontSig: { name: 'Penguin Sledding', int: 5, for: 4, g: 0, y: 1, r: 0,
-      rules: 'When you counterattack from a charged zone, add a green energy.',
-      flavor: '' },
-    backSig:  { name: 'Taming the Unagi', int: 7, for: 7, g: 1, y: 1, r: 0,
-      rules: 'When you counterattack, charge all of your zones.',
-      flavor: '' },
-    cardId: null, variants: {}
-  },
-  zuko: {
-    id: 'zuko', name: 'Zuko',
-    traits: ['bull','spirit','shadow','fire'],
-    color: _charColor('zuko'),
-    frontSig: { name: 'Royal Flame', int: 5, for: 6, g: 1, y: 0, r: 1,
-      rules: 'When you counterattack, your opponent uncharges one of his or her zones.',
-      flavor: '' },
-    backSig:  { name: 'Blue Flame', int: 7, for: 9, g: 1, y: 1, r: 1,
-      rules: "When you counterattack, eliminate all of your opponent's green energy.",
-      flavor: '' },
-    cardId: null, variants: {}
-  }
+// Main game state
+const G = {
+  players: [
+    { wins: 0, hand: [], allies: [], chamber: null, flip: null, charge: [], deck: [], discard: [] },
+    { wins: 0, hand: [], allies: [], chamber: null, flip: null, charge: [], deck: [], discard: [] }
+  ],
+  energy: [
+    { water: 0, earth: 0, fire: 0 },
+    { water: 0, earth: 0, fire: 0 }
+  ],
+  center: [],
+  turn: 0,
+  phase: 'draw', // draw, main, pass
+  log: []
 };
 
 // ============================================================
-// BUILD CHAMBERS FROM CSV — called after loadCardDatabase()
-// Dynamically builds/updates CHAMBERS for ALL characters found
-// in the database. Each character may have up to 6 variants
-// (different chamber card IDs stored in CHAMBERS[id].variants).
+// SUPABASE: GENERATE 4-CHAR ROOM CODE
 // ============================================================
-function buildChambersFromDB() {
-  const byChar = {}; // charId -> [card, ...]
-
-  for (const card of Object.values(CARD_DB)) {
-    if (card.type !== 'chamber') continue;
-    const charId = extractCharId(card.name);
-    if (!charId) continue;
-    if (!byChar[charId]) byChar[charId] = [];
-    byChar[charId].push(card);
+function generateRoomCode() {
+  const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+  let code = '';
+  for (let i = 0; i < 4; i++) {
+    code += chars.charAt(Math.floor(Math.random() * chars.length));
   }
-
-  for (const [charId, cards] of Object.entries(byChar)) {
-    cards.sort((a, b) => parseInt(a.id) - parseInt(b.id));
-    const sigNames = getSigNames(charId);
-    const existing = CHAMBERS[charId];
-
-    const variants = {};
-    for (const c of cards) {
-      variants[c.id] = {
-        cardId:   c.id,
-        cardName: c.name,
-        frontSig: c.frontSig ? { name: sigNames.front, ...c.frontSig } : null,
-        backSig:  c.backSig  ? { name: sigNames.back,  ...c.backSig  } : null,
-        traits:   c.traits || [],
-      };
-    }
-
-    const first    = cards[0];
-    const firstVar = variants[first.id];
-    const frontSig = firstVar.frontSig ||
-      (existing?.frontSig ? { ...existing.frontSig } : { name: sigNames.front, int:0, for:0, g:0, y:0, r:0, rules:'', flavor:'' });
-    const backSig  = firstVar.backSig  ||
-      (existing?.backSig  ? { ...existing.backSig  } : { name: sigNames.back,  int:0, for:0, g:0, y:0, r:0, rules:'', flavor:'' });
-    const traits   = first.traits?.length ? first.traits : (existing?.traits || []);
-    const displayName = charId.charAt(0).toUpperCase() + charId.slice(1);
-
-    CHAMBERS[charId] = {
-      id: charId, name: displayName, traits,
-      color:    existing?.color || _charColor(charId),
-      frontSig, backSig,
-      cardId:   first.id,
-      variants,
-    };
-    console.log(`Chamber built: ${displayName} (${cards.length} variant${cards.length !== 1 ? 's' : ''})`);
-  }
+  return code;
 }
 
-// Resolve the chamber object for a player.
-// Uses their deck's specific chamber variant if available; otherwise character default.
-function getChamberForPlayer(pKey, charId) {
-  const ch = CHAMBERS[charId];
-  if (!ch) return null;
-  const specificId = selectedChamberIds[pKey];
-  if (specificId && ch.variants?.[specificId]) {
-    const v = ch.variants[specificId];
-    return {
-      ...ch,
-      frontSig: v.frontSig || ch.frontSig,
-      backSig:  v.backSig  || ch.backSig,
-      traits:   v.traits.length ? v.traits : ch.traits,
-    };
-  }
-  return ch;
-}
-
-
 // ============================================================
-// DECK TEMPLATES
+// SUPABASE: CREATE ROOM (HOST)
 // ============================================================
-const AANG_DECK_TEMPLATE = [
-  { id:'41', count:2 }, { id:'44', count:2 }, { id:'45', count:2 },
-  { id:'47', count:2 }, { id:'49', count:2 }, { id:'50', count:1 },
-  { id:'51', count:1 }, { id:'52', count:1 }, { id:'54', count:1 },
-  { id:'55', count:1 }, { id:'24', count:1 }, { id:'40', count:1 },
-  { id:'56', count:1 }, { id:'42', count:1 }, { id:'59', count:1 },
-  { id:'83',  count:1 }, { id:'89',  count:1 }, { id:'92',  count:1 },
-  { id:'94',  count:1 }, { id:'98',  count:1 }, { id:'99',  count:1 },
-  { id:'103', count:1 }, { id:'102', count:1 }, { id:'107', count:1 },
-  { id:'120', count:1 }, { id:'121', count:2 }, { id:'123', count:1 },
-  { id:'124', count:2 }, { id:'119', count:1 },
-];
-
-const ZUKO_DECK_TEMPLATE = [
-  { id:'1',  count:2 }, { id:'2',  count:2 }, { id:'3',  count:2 },
-  { id:'4',  count:2 }, { id:'9',  count:2 }, { id:'16', count:1 },
-  { id:'17', count:1 }, { id:'19', count:1 }, { id:'20', count:1 },
-  { id:'35', count:1 }, { id:'63', count:1 }, { id:'64', count:1 },
-  { id:'70', count:1 }, { id:'77', count:1 }, { id:'71', count:1 },
-  { id:'81',  count:1 }, { id:'85',  count:1 }, { id:'87',  count:1 },
-  { id:'93',  count:1 }, { id:'104', count:1 }, { id:'105', count:1 },
-  { id:'88',  count:1 }, { id:'86',  count:1 }, { id:'113', count:1 },
-  { id:'130', count:2 }, { id:'129', count:2 }, { id:'132', count:1 },
-  { id:'133', count:1 }, { id:'135', count:1 },
-];
-
-// ============================================================
-// GAME STATE
-// ============================================================
-let G = null;
-let selectedChars = { p1: 'aang', p2: 'zuko' };
-let selectedChamberIds = { p1: null, p2: null }; // specific chamber card ID; null = use character default
-let pendingPayment = null;
-let pendingAction = null;
-
-// ============================================================
-// UTILITY
-// ============================================================
-function shuffle(arr) {
-  const a = [...arr];
-  for (let i = a.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [a[i], a[j]] = [a[j], a[i]];
-  }
-  return a;
-}
-
-function buildDeck(template, charId) {
-  const cards = [];
-  let uid = 0;
-  for (const entry of template) {
-    const base = CARD_DB[String(entry.id)];
-    if (!base) { console.warn('Card not found in DB:', entry.id); continue; }
-    for (let c = 0; c < entry.count; c++) {
-      uid++;
-      cards.push({ ...base, uid: charId + '_' + uid });
-    }
-  }
-  return shuffle(cards);
-}
-
-function makePlayer(pIdx, charId, template, pKey) {
-  const chamber = getChamberForPlayer(pKey || ('p' + (pIdx + 1)), charId) || CHAMBERS[charId];
-  const deck = buildDeck(template, charId);
-  const green_energy  = deck.splice(0, 3);
-  const yellow_energy = deck.splice(0, 3);
-  const red_energy    = deck.splice(0, 3);
-  const discard       = deck.splice(0, 4);
-  return {
-    idx: pIdx,
-    name: 'Player ' + (pIdx + 1),
-    charId,
-    chamber,
-    chamberFrontActive: true,
-    deck,
-    discard,
-    advantageArea: [],
-    zones: {
-      green:  { energy: green_energy,  ally: null, flipCard: null, charged: false, name: 'green' },
-      yellow: { energy: yellow_energy, ally: null, flipCard: null, charged: false, name: 'yellow' },
-      red:    { energy: red_energy,    ally: null, flipCard: null, charged: false, name: 'red' }
-    },
-    score: 0,
-    currentStrike: null,
-    currentStrikeZone: null,
-  };
-}
-
-function calcForceInDiscard(player) {
-  return player.discard.reduce((sum, c) => sum + (c.for || 0), 0);
-}
-
-function initGame() {
-  const p1char = selectedChars.p1;
-  const p2char = selectedChars.p2;
-
-  // Resolve deck template: use saved deck if selected, else character default.
-  // Unknown cards (not in CARD_DB) are silently filtered out.
-  function resolveTemplate(pKey, charId) {
-    const saved = selectedDecks[pKey];
-    if (saved && saved.template && saved.template.length > 0) {
-      const filtered = saved.template.filter(e => CARD_DB[e.id]);
-      if (filtered.length > 0) return filtered;
-    }
-    // Default decks: use hardcoded templates for aang/zuko; for others build from DB
-    if (charId === 'aang') return AANG_DECK_TEMPLATE;
-    if (charId === 'zuko') return ZUKO_DECK_TEMPLATE;
-    // Generic fallback: all non-chamber cards as equal 1-copy deck
-    const fallback = Object.values(CARD_DB)
-      .filter(c => c.type !== 'chamber')
-      .map(c => ({ id: c.id, count: 1 }));
-    return fallback.length > 0 ? fallback : AANG_DECK_TEMPLATE;
+async function createOnlineRoom() {
+  if (!supabase) {
+    alert('Supabase not configured. Check your URL and anon key.');
+    return null;
   }
 
-  const p1tpl = resolveTemplate('p1', p1char);
-  const p2tpl = resolveTemplate('p2', p2char);
-
-  const p1 = makePlayer(0, p1char, p1tpl, 'p1');
-  const p2 = makePlayer(1, p2char, p2tpl, 'p2');
-  p1.name = 'Player 1 (' + CHAMBERS[p1char].name + ')';
-  p2.name = 'Player 2 (' + CHAMBERS[p2char].name + ')';
-
-  G = {
-    players: [p1, p2],
-    phase: 'OPENING_CHOOSE',
-    step: null,
-    defender: 0,
-    attacker: 1,
-    incomingForce: 4,
-    attackFromZone: 'opening',
-    currentZone: 'green',
-    zoneOrder: ['green','yellow','red'],
-    roundNum: 0,
-    log: [],
-    skipGreenZone: false,
-    choosingPlayer: 0,
-    _nextTurnPlayer: undefined,
+  roomCode = generateRoomCode();
+  const hostState = {
+    charId: selectedChars['p1'],
+    chamberId: selectedChamberIds['p1'],
+    deckId: selectedDecks['p1']?.id || null,
+    ready: false
   };
 
-  const f0 = calcForceInDiscard(p1);
-  const f1 = calcForceInDiscard(p2);
-  addLog(`Opening reveal — ${p1.name}: ${f0} Force | ${p2.name}: ${f1} Force`);
-  if (f0 >= f1) {
-    addLog(`${p1.name} chooses who defends the opening attack.`);
-    G.choosingPlayer = 0;
-  } else {
-    addLog(`${p2.name} chooses who defends the opening attack.`);
-    G.choosingPlayer = 1;
-  }
-}
+  const { error } = await supabase.from('rooms').insert([
+    {
+      id: roomCode,
+      host_state: hostState,
+      guest_state: null,
+      game_state: null,
+      status: 'waiting',
+      created_at: new Date().toISOString()
+    }
+  ]);
 
-function addLog(msg) {
-  if (!G) return;
-  G.log.unshift(msg);
-  if (G.log.length > 20) G.log.pop();
-  const el = document.getElementById('log-area');
-  if (el) el.textContent = msg;
+  if (error) {
+    console.error('Failed to create room:', error);
+    alert('Failed to create room. Check Supabase configuration.');
+    return null;
+  }
+
+  return roomCode;
 }
 
 // ============================================================
-// GAME FLOW
+// SUPABASE: JOIN ROOM (GUEST)
 // ============================================================
-function setOpeningAttackDefender(defIdx) {
-  G.defender = defIdx;
-  G.attacker = 1 - defIdx;
-  const def = G.players[defIdx];
-  if (def.deck.length > 0) def.zones.green.energy.push(def.deck.shift());
-  addLog(`${def.name} defends the opening attack (Force 4) and gains +1 green energy!`);
-  G.incomingForce = 4;
-  G.attackFromZone = 'opening';
-  G.phase = 'DEFENSE';
-  G.step = 'FLIP';
-  G.currentZone = 'green';
-  G.skipGreenZone = false;
-  renderAll();
-}
-
-function startTurn(playerIdx) {
-  const p = G.players[playerIdx];
-  G.defender = playerIdx;
-  G.attacker = 1 - playerIdx;
-  G.phase = 'TURN';
-  G.step = 'CLEANUP';
-  addLog(`${p.name}'s turn — Cleanup phase.`);
-  doCleanup(playerIdx);
-}
-
-function doCleanup(playerIdx) {
-  const p = G.players[playerIdx];
-  for (const zname of ['green','yellow','red']) {
-    if (p.zones[zname].flipCard) {
-      p.discard.push(p.zones[zname].flipCard);
-      p.zones[zname].flipCard = null;
-    }
+async function joinOnlineRoom(code) {
+  if (!supabase) {
+    alert('Supabase not configured.');
+    return false;
   }
-  while (p.advantageArea.length > 0) p.discard.push(p.advantageArea.pop());
-  G.step = 'REPLENISH';
-  doReplenish(playerIdx);
-}
 
-function doReplenish(playerIdx) {
-  const p = G.players[playerIdx];
-  const zone = G.players[G.attacker].currentStrikeZone;
-  if (!zone || zone === 'opening' || zone === 'signature') {
-    addLog('No energy replenished (opening/signature move).');
-  } else {
-    if (zone === 'green') {
-      gainEnergy(p, 'green', 1);
-    } else if (zone === 'yellow') {
-      gainEnergy(p, 'green', 1); gainEnergy(p, 'yellow', 1);
-    } else if (zone === 'red') {
-      gainEnergy(p, 'green', 1); gainEnergy(p, 'yellow', 1); gainEnergy(p, 'red', 1);
-    }
+  // Fetch the room
+  const { data, error } = await supabase
+    .from('rooms')
+    .select('*')
+    .eq('id', code)
+    .single();
+
+  if (error || !data) {
+    alert('Room not found. Check the code and try again.');
+    return false;
   }
-  G.step = 'SIGNATURE';
-  renderAll();
-  checkSignatureMove(playerIdx);
+
+  if (data.status !== 'waiting') {
+    alert('This room is no longer available.');
+    return false;
+  }
+
+  if (data.guest_state !== null) {
+    alert('A guest has already joined this room.');
+    return false;
+  }
+
+  // Update guest state
+  const guestState = {
+    charId: selectedChars['p2'],
+    chamberId: selectedChamberIds['p2'],
+    deckId: selectedDecks['p2']?.id || null,
+    ready: false
+  };
+
+  const { error: updateError } = await supabase
+    .from('rooms')
+    .update({ guest_state: guestState })
+    .eq('id', code);
+
+  if (updateError) {
+    alert('Failed to join room.');
+    return false;
+  }
+
+  return true;
 }
 
-function gainEnergy(player, color, amount) {
-  for (let i = 0; i < amount; i++) {
-    const src = player.discard.length > 0 ? player.discard : player.deck;
-    if (src.length > 0) {
-      player.zones[color].energy.push(src.shift());
-      addLog(`${player.name} gains 1 ${color} energy.`);
-    }
+// ============================================================
+// GAME MODE SELECTION
+// ============================================================
+function selectGameMode(mode) {
+  currentGameMode = mode;
+
+  if (mode === 'local') {
+    // Local play: proceed directly to setup
+    document.getElementById('mode-picker-screen').style.display = 'none';
+    document.getElementById('setup-screen').style.display = 'flex';
+  } else if (mode === 'online') {
+    // Online play: show lobby
+    document.getElementById('mode-picker-screen').style.display = 'none';
+    document.getElementById('online-lobby-screen').style.display = 'flex';
+    showOnlineLobby();
   }
 }
 
-function checkSignatureMove(playerIdx) {
-  const p = G.players[playerIdx];
-  const allCharged = p.zones.green.charged && p.zones.yellow.charged && p.zones.red.charged;
-  if (allCharged) {
-    const sig = p.chamberFrontActive ? p.chamber.frontSig : p.chamber.backSig;
-    document.getElementById('sig-name').textContent = sig.name;
-    document.getElementById('sig-stats').textContent =
-      `Intercept: ${sig.int}  |  Force: ${sig.for}  |  Cost: ${sig.g}G ${sig.y}Y ${sig.r}R`;
-    document.getElementById('sig-rules').textContent = sig.rules;
-    document.getElementById('sig-flavor').textContent = sig.flavor || '';
-    document.getElementById('sig-modal').style.display = 'flex';
+// ============================================================
+// ONLINE LOBBY UI
+// ============================================================
+function showOnlineLobby() {
+  const hostUI = document.getElementById('lobby-host-ui');
+  const guestUI = document.getElementById('lobby-guest-ui');
+  const playersDiv = document.getElementById('lobby-players');
+
+  // First time: ask host or guest
+  hostUI.style.display = 'none';
+  guestUI.style.display = 'none';
+  playersDiv.style.display = 'none';
+
+  const choice = prompt('Are you the HOST (creating a game) or GUEST (joining)?\n\nType: HOST or GUEST');
+  if (!choice) {
+    goBackToMode();
     return;
   }
-  goToFlipStep(playerIdx);
-}
 
-function skipSig() {
-  document.getElementById('sig-modal').style.display = 'none';
-  goToFlipStep(G.defender);
-}
-
-function useSig() {
-  document.getElementById('sig-modal').style.display = 'none';
-  const p = G.players[G.defender];
-  const sig = p.chamberFrontActive ? p.chamber.frontSig : p.chamber.backSig;
-  if (sig.int < G.incomingForce) {
-    addLog(`Signature Intercept (${sig.int}) too low! Need ${G.incomingForce}.`);
-    goToFlipStep(G.defender); return;
-  }
-  if (!canAfford(p, sig.g, sig.y, sig.r)) {
-    addLog('Not enough energy for signature move!');
-    goToFlipStep(G.defender); return;
-  }
-  pendingAction = { type: 'signature', sig };
-  openEnergyModal(p, sig.g, sig.y, sig.r, `Signature: ${sig.name}`);
-}
-
-function afterSigPayment(sig) {
-  const p = G.players[G.defender];
-  p.zones.green.charged = false;
-  p.zones.yellow.charged = false;
-  p.zones.red.charged = false;
-  p.chamberFrontActive = !p.chamberFrontActive;
-  p.currentStrike = sig;
-  p.currentStrikeZone = 'signature';
-  addLog(`${p.name} plays signature move: ${sig.name} (Force ${sig.for})!`);
-  applySigEffect(sig, p);
-  G.incomingForce = sig.for;
-  endDefenderTurn();
-}
-
-function applySigEffect(sig, player) {
-  const opp = G.players[1 - player.idx];
-  const r = sig.rules || '';
-  if (r.includes('charge all of your zones')) {
-    player.zones.green.charged = true;
-    player.zones.yellow.charged = true;
-    player.zones.red.charged = true;
-    addLog(`All ${player.name}'s zones charged!`);
-  }
-  if (r.includes('uncharges one of his or her zones') || r.includes('uncharge one of his or her zones')) {
-    const charged = ['green','yellow','red'].filter(z => opp.zones[z].charged);
-    if (charged.length > 0) { opp.zones[charged[0]].charged = false; addLog(`${opp.name}'s ${charged[0]} zone uncharged!`); }
-  }
-  if (r.includes("eliminate all of your opponent's green energy")) {
-    opp.zones.green.energy = [];
-    addLog(`${opp.name}'s green energy eliminated!`);
+  if (choice.toUpperCase() === 'HOST') {
+    localPlayerIdx = 0; // Host is player 1
+    sessionStorage.setItem('localPlayerIdx', '0');
+    setupAsHost();
+  } else if (choice.toUpperCase() === 'GUEST') {
+    localPlayerIdx = 1; // Guest is player 2
+    sessionStorage.setItem('localPlayerIdx', '1');
+    setupAsGuest();
+  } else {
+    alert('Invalid choice. Try again.');
+    showOnlineLobby();
   }
 }
 
-function goToFlipStep(playerIdx) {
-  const p = G.players[playerIdx];
-  G.step = 'FLIP';
-  G.phase = 'DEFENSE';
-  G.defender = playerIdx;
-  let startZone = 'green';
-  if (G.skipGreenZone) {
-    startZone = 'yellow';
-    G.skipGreenZone = false;
-    addLog('Green zone skipped!');
-  }
-  G.currentZone = startZone;
-  addLog(`${p.name} defends in ${startZone} zone — Incoming Force: ${G.incomingForce}`);
-  renderAll();
+function setupAsHost() {
+  document.getElementById('lobby-host-ui').style.display = 'block';
+  document.getElementById('lobby-guest-ui').style.display = 'none';
+  document.getElementById('lobby-players').style.display = 'block';
+
+  // Change setup labels
+  document.getElementById('p1-label').textContent = 'YOU (HOST)';
+  document.getElementById('p2-label').textContent = 'OPPONENT (GUEST)';
+
+  // Show setup screen for player 1 only
+  document.getElementById('p2-setup').style.display = 'none';
+
+  // Create room and show code
+  createOnlineRoom().then(code => {
+    if (code) {
+      sessionStorage.setItem('roomCode', code);
+      roomCode = code;
+      document.getElementById('room-code-display').textContent = code;
+      updateLobbyUI();
+
+      // Subscribe to room updates
+      subscribeToRoom();
+
+      // Proceed to setup
+      setTimeout(() => {
+        document.getElementById('online-lobby-screen').style.display = 'none';
+        document.getElementById('setup-screen').style.display = 'flex';
+      }, 2000);
+    }
+  });
 }
 
-function flipCardInZone() {
-  const p = G.players[G.defender];
-  const zone = p.zones[G.currentZone];
-  if (zone.flipCard) { addLog('Zone already has a card!'); return; }
-  if (p.deck.length === 0) reshuffleDeck(p);
-  if (p.deck.length === 0) { addLog('No cards available!'); return; }
-  const card = p.deck.shift();
-  zone.flipCard = card;
-  addLog(`${p.name} flips: ${card.name} (${card.type})`);
-  G.step = 'CHOOSING';
-  renderAll();
+function setupAsGuest() {
+  document.getElementById('lobby-host-ui').style.display = 'none';
+  document.getElementById('lobby-guest-ui').style.display = 'block';
+  document.getElementById('lobby-players').style.display = 'none';
+
+  // Change setup labels
+  document.getElementById('p1-label').textContent = 'OPPONENT (HOST)';
+  document.getElementById('p2-label').textContent = 'YOU (GUEST)';
+
+  // Show setup screen for player 2 only
+  document.getElementById('p1-setup').style.display = 'none';
 }
 
-function reshuffleDeck(player) {
-  const gCount = player.zones.green.energy.length;
-  const yCount = player.zones.yellow.energy.length;
-  const rCount = player.zones.red.energy.length;
-  const gCharged = player.zones.green.charged;
-  const yCharged = player.zones.yellow.charged;
-  const rCharged = player.zones.red.charged;
-  const all = [...player.discard, ...player.zones.green.energy, ...player.zones.yellow.energy, ...player.zones.red.energy];
-  player.deck = shuffle(all);
-  player.discard = [];
-  player.zones.green.energy  = player.deck.splice(0, gCount);
-  player.zones.yellow.energy = player.deck.splice(0, yCount);
-  player.zones.red.energy    = player.deck.splice(0, rCount);
-  player.zones.green.charged  = gCharged;
-  player.zones.yellow.charged = yCharged;
-  player.zones.red.charged    = rCharged;
-  player.discard = player.deck.splice(0, 4);
-  addLog(`${player.name} reshuffled their deck!`);
-}
-
-// ============================================================
-// ADVANTAGE EFFECT HELPERS
-// ============================================================
-function rulesMatchesIntInCharged(r) { return r.includes('+1 Intercept while in one of your charged zones'); }
-function rulesMatchesForInCharged(r) { return r.includes('+1 Force while in one of your charged zones'); }
-function rulesMatchesBothInCharged(r) { return r.includes('+1 Intercept and +1 Force while in one of your charged zones'); }
-function rulesMatchesForVsGreen(r)    { return r.includes('defending in his or her green zone, your strikes have +2 Force'); }
-function rulesMatchesOppExtraYellow(r){ return r.includes('strikes cost an additional yellow energy'); }
-function rulesMatchesSkipOppGreen(r)  { return r.includes('skips defending in his or her green zone'); }
-function rulesMatchesLockCharge(r)    { return r.includes('his or her zones cannot be charged'); }
-function rulesMatchesAddYellowCA(r)   { return r.includes('When you counterattack, add a yellow energy'); }
-function rulesMatchesSwapCharge(r)    { return r.includes('uncharge one of your zones. If you do, charge one of your zones'); }
-function rulesMatchesRevealOnFlip(r)  { return r.includes('Whenever you flip a card, turn the top card'); }
-
-function getAdvBonuses(p, zoneName, zone) {
-  let advInt = 0, advFor = 0;
-  for (const adv of p.advantageArea) {
-    const r = adv.rules || '';
-    if (rulesMatchesIntInCharged(r) && zone.charged) advInt += 1;
-    if (rulesMatchesForInCharged(r) && zone.charged) advFor += 1;
-    if (rulesMatchesBothInCharged(r) && zone.charged) { advInt += 1; advFor += 1; }
-    if (rulesMatchesForVsGreen(r) && zoneName === 'green') advFor += 2;
-    if (r.includes('Your strikes have +2 Intercept') && !r.includes('while')) advInt += 2;
-    if (r.includes('Your strikes have +1 Force') && !r.includes('while')) advFor += 1;
-    if (r.includes('Your strikes have +1 Intercept') && !r.includes('while')) advInt += 1;
-    if (r.includes('Your strikes have -1 Intercept and +1 Force')) { advInt -= 1; advFor += 1; }
-    if (r.includes('Your strikes have +1 Intercept in your red zone') && zoneName === 'red') advInt += 1;
-  }
-  return { advInt, advFor };
-}
-
-function getOppExtraYellow(oppPlayer) {
-  let extra = 0;
-  for (const adv of oppPlayer.advantageArea) {
-    if (rulesMatchesOppExtraYellow(adv.rules || '')) extra += 1;
-  }
-  return extra;
-}
-
-// ============================================================
-// CARD ACTIONS
-// ============================================================
-function playAsStrike(card) {
-  const p = G.players[G.defender];
-  const zone = p.zones[G.currentZone];
-  const allyBon = getAllyBonuses(zone.ally);
-  const { advInt } = getAdvBonuses(p, G.currentZone, zone);
-  const effectiveInt = card.int + allyBon.int + advInt;
-
-  if (effectiveInt < G.incomingForce) {
-    addLog(`Cannot play ${card.name}: Intercept ${effectiveInt} < Force ${G.incomingForce}`);
+async function attemptJoin() {
+  const code = document.getElementById('join-code-input').value.toUpperCase();
+  if (!code || code.length !== 4) {
+    alert('Please enter a 4-character room code.');
     return;
   }
-  const opp = G.players[G.attacker];
-  const extraY = getOppExtraYellow(opp);
-  if (extraY > 0) addLog(`Opponent advantage: strike costs +${extraY} yellow energy!`);
-  pendingAction = { type: 'strike', card, zone: G.currentZone };
-  openEnergyModal(p, card.g, card.y + extraY, card.r, `Counterattack: ${card.name}`);
-}
 
-function afterStrikePayment(card, zoneName) {
-  const p = G.players[G.defender];
-  const zone = p.zones[zoneName];
-  const allyBon = getAllyBonuses(zone.ally);
-  const { advFor } = getAdvBonuses(p, zoneName, zone);
-  let forBonus = allyBon.for + advFor;
+  if (await joinOnlineRoom(code)) {
+    sessionStorage.setItem('roomCode', code);
+    roomCode = code;
+    document.getElementById('lobby-guest-ui').style.display = 'none';
+    document.getElementById('lobby-players').style.display = 'block';
 
-  const r = card.rules || '';
-  if (r.includes('For each ally you have')) {
-    forBonus += ['green','yellow','red'].filter(z => p.zones[z].ally).length;
-  }
-  if (r.includes('While you have an ally in this zone') && zone.ally) forBonus += 2;
+    // Subscribe to room updates
+    subscribeToRoom();
 
-  const effectiveForce = card.for + forBonus;
-  addLog(`${p.name} counterattacks with ${card.name} (Force ${effectiveForce})!`);
-
-  applyCounterattackEffect(card, p, zoneName, effectiveForce);
-
-  if (r.includes('When you counterattack, charge this zone')) {
-    zone.charged = true; addLog(`${p.name}'s ${zoneName} zone charged!`);
-  }
-  if (r.includes('When you counterattack from a charged zone, add a green energy') && zone.charged) {
-    gainEnergy(p, 'green', 1);
-  }
-  if (r.includes('add a green energy for each charged zone')) {
-    const cnt = ['green','yellow','red'].filter(z => p.zones[z].charged).length;
-    gainEnergy(p, 'green', cnt);
-  }
-
-  for (const adv of p.advantageArea) {
-    const ar = adv.rules || '';
-    if (rulesMatchesAddYellowCA(ar)) { gainEnergy(p, 'yellow', 1); addLog(`${adv.name}: gained yellow energy!`); }
-  }
-
-  if (zone.ally) {
-    const ar = zone.ally.rules || '';
-    if (ar.includes("counterattack from Momo's zone") || ar.includes("each player adds a green energy")) {
-      gainEnergy(p, 'green', 1);
-      gainEnergy(G.players[G.attacker], 'green', 1);
-      addLog('Momo: both players gain green energy!');
-    }
-    if (ar.includes("counterattack from Appa's zone") && ar.includes("add a green energy")) {
-      gainEnergy(p, 'green', 1); addLog('Appa: gained green energy!');
-    }
-  }
-
-  p.currentStrike = card;
-  p.currentStrikeZone = zoneName;
-  G.incomingForce = effectiveForce;
-  endDefenderTurn();
-}
-
-function applyCounterattackEffect(card, player, zoneName, force) {
-  const opp = G.players[1 - player.idx];
-  const r = card.rules || '';
-  if (r.includes('your opponent uncharges one of his or her zones')) {
-    const charged = ['green','yellow','red'].filter(z => opp.zones[z].charged);
-    if (charged.length > 0) { opp.zones[charged[0]].charged = false; addLog(`${opp.name}'s ${charged[0]} uncharged!`); }
-  }
-  if (r.includes('you may eliminate a green energy') && opp.zones.green.energy.length > 0) {
-    opp.zones.green.energy.pop(); addLog(`${opp.name} loses 1 green energy!`);
-  }
-  if (r.includes('you may eliminate up to two green energy')) {
-    const n = Math.min(2, opp.zones.green.energy.length);
-    for (let i = 0; i < n; i++) opp.zones.green.energy.pop();
-    if (n > 0) addLog(`${opp.name} loses ${n} green energy!`);
-  }
-  if (r.includes('your opponent eliminates one of his or her allies')) {
-    const allies = ['green','yellow','red'].filter(z => opp.zones[z].ally);
-    if (allies.length > 0) { opp.discard.push(opp.zones[allies[0]].ally); opp.zones[allies[0]].ally = null; addLog(`${opp.name}'s ally eliminated!`); }
-  }
-  if (r.includes("your opponent eliminates one of his or her energy")) {
-    for (const z of ['red','yellow','green']) {
-      if (opp.zones[z].energy.length > 0) { opp.zones[z].energy.pop(); addLog(`${opp.name} loses 1 ${z} energy!`); break; }
-    }
-  }
-  if (r.includes('skips defending in his or her green zone') && !r.toLowerCase().includes('advantage')) {
-    G.skipGreenZone = true; addLog(`${opp.name} will skip green zone!`);
-  }
-  if (r.includes('move one of your green energy to your yellow zone') && player.zones.green.energy.length > 0) {
-    const e = player.zones.green.energy.pop(); player.zones.yellow.energy.push(e);
-    addLog(`${player.name} moved green → yellow energy.`);
-  }
-  if (r.includes('move one of your yellow energy to your red zone') && player.zones.yellow.energy.length > 0) {
-    const e = player.zones.yellow.energy.pop(); player.zones.red.energy.push(e);
-    addLog(`${player.name} moved yellow → red energy.`);
-  }
-  if (r.includes('eliminate all of your opponent\'s green energy')) {
-    opp.zones.green.energy = []; addLog(`${opp.name}'s green energy eliminated!`);
-  }
-  if (r.includes('charge this zone')) {
-    if (!player.zones[zoneName].charged) { player.zones[zoneName].charged = true; addLog(`${player.name}'s ${zoneName} zone charged!`); }
+    // Proceed to setup
+    setTimeout(() => {
+      document.getElementById('online-lobby-screen').style.display = 'none';
+      document.getElementById('setup-screen').style.display = 'flex';
+    }, 1000);
   }
 }
 
-function playAsAlly(card) {
-  const p = G.players[G.defender];
-  if (!canAfford(p, card.g, card.y, card.r)) { addLog('Not enough energy for ally!'); return; }
-  pendingAction = { type: 'ally', card, zone: G.currentZone };
-  openEnergyModal(p, card.g, card.y, card.r, `Play ally: ${card.name}`);
+function goBackToMode() {
+  currentGameMode = null;
+  roomCode = null;
+  localPlayerIdx = null;
+  sessionStorage.removeItem('roomCode');
+  sessionStorage.removeItem('localPlayerIdx');
+  document.getElementById('online-lobby-screen').style.display = 'none';
+  document.getElementById('mode-picker-screen').style.display = 'flex';
 }
 
-function afterAllyPayment(card, zoneName) {
-  const p = G.players[G.defender];
-  const zone = p.zones[zoneName];
-  if (zone.ally) p.discard.push(zone.ally);
-  zone.flipCard = null;
-  zone.ally = card;
-  addLog(`${p.name} plays ally ${card.name} in ${zoneName} zone!`);
-  G.step = 'FLIP';
-  renderAll();
-}
+function updateLobbyUI() {
+  if (!roomCode) return;
+  // This is called periodically to update player status
+  const hostName = selectedChars['p1'] ? CHAMBERS[selectedChars['p1']]?.name || 'Unknown' : 'Selecting…';
+  document.getElementById('lobby-host-name').textContent = hostName;
+  document.getElementById('lobby-host-status').textContent = selectedDecks['p1'] ? 'Ready' : 'Selecting character…';
 
-function playAsAdvantage(card) {
-  const p = G.players[G.defender];
-  if (!canAfford(p, card.g, card.y, card.r)) { addLog('Not enough energy for advantage!'); return; }
-  pendingAction = { type: 'advantage', card, zone: G.currentZone };
-  openEnergyModal(p, card.g, card.y, card.r, `Play advantage: ${card.name}`);
-}
+  const guestName = selectedChars['p2'] ? CHAMBERS[selectedChars['p2']]?.name || 'Unknown' : 'Not joined yet';
+  document.getElementById('lobby-guest-name').textContent = guestName;
+  document.getElementById('lobby-guest-status').textContent = selectedDecks['p2'] ? 'Ready' : 'Selecting character…';
 
-function afterAdvantagePayment(card, zoneName) {
-  const p = G.players[G.defender];
-  const zone = p.zones[zoneName];
-  zone.flipCard = null;
-  if (!zone.charged) {
-    zone.charged = true;
-    addLog(`${p.name}'s ${zoneName} zone charged!`);
-  }
-  if (card.immediate) {
-    applyImmediateEffect(card, p, zoneName);
-    p.discard.push(card);
+  // Show start button only if host and both players ready
+  const startBtn = document.getElementById('start-match-btn');
+  if (localPlayerIdx === 0 && selectedDecks['p1'] && selectedDecks['p2']) {
+    startBtn.style.display = 'block';
   } else {
-    p.advantageArea.push(card);
-    applyPassiveSetup(card, p, zoneName);
+    startBtn.style.display = 'none';
   }
-  addLog(`${p.name} plays ${card.name}!`);
-  G.step = 'FLIP';
-  renderAll();
 }
 
-function applyImmediateEffect(card, player, zoneName) {
-  const opp = G.players[1 - player.idx];
-  const r = card.rules || '';
+// ============================================================
+// SUPABASE: SUBSCRIBE TO ROOM UPDATES
+// ============================================================
+function subscribeToRoom() {
+  if (!supabase || !roomCode) return;
 
-  if (r.includes('Add a red energy')) { gainEnergy(player, 'red', 1); addLog(`${player.name} gains red energy!`); }
-  if (r.includes('Look at the top two cards') || r.includes('top two cards of your deck')) {
-    addLog(`${player.name} looks at top 2 cards and reorders.`);
-  }
-  if (r.includes('Look at the top three cards') || r.includes('top three cards of your deck')) {
-    addLog(`${player.name} looks at top 3 cards and reorders.`);
-  }
-  if (r.includes('Look at the top card of your deck') && !r.includes('two') && !r.includes('three')) {
-    if (player.deck.length > 0) addLog(`${player.name} peeks at top card: ${player.deck[0].name}`);
-  }
-  if (r.includes('You may charge any zone')) {
-    const uncharged = ['green','yellow','red'].filter(z => !player.zones[z].charged);
-    if (uncharged.length > 0) { player.zones[uncharged[0]].charged = true; addLog(`${player.name} also charges ${uncharged[0]}!`); }
-  }
-  if (r.includes('If this zone is already charged') && r.includes('charge any zone')) {
-    if (player.zones[zoneName].charged) {
-      const uncharged = ['green','yellow','red'].filter(z => !player.zones[z].charged);
-      if (uncharged.length > 0) { player.zones[uncharged[0]].charged = true; addLog(`${player.name} charges ${uncharged[0]}!`); }
-    }
-  }
-  if (r.includes('If this zone is already charged') && r.includes('uncharge any zone')) {
-    if (player.zones[zoneName].charged) {
-      const charged = ['green','yellow','red'].filter(z => player.zones[z].charged && z !== zoneName);
-      if (charged.length > 0) { player.zones[charged[0]].charged = false; addLog(`${player.name} uncharges ${charged[0]}!`); }
-    }
-  }
-  if (r.includes('You may uncharge any zone')) {
-    const charged = ['green','yellow','red'].filter(z => player.zones[z].charged);
-    if (charged.length > 0) { player.zones[charged[0]].charged = false; addLog(`${player.name} uncharges ${charged[0]}!`); }
-  }
-  if (r.includes("turns the top card of his or her deck face up") && r.includes("Immediate")) {
-    if (opp.deck.length > 0) addLog(`${player.name} peeks at ${opp.name}'s top card: ${opp.deck[0].name}!`);
-  }
-  if (r.includes("You may eliminate one of your allies. If you do, eliminate one of your opponent's allies")) {
-    const pa = ['green','yellow','red'].filter(z => player.zones[z].ally);
-    const oa = ['green','yellow','red'].filter(z => opp.zones[z].ally);
-    if (pa.length > 0 && oa.length > 0) {
-      player.discard.push(player.zones[pa[0]].ally); player.zones[pa[0]].ally = null;
-      opp.discard.push(opp.zones[oa[0]].ally);       opp.zones[oa[0]].ally = null;
-      addLog('Both players lose one ally!');
-    }
-  }
-  if (r.includes('You may eliminate an ally') && !r.includes("opponent's allies")) {
-    const myA = ['green','yellow','red'].filter(z => player.zones[z].ally);
-    if (myA.length > 0) {
-      const a = player.zones[myA[0]].ally;
-      player.zones[myA[0]].ally = null;
-      player.discard.push(a);
-      addLog(`${player.name} eliminates ${a.name}!`);
-    }
-  }
-  if (r.includes("Your opponent uncharges one of his or her zones")) {
-    const charged = ['green','yellow','red'].filter(z => opp.zones[z].charged);
-    if (charged.length > 0) { opp.zones[charged[0]].charged = false; addLog(`${opp.name}'s ${charged[0]} uncharged!`); }
-  }
-  if (r.includes("Your opponent eliminates one of his or her allies")) {
-    const oa = ['green','yellow','red'].filter(z => opp.zones[z].ally);
-    if (oa.length > 0) { opp.discard.push(opp.zones[oa[0]].ally); opp.zones[oa[0]].ally = null; addLog(`${opp.name}'s ally eliminated!`); }
-  }
-  if (r.includes("Your opponent moves one of his or her allies")) {
-    addLog(`Charisma: ${opp.name} would move an ally to your side!`);
-  }
-  if (r.includes("You may eliminate an energy in this zone. If you do, eliminate one of your opponent's energy")) {
-    if (player.zones[zoneName].energy.length > 0) {
-      const myE = player.zones[zoneName].energy.pop();
-      player.discard.push(myE);
-      for (const z of ['red','yellow','green']) {
-        if (opp.zones[z].energy.length > 0) { opp.zones[z].energy.pop(); addLog(`Volcanic Fountain: traded energies!`); break; }
+  // Subscribe via Realtime
+  gameStateChannel = supabase
+    .channel(`room:${roomCode}`)
+    .on(
+      'postgres_changes',
+      { event: '*', schema: 'public', table: 'rooms', filter: `id=eq.${roomCode}` },
+      (payload) => {
+        if (payload.eventType === 'UPDATE') {
+          handleRoomUpdate(payload.new);
+        }
       }
-    }
-  }
-  if (r.includes("You are now defending up one zone")) {
-    const zones = ['green','yellow','red'];
-    const ci = zones.indexOf(zoneName);
-    if (ci < zones.length - 1) {
-      G.currentZone = zones[ci + 1];
-      addLog(`Yip Yip! — defending up to ${G.currentZone} zone!`);
-    }
-  }
+    )
+    .subscribe((status) => {
+      console.log('Supabase subscription status:', status);
+    });
 }
 
-function applyPassiveSetup(card, player, zoneName) {
-  const r = card.rules || '';
-  if (rulesMatchesSkipOppGreen(r)) {
-    G.skipGreenZone = true;
-    addLog(`${card.name}: opponent will skip green zone!`);
+function handleRoomUpdate(roomData) {
+  // Update local game state if game has started
+  if (roomData.game_state && currentGameMode === 'online') {
+    // Merge remote game state into local G
+    Object.assign(G, roomData.game_state);
+    renderAll();
   }
-  if (r.includes("Your opponent's strikes cost an additional yellow energy")) {
-    addLog(`${card.name}: opponent's strikes cost +1 yellow!`);
+
+  // Update lobby UI if still in lobby
+  if (document.getElementById('online-lobby-screen').style.display !== 'none') {
+    updateLobbyUI();
   }
 }
 
-function focusCard() {
-  const p = G.players[G.defender];
-  const zone = p.zones[G.currentZone];
-  if (!zone.flipCard) return;
-  const card = zone.flipCard;
-  zone.flipCard = null;
-  zone.energy.push(card);
-  addLog(`${p.name} focuses ${card.name} into ${G.currentZone} energy.`);
-  applyFocusPenalties(p);
-  moveToNextZone();
-}
+// ============================================================
+// SUPABASE: SYNC GAME STATE (called on every action)
+// ============================================================
+async function syncGameState() {
+  if (!supabase || !roomCode || currentGameMode !== 'online') return;
 
-function applyFocusPenalties(player) {
-  const opp = G.players[1 - player.idx];
-  const strike = opp.currentStrike;
-  if (strike && strike.rules) {
-    const r = strike.rules;
-    if (r.includes('Howling Cyclone gets -2 Force')) {
-      G.incomingForce = Math.max(0, G.incomingForce - 2);
-      addLog(`Howling Cyclone loses 2 Force — now ${G.incomingForce}!`);
-    } else if (r.includes('gets -1 Force') || r.includes('Howling')) {
-      G.incomingForce = Math.max(0, G.incomingForce - 1);
-      addLog(`${strike.name} loses 1 Force — now ${G.incomingForce}!`);
-    }
-    if (r.includes('Whenever your opponent focuses, he or she eliminates one of his or her green energy')) {
-      if (player.zones.green.energy.length > 0) {
-        player.zones.green.energy.pop();
-        addLog(`${player.name} loses green energy from focusing!`);
-      }
-    }
+  const { error } = await supabase
+    .from('rooms')
+    .update({ game_state: G })
+    .eq('id', roomCode);
+
+  if (error) {
+    console.error('Failed to sync game state:', error);
   }
 }
 
-function discardCard() {
-  const p = G.players[G.defender];
-  const zone = p.zones[G.currentZone];
-  if (!zone.flipCard) return;
-  const card = zone.flipCard;
-  zone.flipCard = null;
-  p.discard.push(card);
-  addLog(`${p.name} discards ${card.name}.`);
-  moveToNextZone();
+// ============================================================
+// START ONLINE MATCH (AFTER SETUP)
+// ============================================================
+async function startOnlineMatch() {
+  if (localPlayerIdx !== 0) return; // Only host can start
+
+  // Update room status to active and initialize game state
+  const { error } = await supabase
+    .from('rooms')
+    .update({ status: 'active', game_state: G })
+    .eq('id', roomCode);
+
+  if (error) {
+    alert('Failed to start match.');
+    return;
+  }
+
+  startGame();
 }
 
-function moveToNextZone() {
-  const zones = ['green', 'yellow', 'red'];
-  const ci = zones.indexOf(G.currentZone);
-  if (ci >= zones.length - 1) {
-    scorePoint(G.attacker);
-  } else {
-    G.currentZone = zones[ci + 1];
-    G.step = 'FLIP';
-    addLog(`${G.players[G.defender].name} moves to ${G.currentZone} zone.`);
+// ============================================================
+// RECONNECTION LOGIC
+// ============================================================
+async function checkForReconnection() {
+  const savedRoomCode = sessionStorage.getItem('roomCode');
+  const savedPlayerIdx = sessionStorage.getItem('localPlayerIdx');
+
+  if (!savedRoomCode || !supabase) return;
+
+  const { data, error } = await supabase
+    .from('rooms')
+    .select('*')
+    .eq('id', savedRoomCode)
+    .single();
+
+  if (error || !data) return;
+
+  // Reconnect
+  roomCode = savedRoomCode;
+  localPlayerIdx = parseInt(savedPlayerIdx);
+  currentGameMode = 'online';
+
+  if (data.game_state) {
+    Object.assign(G, data.game_state);
+    subscribeToRoom();
+    document.getElementById('loading-screen').style.display = 'none';
+    document.getElementById('game-layout').style.display = 'flex';
     renderAll();
   }
 }
 
-function scorePoint(scorerIdx) {
-  const scorer = G.players[scorerIdx];
-  const loser  = G.players[1 - scorerIdx];
-  scorer.score++;
-  addLog(`⚡ ${scorer.name} scores! (${scorer.score}–${loser.score})`);
-  for (const zname of ['green','yellow','red']) {
-    if (scorer.zones[zname].ally) { gainEnergy(scorer, zname, 1); addLog(`Celebration! ${scorer.name} gains ${zname} energy.`); }
-  }
-  cleanupAfterScore(scorer);
-  cleanupAfterScore(loser);
-  if (scorer.score >= 3) { endGame(scorerIdx); return; }
-  updateScoreDisplay();
-  G.phase = 'OPENING_CHOOSE';
-  G.choosingPlayer = 1 - scorerIdx;
-  addLog(`${loser.name} chooses who defends the next opening attack.`);
-  renderAll();
-}
-
-function cleanupAfterScore(player) {
-  for (const zname of ['green','yellow','red']) {
-    if (player.zones[zname].flipCard) { player.discard.push(player.zones[zname].flipCard); player.zones[zname].flipCard = null; }
-  }
-  while (player.advantageArea.length > 0) player.discard.push(player.advantageArea.pop());
-}
-
-function endDefenderTurn() {
-  const oldDefender = G.defender;
-  const oldAttacker = G.attacker;
-  addLog(`${G.players[oldDefender].name} counterattacks with Force ${G.incomingForce}. Passing to ${G.players[oldAttacker].name}…`);
-  G.phase = 'PASS';
-  G._nextTurnPlayer = oldAttacker;
-  renderAll();
-  setTimeout(() => {
-    const name = G.players[oldAttacker].name;
-    document.getElementById('pass-title').textContent = `${name.toUpperCase()}'S TURN`;
-    document.getElementById('pass-msg').textContent = `Incoming Force: ${G.incomingForce}. Hand device to ${name}.`;
-    document.getElementById('pass-screen').style.display = 'flex';
-  }, 100);
-}
-
-function dismissPass() {
-  document.getElementById('pass-screen').style.display = 'none';
-  if (G._nextTurnPlayer !== undefined) {
-    const next = G._nextTurnPlayer;
-    G._nextTurnPlayer = undefined;
-    startTurn(next);
-  }
-}
-
-function endGame(winnerIdx) {
-  const winner = G.players[winnerIdx];
-  const loser  = G.players[1 - winnerIdx];
-  document.getElementById('winner-text').textContent = `${winner.name} WINS!`;
-  document.getElementById('final-score').textContent = `Final Score: ${winner.score}–${loser.score}`;
-  document.getElementById('gameover-screen').style.display = 'flex';
-}
-
 // ============================================================
-// ENERGY SYSTEM
+// ORIGINAL GAME CODE (adapted for online)
 // ============================================================
-function canAfford(player, g, y, r) {
-  const avG = player.zones.green.energy.length;
-  const avY = player.zones.yellow.energy.length;
-  const avR = player.zones.red.energy.length;
-  if (avR < r) return false;
-  let remR = avR - r;
-  let needY = Math.max(0, y - avY);
-  if (needY > remR) return false;
-  remR -= needY;
-  let payY = Math.min(y, avY);
-  let avYsurplus = avY - payY;
-  let needG = Math.max(0, g - avG);
-  if (needG > avYsurplus + remR) return false;
-  return true;
-}
 
-function openEnergyModal(player, costG, costY, costR, title) {
-  pendingPayment = { player, costG, costY, costR, paidG:0, paidY:0, paidR:0 };
-  document.getElementById('energy-modal-title').textContent = title;
-  document.getElementById('energy-modal-desc').textContent = `Required: ${costG}G ${costY}Y ${costR}R`;
-  document.getElementById('pay-green').textContent  = 0;
-  document.getElementById('pay-yellow').textContent = 0;
-  document.getElementById('pay-red').textContent    = 0;
-  document.getElementById('avail-green').textContent  = player.zones.green.energy.length;
-  document.getElementById('avail-yellow').textContent = player.zones.yellow.energy.length;
-  document.getElementById('avail-red').textContent    = player.zones.red.energy.length;
-  document.getElementById('energy-feedback').textContent = '';
-  autoFillPayment(player, costG, costY, costR);
-  document.getElementById('energy-modal').style.display = 'flex';
-}
+// Card database from GitHub CSV
+async function loadCardDatabase() {
+  const url = 'https://raw.githubusercontent.com/jdieg0/avatar-tcg/master/cards.csv';
+  const response = await fetch(url);
+  const text = await response.text();
+  const lines = text.split('\n');
+  const headers = lines[0].split(',');
 
-function autoFillPayment(player, cG, cY, cR) {
-  const avG = player.zones.green.energy.length;
-  const avY = player.zones.yellow.energy.length;
-  const avR = player.zones.red.energy.length;
-  let payR = Math.min(cR, avR); let remR = avR - payR;
-  let payY = Math.min(cY, avY); let remY = avY - payY;
-  const needY = cY - payY; const rForY = Math.min(remR, needY); payR += rForY; remR -= rForY;
-  let payG = Math.min(cG, avG);
-  const needG = cG - payG; const yForG = Math.min(remY, needG); payY += yForG;
-  const needG2 = needG - yForG; const rForG = Math.min(remR, needG2); payR += rForG;
-  pendingPayment.paidG = payG;
-  pendingPayment.paidY = payY;
-  pendingPayment.paidR = payR;
-  document.getElementById('pay-green').textContent  = payG;
-  document.getElementById('pay-yellow').textContent = payY;
-  document.getElementById('pay-red').textContent    = payR;
-}
-
-function adjustPay(color, delta) {
-  if (!pendingPayment) return;
-  const key = 'paid' + color.charAt(0).toUpperCase() + color.slice(1);
-  const avail = pendingPayment.player.zones[color].energy.length;
-  pendingPayment[key] = Math.max(0, Math.min(avail, pendingPayment[key] + delta));
-  document.getElementById('pay-' + color).textContent = pendingPayment[key];
-}
-
-function confirmPayment() {
-  if (!pendingPayment || !pendingAction) return;
-  const { player, costG, costY, costR, paidG, paidY, paidR } = pendingPayment;
-
-  if (paidR < costR) { showFeedback('Not enough RED!'); return; }
-  const surplusR = paidR - costR;
-  const yNet = paidY + surplusR;
-  if (yNet < costY) { showFeedback('Not enough YELLOW (with overpay)!'); return; }
-  const surplusY = yNet - costY;
-  if (paidG + surplusY < costG) { showFeedback('Not enough GREEN (with overpay)!'); return; }
-
-  for (let i = 0; i < paidG; i++) { if (player.zones.green.energy.length > 0) player.discard.push(player.zones.green.energy.pop()); }
-  for (let i = 0; i < paidY; i++) { if (player.zones.yellow.energy.length > 0) player.discard.push(player.zones.yellow.energy.pop()); }
-  for (let i = 0; i < paidR; i++) { if (player.zones.red.energy.length > 0) player.discard.push(player.zones.red.energy.pop()); }
-  addLog(`${player.name} pays ${paidG}G ${paidY}Y ${paidR}R.`);
-  document.getElementById('energy-modal').style.display = 'none';
-
-  const action = pendingAction;
-  pendingPayment = null;
-  pendingAction  = null;
-
-  if (action.type === 'strike')         afterStrikePayment(action.card, action.zone);
-  else if (action.type === 'ally')      afterAllyPayment(action.card, action.zone);
-  else if (action.type === 'advantage') afterAdvantagePayment(action.card, action.zone);
-  else if (action.type === 'signature') afterSigPayment(action.sig);
-}
-
-function showFeedback(msg) { document.getElementById('energy-feedback').textContent = msg; }
-
-function cancelPayment() {
-  document.getElementById('energy-modal').style.display = 'none';
-  pendingPayment = null; pendingAction = null;
-}
-
-// ============================================================
-// RENDERING
-// ============================================================
-function renderAll() {
-  if (!G) return;
-  renderPlayer(0);
-  renderPlayer(1);
-  updateScoreDisplay();
-  renderCenterPanel();
-}
-
-function renderPlayer(pIdx) {
-  const p = G.players[pIdx];
-  const zonesEl  = document.getElementById(`p${pIdx+1}-zones`);
-  const advEl    = document.getElementById(`p${pIdx+1}-adv-area`);
-  const bannerEl = document.getElementById(`p${pIdx+1}-banner`);
-  if (!zonesEl) return;
-
-  const isActive = G.defender === pIdx && G.phase === 'DEFENSE';
-  bannerEl.className = 'player-banner' + (isActive ? ' active-player' : '');
-  bannerEl.textContent = p.name;
-  zonesEl.innerHTML = '';
-
-  for (const zname of ['green','yellow','red']) {
-    const zone = p.zones[zname];
-    const isCurrentZone = G.defender === pIdx && G.currentZone === zname && G.phase === 'DEFENSE';
-
-    const zEl = document.createElement('div');
-    zEl.className = `zone ${zname}-zone` + (zone.charged ? ' charged' : '') + (isCurrentZone ? ' active-defense' : '');
-
-    const inner = document.createElement('div');
-    inner.className = 'zone-inner';
-
-    const allySlot = document.createElement('div');
-    allySlot.className = 'card-slot ally-slot';
-    if (zone.ally) allySlot.appendChild(makeAllyCard(zone.ally));
-    else allySlot.innerHTML = '<div class="card-slot-label">ALLY</div>';
-    inner.appendChild(allySlot);
-
-    const flipSlot = document.createElement('div');
-    flipSlot.className = 'card-slot flip-slot';
-    if (zone.flipCard) {
-      const fc = makeTcgCard(zone.flipCard, true);
-      fc.classList.add('flip-slot-card');
-      flipSlot.appendChild(fc);
-    } else {
-      flipSlot.innerHTML = '<div class="card-slot-label">FLIP<br>HERE</div>';
+  let count = 0;
+  for (let i = 1; i < lines.length; i++) {
+    if (!lines[i].trim()) continue;
+    const cells = lines[i].split(',');
+    const card = {};
+    for (let j = 0; j < headers.length; j++) {
+      card[headers[j].trim()] = cells[j]?.trim() || '';
     }
-    inner.appendChild(flipSlot);
-
-    const chargeSlot = document.createElement('div');
-    chargeSlot.className = 'card-slot charge-slot';
-    if (zname === 'green') {
-      const chamberEl = makeChamberMini(p.chamber, zone.charged);
-      chamberEl.onclick = () => showChamberInfo(p);
-      chargeSlot.appendChild(chamberEl);
-      if (zone.charged) {
-        const ci = document.createElement('div');
-        ci.className = 'charge-indicator'; ci.textContent = '⚡CHARGED';
-        chargeSlot.appendChild(ci);
-      }
-    } else if (zname === 'yellow') {
-      chargeSlot.appendChild(makeDeckPile(p.deck));
-    } else {
-      chargeSlot.appendChild(makeDiscardPile(p.discard));
-    }
-    inner.appendChild(chargeSlot);
-
-    const ea = document.createElement('div');
-    ea.className = 'energy-area';
-    ea.innerHTML = `<div class="energy-label">${zname.toUpperCase()}</div>
-      <div class="energy-count">
-        <span class="energy-num">${zone.energy.length}</span>
-        <div class="energy-pip ${zname}"></div>
-      </div>`;
-    inner.appendChild(ea);
-
-    zEl.appendChild(inner);
-    zonesEl.appendChild(zEl);
-  }
-
-  if (advEl) {
-    advEl.innerHTML = '<span class="adv-area-label">ADVANTAGE AREA</span>';
-    for (const adv of p.advantageArea) {
-      const m = document.createElement('div');
-      m.className = 'adv-card-mini';
-      m.textContent = adv.name;
-      m.onclick = () => showCardZoom(adv);
-      advEl.appendChild(m);
+    if (card.ID) {
+      CARD_DB[card.ID] = card;
+      count++;
     }
   }
+  return count;
 }
 
-function makeTcgCard(card, faceUp) {
-  const el = document.createElement('div');
-  el.className = 'tcg-card';
-  el.onclick = () => showCardZoom(card);
-
-  const inner = document.createElement('div');
-  inner.className = 'card-inner';
-  if (card.type === 'ally')      inner.classList.add('ally-card-inner');
-  if (card.type === 'advantage') inner.classList.add('adv-card-inner');
-
-  const imgDiv = document.createElement('div');
-  imgDiv.className = 'card-img';
-  const imgSrc = faceUp ? (card.imgUrl || '') : CARD_BACK;
-  if (imgSrc) {
-    const img = document.createElement('img');
-    img.src = imgSrc; img.alt = card.name;
-    img.onerror = () => { img.style.display = 'none'; };
-    imgDiv.appendChild(img);
-  }
-  inner.appendChild(imgDiv);
-
-  const nameDiv = document.createElement('div');
-  nameDiv.className = 'card-name';
-  nameDiv.textContent = card.name;
-  inner.appendChild(nameDiv);
-
-  if (faceUp && card.type === 'strike') {
-    const stats = document.createElement('div');
-    stats.className = 'card-stats';
-    stats.innerHTML = `<span class="stat-int">I:${card.int}</span><span class="stat-for">F:${card.for}</span>`;
-    inner.appendChild(stats);
-  }
-
-  el.appendChild(inner);
-  return el;
-}
-
-function makeAllyCard(ally) {
-  const el = document.createElement('div');
-  el.className = 'tcg-card';
-  el.style.cssText = 'width:52px;height:74px;';
-  const inner = document.createElement('div');
-  inner.className = 'card-inner ally-card-inner';
-
-  if (ally.imgUrl) {
-    const imgDiv = document.createElement('div');
-    imgDiv.className = 'card-img';
-    const img = document.createElement('img');
-    img.src = ally.imgUrl; img.alt = ally.name;
-    img.onerror = () => { img.style.display='none'; };
-    imgDiv.appendChild(img);
-    inner.appendChild(imgDiv);
-  }
-
-  const nd = document.createElement('div');
-  nd.className = 'card-name';
-  nd.style.fontSize = '0.32rem';
-  nd.textContent = ally.name;
-  inner.appendChild(nd);
-
-  const st = document.createElement('div');
-  st.className = 'card-stats';
-  st.style.cssText = 'justify-content:center;font-size:0.45rem;color:#a080e0;';
-  st.textContent = 'ALLY';
-  inner.appendChild(st);
-
-  el.appendChild(inner);
-  el.onclick = () => showCardZoom(ally);
-  return el;
-}
-
-function makeChamberMini(chamber, charged) {
-  const el = document.createElement('div');
-  el.className = 'deck-pile';
-  el.style.cssText = `background:linear-gradient(135deg,${chamber.color||'#1a1a1a'},#3a3a3a);border:${charged?'2px solid var(--charged-glow)':'1px solid rgba(200,160,80,0.5)'};`;
-  el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.4rem;color:${charged?'#ffd700':'#d4a843'};text-align:center;padding:2px;line-height:1.4;">${chamber.name.toUpperCase()}<br>CHAMBER</div>`;
-  return el;
-}
-
-function makeDeckPile(deck) {
-  const el = document.createElement('div');
-  el.className = 'deck-pile' + (deck.length === 0 ? ' empty' : '');
-  if (deck.length > 0) {
-    const img = document.createElement('img');
-    img.src = CARD_BACK; img.alt = 'deck';
-    el.appendChild(img);
-    const cnt = document.createElement('div');
-    cnt.className = 'deck-count'; cnt.textContent = deck.length;
-    el.appendChild(cnt);
-  } else {
-    el.innerHTML = '<div style="font-size:0.5rem;color:rgba(200,160,80,0.4);text-align:center;">EMPTY</div>';
-  }
-  return el;
-}
-
-function makeDiscardPile(discard) {
-  const el = document.createElement('div');
-  el.className = 'discard-pile' + (discard.length === 0 ? ' empty' : '');
-  if (discard.length > 0) {
-    const top = discard[discard.length - 1];
-    if (top.imgUrl) {
-      const img = document.createElement('img');
-      img.src = top.imgUrl; img.alt = top.name;
-      img.onerror = () => { el.innerHTML = `<div style="font-size:0.38rem;color:rgba(200,160,80,0.6);text-align:center;padding:2px;">${top.name}</div>`; };
-      el.appendChild(img);
-    } else {
-      el.innerHTML = `<div style="font-size:0.38rem;color:rgba(200,160,80,0.6);text-align:center;padding:2px;">${top.name}</div>`;
+// Build character chamber data from card database
+function buildChambersFromDB() {
+  const charMap = {};
+  for (const [id, card] of Object.entries(CARD_DB)) {
+    if (card.Type !== 'Chamber') continue;
+    const charId = extractCharId(card.Name);
+    if (!charMap[charId]) {
+      charMap[charId] = { name: card.Name.split('—')[0].trim(), variants: {}, cardId: null };
     }
-  } else {
-    el.innerHTML = '<div style="font-size:0.38rem;color:rgba(200,160,80,0.3);text-align:center;">DISCARD</div>';
+    charMap[charId].variants[id] = {
+      frontSig: CARD_DB[card['Signature Front']] || null,
+      backSig: CARD_DB[card['Signature Back']] || null
+    };
+    if (!charMap[charId].cardId) charMap[charId].cardId = id;
   }
-  return el;
+  Object.assign(CHAMBERS, charMap);
 }
 
-function renderCenterPanel() {
-  if (!G) return;
-  const phaseEl = document.getElementById('phase-display');
-  const btnsEl  = document.getElementById('action-btns');
-  btnsEl.innerHTML = '';
-
-  const defender = G.players[G.defender];
-  const defName  = defender ? defender.name : '';
-
-  if (G.phase === 'OPENING_CHOOSE') {
-    const chooser = G.players[G.choosingPlayer];
-    phaseEl.textContent = `${chooser.name}: Choose Defender`;
-    btnsEl.appendChild(makeBtn(`${G.players[0].name} DEFENDS`, () => setOpeningAttackDefender(0)));
-    btnsEl.appendChild(makeBtn(`${G.players[1].name} DEFENDS`, () => setOpeningAttackDefender(1)));
-    document.getElementById('turn-indicator').textContent = 'OPENING ATTACK — Choose Defender';
-    return;
-  }
-
-  if (G.phase === 'DEFENSE' && G.step === 'FLIP') {
-    phaseEl.textContent = `${defName} — ${G.currentZone.toUpperCase()} ZONE`;
-    document.getElementById('turn-indicator').textContent = `${defName} defending | Incoming Force: ${G.incomingForce}`;
-    btnsEl.appendChild(makeBtn('▶ FLIP CARD', () => flipCardInZone(), 'primary'));
-    return;
-  }
-
-  if (G.phase === 'DEFENSE' && G.step === 'CHOOSING') {
-    const zone = defender.zones[G.currentZone];
-    const card = zone.flipCard;
-    phaseEl.textContent = `${defName} — ${G.currentZone.toUpperCase()} | Force: ${G.incomingForce}`;
-    document.getElementById('turn-indicator').textContent = card ? `Flipped: ${card.name} — Choose action` : 'Choose action';
-
-    if (card) {
-      if (card.type === 'strike') {
-        const allyBon = getAllyBonuses(zone.ally);
-        const { advInt } = getAdvBonuses(defender, G.currentZone, zone);
-        const effInt = card.int + allyBon.int + advInt;
-        const opp = G.players[G.attacker];
-        const extraY = getOppExtraYellow(opp);
-        const canPlay = effInt >= G.incomingForce && canAfford(defender, card.g, card.y + extraY, card.r);
-        const b = makeBtn(`⚔ COUNTERATTACK (I:${effInt} F:${card.for})`, () => playAsStrike(card), canPlay ? 'success' : '');
-        b.disabled = !canPlay;
-        btnsEl.appendChild(b);
-      }
-      if (card.type === 'ally') {
-        const b = makeBtn(`🤝 PLAY ALLY: ${card.name}`, () => playAsAlly(card), 'success');
-        b.disabled = !canAfford(defender, card.g, card.y, card.r);
-        btnsEl.appendChild(b);
-      }
-      if (card.type === 'advantage') {
-        const b = makeBtn(`⭐ PLAY ADVANTAGE: ${card.name}${card.immediate ? ' (IMM)' : ''}`, () => playAsAdvantage(card), 'success');
-        b.disabled = !canAfford(defender, card.g, card.y, card.r);
-        btnsEl.appendChild(b);
-      }
-      btnsEl.appendChild(makeBtn('🔋 FOCUS (Add to Energy)', () => focusCard()));
-      btnsEl.appendChild(makeBtn('🗑 DISCARD', () => discardCard(), 'danger'));
-      btnsEl.appendChild(makeBtn('🔍 VIEW CARD', () => showCardZoom(card)));
-    }
-    return;
-  }
-
-  if (G.phase === 'PASS') {
-    phaseEl.textContent = 'Passing turn…';
-    document.getElementById('turn-indicator').textContent = 'Pass device to next player';
-    btnsEl.appendChild(makeBtn('📲 PASS DEVICE', () => {
-      const name = G.players[G._nextTurnPlayer || 0].name;
-      document.getElementById('pass-title').textContent = `${name.toUpperCase()}'S TURN`;
-      document.getElementById('pass-msg').textContent = `Incoming Force: ${G.incomingForce}. Hand device to ${name}.`;
-      document.getElementById('pass-screen').style.display = 'flex';
-    }, 'primary'));
-    return;
-  }
-
-  phaseEl.textContent = G.phase + (G.step ? ' / ' + G.step : '');
+function extractCharId(text) {
+  const name = text.toLowerCase().split('—')[0].trim();
+  return name.replace(/[^a-z]/g, '') || 'unknown';
 }
 
-function makeBtn(text, onclick, cls = '') {
-  const btn = document.createElement('button');
-  btn.className = 'act-btn' + (cls ? ' ' + cls : '');
-  btn.textContent = text;
-  btn.onclick = onclick;
-  return btn;
+function _countKnownCards(deckTemplate) {
+  return deckTemplate.filter(e => CARD_DB[e.id]).length;
 }
 
-function updateScoreDisplay() {
-  if (!G) return;
-  const p0 = G.players[0], p1 = G.players[1];
-  for (let d = 0; d < 3; d++) {
-    const d0 = document.getElementById('p1-dot-' + d);
-    const d1 = document.getElementById('p2-dot-' + d);
-    if (d0) d0.className = 'score-dot' + (p0.score > d ? ' filled' : '');
-    if (d1) d1.className = 'score-dot' + (p1.score > d ? ' filled' : '');
-  }
-  document.getElementById('p1-header-name').textContent = G.players[0].name;
-  document.getElementById('p2-header-name').textContent = G.players[1].name;
-}
-
-// ============================================================
-// CARD ZOOM MODAL
-// ============================================================
-function showCardZoom(card) {
-  if (!card) return;
-  const img = document.getElementById('modal-img');
-  if (card.imgUrl) { img.src = card.imgUrl; img.style.display = 'block'; }
-  else { img.style.display = 'none'; }
-  document.getElementById('modal-name').textContent = card.name;
-  document.getElementById('modal-int').textContent  = card.int !== undefined ? `⛨ Intercept: ${card.int}` : '';
-  document.getElementById('modal-for').textContent  = card.for !== undefined ? `⚡ Force: ${card.for}` : '';
-  document.getElementById('modal-cost').textContent = `Cost: ${card.g||0}G ${card.y||0}Y ${card.r||0}R`;
-  document.getElementById('modal-trait').textContent = card.traits && card.traits.length ? `Traits: ${card.traits.join(', ')}` : '';
-  document.getElementById('modal-rules').textContent = card.rules || '';
-  document.getElementById('modal-flavor').textContent = card.flavor || '';
-  document.getElementById('card-modal').style.display = 'flex';
-}
-
-function showChamberInfo(player) {
-  const ch  = player.chamber;
-  const sig = player.chamberFrontActive ? ch.frontSig : ch.backSig;
-  showCardZoom({
-    name: `${ch.name} — ${sig.name}`,
-    imgUrl: null,
-    int: sig.int, for: sig.for,
-    g: sig.g, y: sig.y, r: sig.r,
-    traits: ch.traits,
-    rules: `Signature Move: ${sig.rules}`,
-    flavor: sig.flavor || ''
-  });
-}
-
-function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
-
-// ============================================================
-// SAVED DECKS — read from Avatar TCG Database localStorage
-// Both storage formats are supported:
-//   'aqst_decks'       → deck-builder.js format
-//   'avatar-tcg-decks' → deck-sync.js format (AQSD1 encoded)
-// ============================================================
-let selectedDecks = { p1: null, p2: null }; // null = use character default
-
-// Inline decodeDeck (mirrors deck-codec.js — no external dependency needed)
-function _decodeDeckCode(code) {
-  try {
-    code = (code || '').trim();
-    if (code.substring(0, 5) !== 'AQSD1') return null;
-    const raw = decodeURIComponent(escape(atob(code.substring(5))));
-    const parts = raw.split('|');
-    if (parts.length < 4) return null;
-    const cards = {};
-    if (parts[2]) {
-      parts[2].split(',').forEach(pair => {
-        const p = pair.split(':');
-        if (p.length === 2) { const q = parseInt(p[1], 10); if (q > 0) cards[p[0]] = q; }
-      });
-    }
-    return { name: parts[0] || 'Unnamed', chamber: parts[1] || null, cards };
-  } catch(e) { return null; }
-}
-
-// Look up a chamber card ID in CARD_DB and return the character's charId (e.g. 'aang', 'katara')
-function _inferCharFromChamber(chamberId) {
-  if (!chamberId) return null;
-  const card = CARD_DB[String(chamberId)];
-  if (!card) return null;
-  return extractCharId(card.name);
-}
-
-// Read all saved decks from localStorage, normalize to internal format:
-// { id, name, charId ('aang'|'zuko'|null), template [{id,count}] }
-function _loadAllSavedDecks() {
-  const result = [];
-
-  // ── Format 1: aqst_decks (deck-builder.js) ──────────────
-  // { id, name, chamber, cards: { cardNum: qty }, ... }
-  try {
-    const raw = localStorage.getItem('aqst_decks');
-    if (raw) {
-      const arr = JSON.parse(raw);
-      if (Array.isArray(arr)) {
-        arr.forEach(d => {
-          if (!d || !d.cards) return;
-          const template = Object.entries(d.cards)
-            .map(([id, count]) => ({ id: String(id), count: Number(count) }))
-            .filter(e => e.count > 0);
-          result.push({
-            id: String(d.id || 'aqst_' + result.length),
-            name: d.name || 'Unnamed',
-            charId: _inferCharFromChamber(d.chamber),
-            template,
-          });
-        });
-      }
-    }
-  } catch(e) { console.warn('[DeckPicker] aqst_decks read error:', e); }
-
-  // ── Format 2: avatar-tcg-decks (deck-sync.js) ───────────
-  // { id, name, characterId, code: 'AQSD1...' }
-  try {
-    const raw = localStorage.getItem('avatar-tcg-decks');
-    if (raw) {
-      const arr = JSON.parse(raw);
-      if (Array.isArray(arr)) {
-        arr.forEach(d => {
-          if (!d || !d.code) return;
-          const decoded = _decodeDeckCode(d.code);
-          if (!decoded || !decoded.cards) return;
-          const template = Object.entries(decoded.cards)
-            .map(([id, count]) => ({ id: String(id), count: Number(count) }))
-            .filter(e => e.count > 0);
-          // characterId may be a charId string directly, or a chamber card number
-          let charId = null;
-          if (d.characterId && typeof d.characterId === 'string' && CHAMBERS[d.characterId]) {
-            charId = d.characterId;
-          } else {
-            charId = _inferCharFromChamber(d.characterId) || _inferCharFromChamber(decoded.chamber);
-          }
-          result.push({
-            id: String(d.id || 'sync_' + result.length),
-            name: d.name || decoded.name || 'Unnamed',
-            charId,
-            template,
-          });
-        });
-      }
-    }
-  } catch(e) { console.warn('[DeckPicker] avatar-tcg-decks read error:', e); }
-
-  return result;
-}
-
-// Count how many cards in a template are present in the loaded CARD_DB
-function _countKnownCards(template) {
-  return template.reduce((sum, e) => sum + (CARD_DB[e.id] ? e.count : 0), 0);
-}
-
-// Populate both deck pickers — called once after CARD_DB is loaded
 function populateDeckPickers() {
-  const decks = _loadAllSavedDecks();
-
-  [1, 2].forEach(pNum => {
-    const sel = document.getElementById('p' + pNum + '-deck-select');
-    if (!sel) return;
-
-    // Clear previous options (keep index 0 = "Default Deck")
-    while (sel.options.length > 1) sel.remove(1);
-
-    if (decks.length === 0) {
+  for (let p = 1; p <= 2; p++) {
+    const el = document.getElementById('p' + p + '-deck-select');
+    if (!el) continue;
+    const savedDecks = JSON.parse(localStorage.getItem('savedDecks_' + p) || '[]');
+    el._savedDecks = savedDecks;
+    for (const d of savedDecks) {
       const opt = document.createElement('option');
-      opt.disabled = true;
-      opt.textContent = '— No saved decks found —';
-      sel.appendChild(opt);
-    } else {
-      decks.forEach(deck => {
-        const known = _countKnownCards(deck.template);
-        const total = deck.template.reduce((s, e) => s + e.count, 0);
-        const charLabel = deck.charId
-          ? ' · ' + deck.charId.charAt(0).toUpperCase() + deck.charId.slice(1)
-          : '';
-        const opt = document.createElement('option');
-        opt.value = deck.id;
-        opt.textContent = deck.name + charLabel + '  (' + known + '/' + total + ' cards)';
-        opt.disabled = known === 0;
-        sel.appendChild(opt);
-      });
+      opt.value = d.id;
+      opt.textContent = d.name;
+      el.appendChild(opt);
     }
-
-    // Stash deck list on the element for fast retrieval on change
-    sel._savedDecks = decks;
-  });
+  }
 }
 
-// Called when a player changes their deck dropdown
 function onDeckPick(playerNum, deckId) {
-  const pKey = 'p' + playerNum;
-  const info = document.getElementById('p' + playerNum + '-deck-info');
-
   if (!deckId) {
-    // Deck cleared — restore manual character selection
-    selectedDecks[pKey] = null;
-    selectedChamberIds[pKey] = null;
+    selectedDecks['p' + playerNum] = null;
+    selectedChars['p' + playerNum] = null;
+    selectedChamberIds['p' + playerNum] = null;
+    const info = document.getElementById('p' + playerNum + '-deck-info');
     if (info) info.textContent = '';
     _renderCharArea(playerNum, false, null, null);
     return;
@@ -2328,11 +1229,14 @@ function onDeckPick(playerNum, deckId) {
   const sel = document.getElementById('p' + playerNum + '-deck-select');
   const decks = (sel && sel._savedDecks) || [];
   const deck = decks.find(d => d.id === deckId);
-  if (!deck) { selectedDecks[pKey] = null; return; }
+  if (!deck) {
+    selectedDecks['p' + playerNum] = null;
+    return;
+  }
 
-  selectedDecks[pKey] = deck;
+  selectedDecks['p' + playerNum] = deck;
 
-  // Update info line
+  const info = document.getElementById('p' + playerNum + '-deck-info');
   if (info) {
     const known = _countKnownCards(deck.template);
     const total = deck.template.reduce((s, e) => s + e.count, 0);
@@ -2340,47 +1244,41 @@ function onDeckPick(playerNum, deckId) {
     info.style.color = known > 0 ? 'rgba(106,202,106,0.7)' : 'rgba(200,80,80,0.7)';
   }
 
-  // Find the chamber card in the deck template
   let deckChamberCardId = null;
-  let deckChamberCard   = null;
+  let deckChamberCard = null;
   for (const entry of deck.template) {
     const c = CARD_DB[entry.id];
-    if (c && c.type === 'chamber') { deckChamberCardId = entry.id; deckChamberCard = c; break; }
+    if (c && c.Type === 'Chamber') {
+      deckChamberCardId = entry.id;
+      deckChamberCard = c;
+      break;
+    }
   }
 
-  // Determine character from chamber card (or deck's charId field)
   let charId = deck.charId;
-  if (!charId && deckChamberCardId) charId = extractCharId(deckChamberCard.name);
-  if (!charId) charId = 'aang'; // ultimate fallback
-
-  // If CHAMBERS doesn't have this character yet, fall back
+  if (!charId && deckChamberCardId) charId = extractCharId(deckChamberCard.Name);
+  if (!charId) charId = 'aang';
   if (!CHAMBERS[charId]) charId = 'aang';
 
-  selectedChars[pKey]      = charId;
-  selectedChamberIds[pKey] = deckChamberCardId;
-
-  // Render locked state
-  const variantLabel = deckChamberCard ? deckChamberCard.name : null;
+  selectedChars['p' + playerNum] = charId;
+  selectedChamberIds['p' + playerNum] = deckChamberCardId;
+  const variantLabel = deckChamberCard ? deckChamberCard.Name : null;
   _renderCharArea(playerNum, true, charId, variantLabel);
 }
 
-// Render the character area for a player.
-// locked=true → show locked display; locked=false → show interactive grid
 function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
   const area = document.getElementById('p' + playerNum + '-char-area');
   if (!area) return;
   const pKey = 'p' + playerNum;
 
   if (locked && lockedCharId) {
-    const ch  = CHAMBERS[lockedCharId];
-    const cid = selectedChamberIds['p' + playerNum];
-    const v   = cid && ch?.variants?.[cid];
-    const rarity = cid ? (CARD_DB[cid]?.rarity || '') : '';
-    const sigF   = v?.frontSig?.name || ch?.frontSig?.name || '';
-    const sigB   = v?.backSig?.name  || ch?.backSig?.name  || '';
-    const variantLine = cid
-      ? `#${cid}${rarity ? ' · ' + rarity : ''} · ${sigF} / ${sigB}`
-      : (lockedVariantLabel || '');
+    const ch = CHAMBERS[lockedCharId];
+    const cid = selectedChamberIds[pKey];
+    const v = cid && ch?.variants?.[cid];
+    const rarity = cid ? (CARD_DB[cid]?.Rarity || '') : '';
+    const sigF = v?.frontSig?.Name || ch?.frontSig?.Name || '';
+    const sigB = v?.backSig?.Name || ch?.backSig?.Name || '';
+    const variantLine = cid ? `#${cid}${rarity ? ' · ' + rarity : ''} · ${sigF} / ${sigB}` : (lockedVariantLabel || '');
     area.innerHTML = `
       <div class="char-grid-locked">
         <span class="char-grid-locked-name">🔒 ${ch ? ch.name.toUpperCase() : lockedCharId.toUpperCase()}</span>
@@ -2390,7 +1288,6 @@ function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
     return;
   }
 
-  // Interactive grid
   const charIds = Object.keys(CHAMBERS).sort();
   const currentChar = selectedChars[pKey] || charIds[0];
 
@@ -2406,7 +1303,6 @@ function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
   }
   gridHtml += '</div>';
 
-  // Variant picker for selected character
   const selectedCh = CHAMBERS[currentChar];
   let variantHtml = '';
   if (selectedCh && Object.keys(selectedCh.variants || {}).length > 1) {
@@ -2415,10 +1311,10 @@ function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
       <span class="deck-picker-label">VARIANT</span>
       <select class="deck-picker-select" id="p${playerNum}-variant-select" onchange="onVariantPick(${playerNum},this.value)">`;
     for (const [vid, v] of Object.entries(selectedCh.variants)) {
-      const rarity  = CARD_DB[vid]?.rarity || '';
-      const sigF    = v.frontSig?.name || '—';
-      const sigB    = v.backSig?.name  || '—';
-      const label   = `#${vid}${rarity ? ' · ' + rarity : ''} · ${sigF} / ${sigB}`;
+      const rarity = CARD_DB[vid]?.Rarity || '';
+      const sigF = v.frontSig?.Name || '—';
+      const sigB = v.backSig?.Name || '—';
+      const label = `#${vid}${rarity ? ' · ' + rarity : ''} · ${sigF} / ${sigB}`;
       variantHtml += `<option value="${vid}"${vid === currentVariantId ? ' selected' : ''}>${label}</option>`;
     }
     variantHtml += `</select><div class="variant-hint">Choose a chamber variant for this character</div></div>`;
@@ -2427,20 +1323,12 @@ function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
   area.innerHTML = gridHtml + variantHtml;
 }
 
-// Called when a player picks a variant from the variant dropdown
 function onVariantPick(playerNum, variantCardId) {
   const pKey = 'p' + playerNum;
   selectedChamberIds[pKey] = variantCardId || null;
 }
 
-// ============================================================
-// SETUP
-// ============================================================
-
-// Populate the character selection areas for both players.
-// Called once after buildChambersFromDB() completes.
 function populateSetupScreen() {
-  // Apply defaults: aang vs zuko (if they exist in CHAMBERS)
   const defaultP1 = CHAMBERS['aang'] ? 'aang' : Object.keys(CHAMBERS)[0];
   const defaultP2 = CHAMBERS['zuko'] ? 'zuko' : Object.keys(CHAMBERS)[1] || Object.keys(CHAMBERS)[0];
   selectedChars.p1 = defaultP1;
@@ -2449,29 +1337,227 @@ function populateSetupScreen() {
   selectedChamberIds.p2 = CHAMBERS[defaultP2]?.cardId || null;
 
   _renderCharArea(1, false, null, null);
-  _renderCharArea(2, false, null, null);
+  if (currentGameMode === 'local') {
+    _renderCharArea(2, false, null, null);
+  }
 }
 
 function selectChar(playerNum, charId, btn) {
   const pKey = 'p' + playerNum;
-  // If a deck is selected, don't allow manual character change
   if (selectedDecks[pKey]) return;
   selectedChars[pKey] = charId;
-  // Reset variant to the character's default
   selectedChamberIds[pKey] = CHAMBERS[charId]?.cardId || null;
-  // Re-render area to update selection state + variant picker
   _renderCharArea(playerNum, false, null, null);
 }
 
 function startGame() {
   document.getElementById('setup-screen').style.display = 'none';
-  document.getElementById('game-layout').style.display  = 'flex';
+  document.getElementById('game-layout').style.display = 'flex';
   initGame();
   renderAll();
 }
 
+// Initialize game state
+function initGame() {
+  G.players[0].hand = (selectedDecks['p1']?.template || getDefaultDeck()).map(e => ({
+    id: e.id, count: e.count
+  }));
+  G.players[1].hand = (selectedDecks['p2']?.template || getDefaultDeck()).map(e => ({
+    id: e.id, count: e.count
+  }));
+
+  G.players[0].deck = [];
+  G.players[1].deck = [];
+  G.players[0].discard = [];
+  G.players[1].discard = [];
+
+  G.turn = 0;
+  G.phase = 'draw';
+  G.log = ['Game started!'];
+  G.center = [];
+
+  for (let p = 0; p < 2; p++) {
+    G.energy[p] = { water: 0, earth: 0, fire: 0 };
+    G.players[p].allies = [];
+    G.players[p].chamber = null;
+    G.players[p].flip = null;
+    G.players[p].charge = [];
+  }
+
+  if (currentGameMode === 'online') {
+    syncGameState();
+  }
+}
+
+function getDefaultDeck() {
+  return [
+    { id: 'c0001', count: 1 },
+    { id: 'c0002', count: 1 },
+    { id: 'c0003', count: 1 }
+  ];
+}
+
+// Game rendering
+function renderAll() {
+  renderHeader();
+  renderZones();
+  renderActionBar();
+}
+
+function renderHeader() {
+  const p1Score = document.getElementById('p1-score-h');
+  const p2Score = document.getElementById('p2-score-h');
+  p1Score.innerHTML = '';
+  p2Score.innerHTML = '';
+  for (let i = 0; i < 3; i++) {
+    p1Score.innerHTML += `<div class="score-dot${i < G.players[0].wins ? ' lit' : ''}"></div>`;
+    p2Score.innerHTML += `<div class="score-dot${i < G.players[1].wins ? ' lit' : ''}"></div>`;
+  }
+}
+
+function renderZones() {
+  const p1Zone = document.getElementById('p1-grounds');
+  const p2Zone = document.getElementById('p2-grounds');
+  const centerZone = document.getElementById('center-zone');
+
+  p1Zone.innerHTML = '';
+  for (const ally of G.players[0].allies) {
+    const card = CARD_DB[ally.id];
+    if (card) {
+      const div = document.createElement('div');
+      div.className = 'tcg-card';
+      div.textContent = card.Name.substring(0, 6);
+      div.onclick = () => showCardModal(ally.id);
+      p1Zone.appendChild(div);
+    }
+  }
+
+  p2Zone.innerHTML = '';
+  for (const ally of G.players[1].allies) {
+    const card = CARD_DB[ally.id];
+    if (card) {
+      const div = document.createElement('div');
+      div.className = 'tcg-card';
+      div.textContent = card.Name.substring(0, 6);
+      div.onclick = () => showCardModal(ally.id);
+      p2Zone.appendChild(div);
+    }
+  }
+
+  centerZone.innerHTML = '';
+  for (const card of G.center) {
+    const c = CARD_DB[card.id];
+    if (c) {
+      const div = document.createElement('div');
+      div.className = 'tcg-card';
+      div.textContent = c.Name.substring(0, 6);
+      div.onclick = () => showCardModal(card.id);
+      centerZone.appendChild(div);
+    }
+  }
+}
+
+function renderActionBar() {
+  const phaseEl = document.getElementById('phase-display');
+  const logEl = document.getElementById('log-area');
+  const btnEl = document.getElementById('action-btns');
+
+  phaseEl.textContent = `Turn ${G.turn + 1} — ${G.phase.toUpperCase()}`;
+  logEl.textContent = G.log[G.log.length - 1] || 'Game started…';
+
+  btnEl.innerHTML = '';
+
+  const isLocalTurn = currentGameMode === 'local' || (currentGameMode === 'online' && G.turn % 2 === localPlayerIdx);
+
+  if (G.phase === 'draw') {
+    const btn = document.createElement('button');
+    btn.className = 'act-btn primary';
+    btn.textContent = 'DRAW';
+    btn.disabled = !isLocalTurn;
+    btn.onclick = () => performDraw();
+    btnEl.appendChild(btn);
+  } else if (G.phase === 'main') {
+    const btn = document.createElement('button');
+    btn.className = 'act-btn';
+    btn.textContent = 'END MAIN';
+    btn.disabled = !isLocalTurn;
+    btn.onclick = () => performPass();
+    btnEl.appendChild(btn);
+  } else if (G.phase === 'pass') {
+    const btn = document.createElement('button');
+    btn.className = 'act-btn primary';
+    btn.textContent = 'PASS TURN';
+    btn.disabled = !isLocalTurn;
+    btn.onclick = () => performPassTurn();
+    btnEl.appendChild(btn);
+  }
+
+  // Show waiting overlay if online and not your turn
+  if (currentGameMode === 'online' && !isLocalTurn && G.phase !== 'draw') {
+    document.getElementById('online-waiting-overlay').style.display = 'flex';
+  } else {
+    document.getElementById('online-waiting-overlay').style.display = 'none';
+  }
+}
+
+function performDraw() {
+  if (G.players[G.turn].deck.length === 0) {
+    G.log.push('Deck is empty. Reshuffle discard?');
+  } else {
+    G.log.push(`Player ${G.turn + 1} drew a card.`);
+  }
+  G.phase = 'main';
+  renderAll();
+  if (currentGameMode === 'online') syncGameState();
+}
+
+function performPass() {
+  G.log.push(`Player ${G.turn + 1} passed.`);
+  G.phase = 'pass';
+  renderAll();
+  if (currentGameMode === 'online') syncGameState();
+}
+
+function performPassTurn() {
+  G.turn = (G.turn + 1) % 2;
+  G.phase = 'draw';
+  G.log.push(`Turn ${G.turn + 1} begins.`);
+  renderAll();
+  if (currentGameMode === 'online') syncGameState();
+  
+  if (currentGameMode === 'local') {
+    document.getElementById('pass-screen').style.display = 'flex';
+    document.getElementById('next-player').textContent = (G.turn + 1);
+  }
+}
+
+function handlePassClick() {
+  document.getElementById('pass-screen').style.display = 'none';
+  renderAll();
+}
+
+function showCardModal(cardId) {
+  const card = CARD_DB[cardId];
+  if (!card) return;
+  document.getElementById('card-modal-name').textContent = card.Name;
+  document.getElementById('card-modal-int').textContent = card['Intelligence'] || '—';
+  document.getElementById('card-modal-for').textContent = card['Fortitude'] || '—';
+  document.getElementById('card-modal-cost').textContent = `Cost: ${card.Cost || '?'}`;
+  document.getElementById('card-modal-rules').textContent = card['Rules'] || '';
+  document.getElementById('card-modal-flavor').textContent = card['Flavor'] || '';
+  document.getElementById('card-modal').style.display = 'flex';
+}
+
+function closeCardModal() {
+  document.getElementById('card-modal').style.display = 'none';
+}
+
+function closeSigModal() {
+  document.getElementById('sig-modal').style.display = 'none';
+}
+
 // ============================================================
-// INIT — load CSV → merge chamber data → show setup
+// INITIALIZATION
 // ============================================================
 window.onload = async () => {
   const msgEl = document.getElementById('loading-msg');
@@ -2484,26 +1570,26 @@ window.onload = async () => {
     msgEl.textContent = 'Loading chamber data…';
     buildChambersFromDB();
 
-    // Populate character selectors and deck pickers now that CARD_DB is ready
     populateSetupScreen();
     populateDeckPickers();
 
     msgEl.textContent = `Loaded ${count} cards. Ready!`;
-    document.getElementById('db-count').textContent =
-      `${count} cards loaded from live database`;
+    document.getElementById('db-count').textContent = `${count} cards loaded from live database`;
 
     await new Promise(r => setTimeout(r, 600));
 
+    // Check for reconnection
+    await checkForReconnection();
+
     document.getElementById('loading-screen').style.display = 'none';
-    document.getElementById('setup-screen').style.display = 'flex';
+    document.getElementById('mode-picker-screen').style.display = 'flex';
   } catch (e) {
     console.error(e);
     errEl.style.display = 'block';
-    errEl.textContent = `Failed to load card database: ${e.message}\n\nCheck your network connection and try again.`;
+    errEl.textContent = `Failed to load card database: ${e.message}`;
     msgEl.style.display = 'none';
   }
 };
 </script>
-<script src="scripts/choice-modal.js"></script>
 </body>
 </html>
