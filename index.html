@@ -833,12 +833,19 @@ const KNOWN_CHAR_NAMES = new Set([
   'aang','zuko','katara','sokka','toph','azula','iroh','ozai','suki','jet'
 ]);
 
-// Extract a canonical character ID (lowercase first meaningful word) from a card name.
-// e.g. "Aang, Air Nomad" → "aang", "Toph Beifong" → "toph"
+// Extract a canonical character ID from a card name.
+// Takes everything before the first comma as the character's name, then slugifies it.
+// e.g. "Aang, Air Nomad" → "aang"
+//      "Ty Lee, Acrobat" → "ty_lee"
+//      "Long Feng"       → "long_feng"
+//      "Wan Shi Tong"    → "wan_shi_tong"
 function extractCharId(cardName) {
   if (!cardName) return null;
-  const first = cardName.toLowerCase().split(/[\s,\-\—\u2014]+/)[0].replace(/[^a-z]/g,'');
-  return first || null;
+  // Take the portion before the first comma (or full name if no comma)
+  const beforeComma = cardName.split(',')[0].trim();
+  // Slugify: lowercase, collapse non-alphanumeric runs into underscores, strip leading/trailing
+  const slug = beforeComma.toLowerCase().replace(/[^a-z0-9]+/g, '_').replace(/^_+|_+$/g, '');
+  return slug || null;
 }
 
 // Assign a thematic color per character
@@ -871,9 +878,13 @@ const SIG_NAMES = {
   jet:    { front: 'Twin Hook Swords',    back: 'Freedom Charge'     },
 };
 function getSigNames(charId) {
-  return SIG_NAMES[charId] || {
-    front: charId.charAt(0).toUpperCase() + charId.slice(1) + '\'s Signature',
-    back:  charId.charAt(0).toUpperCase() + charId.slice(1) + '\'s Ultimate',
+  if (SIG_NAMES[charId]) return SIG_NAMES[charId];
+  // Use the CHAMBERS display name if available (handles multi-word names like "Ty Lee")
+  const displayName = CHAMBERS[charId]?.name
+    || charId.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  return {
+    front: displayName + '\'s Signature',
+    back:  displayName + '\'s Ultimate',
   };
 }
 
@@ -894,18 +905,6 @@ const CHAMBERS = {
       flavor: '' },
     cardId: null, variants: {}
   },
-  zuko: {
-    id: 'zuko', name: 'Zuko',
-    traits: ['bull','spirit','shadow','fire'],
-    color: _charColor('zuko'),
-    frontSig: { name: 'Royal Flame', int: 5, for: 6, g: 1, y: 0, r: 1,
-      rules: 'When you counterattack, your opponent uncharges one of his or her zones.',
-      flavor: '' },
-    backSig:  { name: 'Blue Flame', int: 7, for: 9, g: 1, y: 1, r: 1,
-      rules: "When you counterattack, eliminate all of your opponent's green energy.",
-      flavor: '' },
-    cardId: null, variants: {}
-  }
 };
 
 // ============================================================
@@ -948,7 +947,8 @@ function buildChambersFromDB() {
     const backSig  = firstVar.backSig  ||
       (existing?.backSig  ? { ...existing.backSig  } : { name: sigNames.back,  int:0, for:0, g:0, y:0, r:0, rules:'', flavor:'' });
     const traits   = first.traits?.length ? first.traits : (existing?.traits || []);
-    const displayName = charId.charAt(0).toUpperCase() + charId.slice(1);
+    // Derive a proper display name from the first card's name (everything before the comma)
+    const displayName = first.name.split(',')[0].trim();
 
     CHAMBERS[charId] = {
       id: charId, name: displayName, traits,
@@ -2440,9 +2440,9 @@ function onVariantPick(playerNum, variantCardId) {
 // Populate the character selection areas for both players.
 // Called once after buildChambersFromDB() completes.
 function populateSetupScreen() {
-  // Apply defaults: aang vs zuko (if they exist in CHAMBERS)
+  // Apply defaults: aang vs prince zuko (if they exist in CHAMBERS)
   const defaultP1 = CHAMBERS['aang'] ? 'aang' : Object.keys(CHAMBERS)[0];
-  const defaultP2 = CHAMBERS['zuko'] ? 'zuko' : Object.keys(CHAMBERS)[1] || Object.keys(CHAMBERS)[0];
+  const defaultP2 = CHAMBERS['prince_zuko'] ? 'prince_zuko' : Object.keys(CHAMBERS)[1] || Object.keys(CHAMBERS)[0];
   selectedChars.p1 = defaultP1;
   selectedChars.p2 = defaultP2;
   selectedChamberIds.p1 = CHAMBERS[defaultP1]?.cardId || null;
