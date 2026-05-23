@@ -110,6 +110,23 @@ body {
 .start-btn:hover { transform: translateY(-2px); box-shadow: 0 6px 30px rgba(212,168,67,0.6); }
 .start-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
 
+/* ─── Deck Picker (setup screen) ─── */
+.deck-picker-section { margin-top: 14px; text-align: left; }
+.deck-picker-label { font-family:'Cinzel',serif; font-size:0.6rem; letter-spacing:2px; color:rgba(200,160,80,0.55); margin-bottom:6px; display:block; }
+.deck-picker-select {
+  width:100%; background:rgba(0,0,0,0.6);
+  border:1px solid rgba(212,168,67,0.35); border-radius:6px;
+  padding:8px 28px 8px 10px; color:var(--parchment-text);
+  font-family:'Cinzel',serif; font-size:0.68rem;
+  cursor:pointer; letter-spacing:0.5px;
+  appearance:none; -webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23d4a843'/%3E%3C/svg%3E");
+  background-repeat:no-repeat; background-position:right 10px center;
+}
+.deck-picker-select:focus { outline:none; border-color:var(--gold); }
+.deck-picker-select option { background:#1a1200; color:var(--parchment-text); }
+.deck-picker-info { font-size:0.6rem; color:rgba(200,160,80,0.45); margin-top:5px; font-family:'Cinzel',serif; letter-spacing:0.5px; min-height:14px; }
+
 /* ===================== PASS SCREEN ===================== */
 #pass-screen {
   position: fixed; inset: 0; z-index: 900;
@@ -435,18 +452,32 @@ body {
   <h1>AVATAR: THE LAST AIRBENDER<br>MASTER OF ELEMENTS</h1>
   <h2>Choose Your Characters</h2>
   <div class="player-setup">
-    <div class="player-card-setup">
+    <div class="player-card-setup" id="p1-setup">
       <h3>PLAYER 1</h3>
       <div class="char-options">
         <button class="char-btn aang selected" onclick="selectChar(1,'aang',this)">AANG</button>
         <button class="char-btn zuko" onclick="selectChar(1,'zuko',this)">ZUKO</button>
       </div>
+      <div class="deck-picker-section">
+        <span class="deck-picker-label">DECK</span>
+        <select class="deck-picker-select" id="p1-deck-select" onchange="onDeckPick(1,this.value)">
+          <option value="">Default Deck</option>
+        </select>
+        <div class="deck-picker-info" id="p1-deck-info"></div>
+      </div>
     </div>
-    <div class="player-card-setup">
+    <div class="player-card-setup" id="p2-setup">
       <h3>PLAYER 2</h3>
       <div class="char-options">
         <button class="char-btn aang" onclick="selectChar(2,'aang',this)">AANG</button>
         <button class="char-btn zuko selected" onclick="selectChar(2,'zuko',this)">ZUKO</button>
+      </div>
+      <div class="deck-picker-section">
+        <span class="deck-picker-label">DECK</span>
+        <select class="deck-picker-select" id="p2-deck-select" onchange="onDeckPick(2,this.value)">
+          <option value="">Default Deck</option>
+        </select>
+        <div class="deck-picker-info" id="p2-deck-info"></div>
       </div>
     </div>
   </div>
@@ -941,8 +972,20 @@ function calcForceInDiscard(player) {
 function initGame() {
   const p1char = selectedChars.p1;
   const p2char = selectedChars.p2;
-  const p1tpl = p1char === 'aang' ? AANG_DECK_TEMPLATE : ZUKO_DECK_TEMPLATE;
-  const p2tpl = p2char === 'aang' ? AANG_DECK_TEMPLATE : ZUKO_DECK_TEMPLATE;
+
+  // Resolve deck template: use saved deck if selected, else character default.
+  // Unknown cards (not in CARD_DB) are silently filtered out.
+  function resolveTemplate(pKey, charId) {
+    const saved = selectedDecks[pKey];
+    if (saved && saved.template && saved.template.length > 0) {
+      const filtered = saved.template.filter(e => CARD_DB[e.id]);
+      if (filtered.length > 0) return filtered;
+    }
+    return charId === 'aang' ? AANG_DECK_TEMPLATE : ZUKO_DECK_TEMPLATE;
+  }
+
+  const p1tpl = resolveTemplate('p1', p1char);
+  const p2tpl = resolveTemplate('p2', p2char);
 
   const p1 = makePlayer(0, p1char, p1tpl);
   const p2 = makePlayer(1, p2char, p2tpl);
@@ -2017,6 +2060,186 @@ function showChamberInfo(player) {
 function closeCardModal() { document.getElementById('card-modal').style.display = 'none'; }
 
 // ============================================================
+// SAVED DECKS — read from Avatar TCG Database localStorage
+// Both storage formats are supported:
+//   'aqst_decks'       → deck-builder.js format
+//   'avatar-tcg-decks' → deck-sync.js format (AQSD1 encoded)
+// ============================================================
+let selectedDecks = { p1: null, p2: null }; // null = use character default
+
+// Inline decodeDeck (mirrors deck-codec.js — no external dependency needed)
+function _decodeDeckCode(code) {
+  try {
+    code = (code || '').trim();
+    if (code.substring(0, 5) !== 'AQSD1') return null;
+    const raw = decodeURIComponent(escape(atob(code.substring(5))));
+    const parts = raw.split('|');
+    if (parts.length < 4) return null;
+    const cards = {};
+    if (parts[2]) {
+      parts[2].split(',').forEach(pair => {
+        const p = pair.split(':');
+        if (p.length === 2) { const q = parseInt(p[1], 10); if (q > 0) cards[p[0]] = q; }
+      });
+    }
+    return { name: parts[0] || 'Unnamed', chamber: parts[1] || null, cards };
+  } catch(e) { return null; }
+}
+
+// Look up a chamber card ID in CARD_DB and return 'aang', 'zuko', or null
+function _inferCharFromChamber(chamberId) {
+  if (!chamberId) return null;
+  const card = CARD_DB[String(chamberId)];
+  if (!card) return null;
+  const n = card.name.toLowerCase();
+  if (n.includes('aang')) return 'aang';
+  if (n.includes('zuko')) return 'zuko';
+  return null;
+}
+
+// Read all saved decks from localStorage, normalize to internal format:
+// { id, name, charId ('aang'|'zuko'|null), template [{id,count}] }
+function _loadAllSavedDecks() {
+  const result = [];
+
+  // ── Format 1: aqst_decks (deck-builder.js) ──────────────
+  // { id, name, chamber, cards: { cardNum: qty }, ... }
+  try {
+    const raw = localStorage.getItem('aqst_decks');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        arr.forEach(d => {
+          if (!d || !d.cards) return;
+          const template = Object.entries(d.cards)
+            .map(([id, count]) => ({ id: String(id), count: Number(count) }))
+            .filter(e => e.count > 0);
+          result.push({
+            id: String(d.id || 'aqst_' + result.length),
+            name: d.name || 'Unnamed',
+            charId: _inferCharFromChamber(d.chamber),
+            template,
+          });
+        });
+      }
+    }
+  } catch(e) { console.warn('[DeckPicker] aqst_decks read error:', e); }
+
+  // ── Format 2: avatar-tcg-decks (deck-sync.js) ───────────
+  // { id, name, characterId, code: 'AQSD1...' }
+  try {
+    const raw = localStorage.getItem('avatar-tcg-decks');
+    if (raw) {
+      const arr = JSON.parse(raw);
+      if (Array.isArray(arr)) {
+        arr.forEach(d => {
+          if (!d || !d.code) return;
+          const decoded = _decodeDeckCode(d.code);
+          if (!decoded || !decoded.cards) return;
+          const template = Object.entries(decoded.cards)
+            .map(([id, count]) => ({ id: String(id), count: Number(count) }))
+            .filter(e => e.count > 0);
+          // characterId may be 'aang'/'zuko' directly, or a chamber card number
+          let charId = null;
+          if (d.characterId === 'aang' || d.characterId === 'zuko') {
+            charId = d.characterId;
+          } else {
+            charId = _inferCharFromChamber(d.characterId) || _inferCharFromChamber(decoded.chamber);
+          }
+          result.push({
+            id: String(d.id || 'sync_' + result.length),
+            name: d.name || decoded.name || 'Unnamed',
+            charId,
+            template,
+          });
+        });
+      }
+    }
+  } catch(e) { console.warn('[DeckPicker] avatar-tcg-decks read error:', e); }
+
+  return result;
+}
+
+// Count how many cards in a template are present in the loaded CARD_DB
+function _countKnownCards(template) {
+  return template.reduce((sum, e) => sum + (CARD_DB[e.id] ? e.count : 0), 0);
+}
+
+// Populate both deck pickers — called once after CARD_DB is loaded
+function populateDeckPickers() {
+  const decks = _loadAllSavedDecks();
+
+  [1, 2].forEach(pNum => {
+    const sel = document.getElementById('p' + pNum + '-deck-select');
+    if (!sel) return;
+
+    // Clear previous options (keep index 0 = "Default Deck")
+    while (sel.options.length > 1) sel.remove(1);
+
+    if (decks.length === 0) {
+      const opt = document.createElement('option');
+      opt.disabled = true;
+      opt.textContent = '— No saved decks found —';
+      sel.appendChild(opt);
+    } else {
+      decks.forEach(deck => {
+        const known = _countKnownCards(deck.template);
+        const total = deck.template.reduce((s, e) => s + e.count, 0);
+        const charLabel = deck.charId
+          ? ' · ' + deck.charId.charAt(0).toUpperCase() + deck.charId.slice(1)
+          : '';
+        const opt = document.createElement('option');
+        opt.value = deck.id;
+        opt.textContent = deck.name + charLabel + '  (' + known + '/' + total + ' cards)';
+        opt.disabled = known === 0;
+        sel.appendChild(opt);
+      });
+    }
+
+    // Stash deck list on the element for fast retrieval on change
+    sel._savedDecks = decks;
+  });
+}
+
+// Called when a player changes their deck dropdown
+function onDeckPick(playerNum, deckId) {
+  const pKey = 'p' + playerNum;
+  const info = document.getElementById('p' + playerNum + '-deck-info');
+
+  if (!deckId) {
+    selectedDecks[pKey] = null;
+    if (info) info.textContent = '';
+    return;
+  }
+
+  const sel = document.getElementById('p' + playerNum + '-deck-select');
+  const decks = (sel && sel._savedDecks) || [];
+  const deck = decks.find(d => d.id === deckId);
+  if (!deck) { selectedDecks[pKey] = null; return; }
+
+  selectedDecks[pKey] = deck;
+
+  // Update info line
+  if (info) {
+    const known = _countKnownCards(deck.template);
+    const total = deck.template.reduce((s, e) => s + e.count, 0);
+    info.textContent = known + ' / ' + total + ' cards recognised in this game';
+    info.style.color = known > 0 ? 'rgba(106,202,106,0.7)' : 'rgba(200,80,80,0.7)';
+  }
+
+  // Auto-select character when the chamber card matches a known character
+  if (deck.charId && CHAMBERS[deck.charId]) {
+    selectedChars[pKey] = deck.charId;
+    const setupEl = document.getElementById('p' + playerNum + '-setup');
+    if (setupEl) {
+      setupEl.querySelectorAll('.char-btn').forEach(b => {
+        b.classList.toggle('selected', b.classList.contains(deck.charId));
+      });
+    }
+  }
+}
+
+// ============================================================
 // SETUP
 // ============================================================
 function selectChar(playerNum, charId, btn) {
@@ -2043,10 +2266,11 @@ window.onload = async () => {
     msgEl.textContent = 'Fetching card database from GitHub…';
     const count = await loadCardDatabase();
 
-    // ── NEW: pull chamber stats/rules/flavor from CSV ──────
     msgEl.textContent = 'Loading chamber data…';
     buildChambersFromDB();
-    // ──────────────────────────────────────────────────────
+
+    // Populate deck pickers now that CARD_DB is ready
+    populateDeckPickers();
 
     msgEl.textContent = `Loaded ${count} cards. Ready!`;
     document.getElementById('db-count').textContent =
