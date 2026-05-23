@@ -811,8 +811,8 @@ body {
 // SUPABASE CONFIGURATION
 // ============================================================
 // Replace these with your actual Supabase URL and anon key
-const SUPABASE_URL = 'https://ixoifwdewpyykifpthaq.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_publishable_4vG553G8xvPGyN_cZRPW0A_h1yrihPH';
+const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 let supabaseClient = null;
 
 // Initialize Supabase only if credentials have been set
@@ -1123,10 +1123,10 @@ function updateLobbyUI() {
 // SUPABASE: SUBSCRIBE TO ROOM UPDATES
 // ============================================================
 function subscribeToRoom() {
-  if (!supabase || !roomCode) return;
+  if (!supabaseClient || !roomCode) return;
 
   // Subscribe via Realtime
-  gameStateChannel = supabase
+  gameStateChannel = supabaseClient
     .channel(`room:${roomCode}`)
     .on(
       'postgres_changes',
@@ -1142,10 +1142,59 @@ function subscribeToRoom() {
     });
 }
 
+async function syncLobbyState() {
+  if (!supabaseClient || !roomCode || currentGameMode !== 'online') return;
+
+  if (localPlayerIdx === 0) {
+    // Host updates host_state
+    const hostState = {
+      charId: selectedChars['p1'],
+      chamberId: selectedChamberIds['p1'],
+      deckId: selectedDecks['p1']?.id || null,
+      ready: !!selectedDecks['p1']
+    };
+    const { error } = await supabaseClient
+      .from('rooms')
+      .update({ host_state: hostState })
+      .eq('id', roomCode);
+    if (error) console.error('Failed to sync host state:', error);
+  } else {
+    // Guest updates guest_state
+    const guestState = {
+      charId: selectedChars['p2'],
+      chamberId: selectedChamberIds['p2'],
+      deckId: selectedDecks['p2']?.id || null,
+      ready: !!selectedDecks['p2']
+    };
+    const { error } = await supabaseClient
+      .from('rooms')
+      .update({ guest_state: guestState })
+      .eq('id', roomCode);
+    if (error) console.error('Failed to sync guest state:', error);
+  }
+}
+
 function handleRoomUpdate(roomData) {
+  // Update lobby selections from host_state and guest_state
+  if (roomData.host_state) {
+    selectedChars['p1'] = roomData.host_state.charId;
+    selectedChamberIds['p1'] = roomData.host_state.chamberId;
+    if (roomData.host_state.deckId) {
+      const deck = JSON.parse(localStorage.getItem('savedDecks_1') || '[]').find(d => d.id === roomData.host_state.deckId);
+      if (deck) selectedDecks['p1'] = deck;
+    }
+  }
+  if (roomData.guest_state) {
+    selectedChars['p2'] = roomData.guest_state.charId;
+    selectedChamberIds['p2'] = roomData.guest_state.chamberId;
+    if (roomData.guest_state.deckId) {
+      const deck = JSON.parse(localStorage.getItem('savedDecks_2') || '[]').find(d => d.id === roomData.guest_state.deckId);
+      if (deck) selectedDecks['p2'] = deck;
+    }
+  }
+
   // Update local game state if game has started
   if (roomData.game_state && currentGameMode === 'online') {
-    // Merge remote game state into local G
     Object.assign(G, roomData.game_state);
     renderAll();
   }
@@ -1160,9 +1209,9 @@ function handleRoomUpdate(roomData) {
 // SUPABASE: SYNC GAME STATE (called on every action)
 // ============================================================
 async function syncGameState() {
-  if (!supabase || !roomCode || currentGameMode !== 'online') return;
+  if (!supabaseClient || !roomCode || currentGameMode !== 'online') return;
 
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from('rooms')
     .update({ game_state: G })
     .eq('id', roomCode);
@@ -1179,7 +1228,7 @@ async function startOnlineMatch() {
   if (localPlayerIdx !== 0) return; // Only host can start
 
   // Update room status to active and initialize game state
-  const { error } = await supabase
+  const { error } = await supabaseClient
     .from('rooms')
     .update({ status: 'active', game_state: G })
     .eq('id', roomCode);
@@ -1199,9 +1248,9 @@ async function checkForReconnection() {
   const savedRoomCode = sessionStorage.getItem('roomCode');
   const savedPlayerIdx = sessionStorage.getItem('localPlayerIdx');
 
-  if (!savedRoomCode || !supabase) return;
+  if (!savedRoomCode || !supabaseClient) return;
 
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('rooms')
     .select('*')
     .eq('id', savedRoomCode)
@@ -1301,6 +1350,7 @@ function onDeckPick(playerNum, deckId) {
     const info = document.getElementById('p' + playerNum + '-deck-info');
     if (info) info.textContent = '';
     _renderCharArea(playerNum, false, null, null);
+    if (currentGameMode === 'online') syncLobbyState();
     return;
   }
 
@@ -1342,6 +1392,7 @@ function onDeckPick(playerNum, deckId) {
   selectedChamberIds['p' + playerNum] = deckChamberCardId;
   const variantLabel = deckChamberCard ? deckChamberCard.Name : null;
   _renderCharArea(playerNum, true, charId, variantLabel);
+  if (currentGameMode === 'online') syncLobbyState();
 }
 
 function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
@@ -1404,6 +1455,7 @@ function _renderCharArea(playerNum, locked, lockedCharId, lockedVariantLabel) {
 function onVariantPick(playerNum, variantCardId) {
   const pKey = 'p' + playerNum;
   selectedChamberIds[pKey] = variantCardId || null;
+  if (currentGameMode === 'online') syncLobbyState();
 }
 
 function populateSetupScreen() {
@@ -1426,6 +1478,7 @@ function selectChar(playerNum, charId, btn) {
   selectedChars[pKey] = charId;
   selectedChamberIds[pKey] = CHAMBERS[charId]?.cardId || null;
   _renderCharArea(playerNum, false, null, null);
+  if (currentGameMode === 'online') syncLobbyState();
 }
 
 function startGame() {
