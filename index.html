@@ -99,6 +99,53 @@ body {
   line-height: 1.5;
 }
 
+/* ===================== ROLE PICKER SCREEN ===================== */
+#role-picker-screen {
+  position: fixed; inset: 0; z-index: 1100;
+  background: radial-gradient(ellipse at center, #1a0e04 0%, #000 100%);
+  display: none; flex-direction: column; align-items: center; justify-content: center;
+  gap: 40px; padding: 20px;
+}
+#role-picker-screen h1 {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(1.4rem, 4vw, 2.8rem);
+  color: var(--gold);
+  text-shadow: 0 0 30px rgba(212,168,67,0.6);
+  text-align: center; letter-spacing: 4px;
+}
+#role-picker-screen h2 {
+  font-family: 'Cinzel', serif;
+  font-size: 1rem; color: var(--mat-parchment);
+  letter-spacing: 2px; text-align: center;
+}
+.role-picker-btns { display: flex; gap: 40px; flex-wrap: wrap; justify-content: center; }
+.role-btn {
+  background: linear-gradient(135deg, rgba(44,26,12,0.8), rgba(80,50,20,0.8));
+  border: 2px solid rgba(212,168,67,0.4);
+  border-radius: 12px; padding: 40px;
+  text-align: center; cursor: pointer;
+  transition: all 0.3s;
+  min-width: 180px;
+}
+.role-btn:hover {
+  border-color: var(--gold);
+  background: linear-gradient(135deg, rgba(44,26,12,0.95), rgba(80,50,20,0.95));
+  box-shadow: 0 0 20px rgba(212,168,67,0.3);
+}
+.role-btn-icon { font-size: 2.5rem; margin-bottom: 16px; }
+.role-btn-title {
+  font-family: 'Cinzel', serif; font-size: 1.1rem; color: var(--gold);
+  letter-spacing: 2px;
+}
+.back-btn-small {
+  background: rgba(212,168,67,0.2);
+  border: 1px solid rgba(212,168,67,0.4); color: var(--gold);
+  border-radius: 8px; padding: 10px 20px;
+  font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 1px;
+  cursor: pointer; margin-top: 20px;
+}
+.back-btn-small:hover { background: rgba(212,168,67,0.35); }
+
 /* ===================== ONLINE LOBBY SCREEN ===================== */
 #online-lobby-screen {
   position: fixed; inset: 0; z-index: 1050;
@@ -509,6 +556,23 @@ body {
   </div>
 </div>
 
+<!-- ===== ROLE PICKER SCREEN (HOST vs GUEST) ===== -->
+<div id="role-picker-screen">
+  <h1>YOU ARE THE…</h1>
+  <h2>Choose your role in this match</h2>
+  <div class="role-picker-btns">
+    <div class="role-btn" onclick="selectRole('host')">
+      <div class="role-btn-icon">👑</div>
+      <div class="role-btn-title">HOST</div>
+    </div>
+    <div class="role-btn" onclick="selectRole('guest')">
+      <div class="role-btn-icon">⚔️</div>
+      <div class="role-btn-title">GUEST</div>
+    </div>
+  </div>
+  <button class="back-btn-small" onclick="goBackToMode()">← BACK</button>
+</div>
+
 <!-- ===== ONLINE LOBBY SCREEN ===== -->
 <div id="online-lobby-screen">
   <h1>CHAMBER OF AVATARS</h1>
@@ -751,8 +815,9 @@ const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
 let supabaseClient = null;
 
-// Initialize Supabase when loaded
-if (SUPABASE_URL.includes('YOUR_SUPABASE') === false) {
+// Initialize Supabase only if credentials have been set
+const isSupabaseConfigured = !SUPABASE_URL.includes('YOUR_SUPABASE') && !SUPABASE_ANON_KEY.includes('YOUR_SUPABASE');
+if (isSupabaseConfigured && window.supabase) {
   supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 }
 
@@ -807,7 +872,25 @@ function generateRoomCode() {
 // ============================================================
 async function createOnlineRoom() {
   if (!supabaseClient) {
-    alert('Supabase not configured. Check your URL and anon key.');
+    alert(`⚠️ SUPABASE NOT CONFIGURED
+
+You need to add your Supabase credentials to enable online play.
+
+STEPS:
+1. Go to https://supabase.com and create a free project
+2. Run the SQL from SUPABASE_SETUP.sql in your SQL Editor
+3. Go to Project Settings → API
+4. Copy your "Project URL" and "anon public" key
+5. Open index.html in a text editor
+6. Find these lines near the top of the <script> section:
+   
+   const SUPABASE_URL = 'https://YOUR_SUPABASE_URL.supabase.co';
+   const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+
+7. Replace them with your actual credentials (paste the values you copied)
+8. Save the file and reload this page
+
+For detailed instructions, see ONLINE_SETUP_GUIDE.md`);
     return null;
   }
 
@@ -844,12 +927,17 @@ async function createOnlineRoom() {
 // ============================================================
 async function joinOnlineRoom(code) {
   if (!supabaseClient) {
-    alert('Supabase not configured.');
+    alert(`⚠️ SUPABASE NOT CONFIGURED
+
+Online play requires Supabase credentials. Please set up Supabase first:
+1. See ONLINE_SETUP_GUIDE.md for detailed instructions
+2. Add your credentials to index.html
+3. Reload this page`);
     return false;
   }
 
   // Fetch the room
-  const { data, error } = await supabase
+  const { data, error } = await supabaseClient
     .from('rooms')
     .select('*')
     .eq('id', code)
@@ -878,7 +966,7 @@ async function joinOnlineRoom(code) {
     ready: false
   };
 
-  const { error: updateError } = await supabase
+  const { error: updateError } = await supabaseClient
     .from('rooms')
     .update({ guest_state: guestState })
     .eq('id', code);
@@ -913,32 +1001,22 @@ function selectGameMode(mode) {
 // ONLINE LOBBY UI
 // ============================================================
 function showOnlineLobby() {
-  const hostUI = document.getElementById('lobby-host-ui');
-  const guestUI = document.getElementById('lobby-guest-ui');
-  const playersDiv = document.getElementById('lobby-players');
+  // Show role picker screen instead of prompting
+  document.getElementById('role-picker-screen').style.display = 'flex';
+}
 
-  // First time: ask host or guest
-  hostUI.style.display = 'none';
-  guestUI.style.display = 'none';
-  playersDiv.style.display = 'none';
+function selectRole(role) {
+  // Hide role picker and proceed based on role
+  document.getElementById('role-picker-screen').style.display = 'none';
 
-  const choice = prompt('Are you the HOST (creating a game) or GUEST (joining)?\n\nType: HOST or GUEST');
-  if (!choice) {
-    goBackToMode();
-    return;
-  }
-
-  if (choice.toUpperCase() === 'HOST') {
+  if (role === 'host') {
     localPlayerIdx = 0; // Host is player 1
     sessionStorage.setItem('localPlayerIdx', '0');
     setupAsHost();
-  } else if (choice.toUpperCase() === 'GUEST') {
+  } else if (role === 'guest') {
     localPlayerIdx = 1; // Guest is player 2
     sessionStorage.setItem('localPlayerIdx', '1');
     setupAsGuest();
-  } else {
-    alert('Invalid choice. Try again.');
-    showOnlineLobby();
   }
 }
 
