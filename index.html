@@ -84,36 +84,21 @@ body {
   padding: 20px; text-align: center; min-width: 200px;
 }
 .player-card-setup h3 { font-family: 'Cinzel', serif; color: var(--gold); margin-bottom: 12px; font-size: 1rem; letter-spacing: 2px; }
-/* Character picker — groups of name + variant chips */
-.char-picker { display:flex; flex-direction:column; gap:8px; max-height:340px; overflow-y:auto;
-  padding:4px 2px; scrollbar-width:thin; scrollbar-color:rgba(212,168,67,0.3) transparent; }
-.char-group { border:1px solid rgba(212,168,67,0.15); border-radius:8px; overflow:hidden; }
-.char-group-name {
-  font-family:'Cinzel',serif; font-size:0.68rem; letter-spacing:1.5px;
-  padding:5px 10px; background:rgba(0,0,0,0.45); cursor:pointer;
-  display:flex; justify-content:space-between; align-items:center;
-  border-bottom:1px solid rgba(212,168,67,0.1);
-}
-.char-group-name .cg-arrow { font-size:0.5rem; opacity:0.5; transition:transform 0.15s; }
-.char-group.open .cg-arrow { transform:rotate(90deg); }
-.char-variants { display:none; flex-wrap:wrap; gap:5px; padding:6px; background:rgba(0,0,0,0.25); }
-.char-group.open .char-variants { display:flex; }
+.char-options { display: flex; gap: 12px; justify-content: center; }
 .char-btn {
   background: rgba(0,0,0,0.5);
-  border: 2px solid rgba(212,168,67,0.35);
-  border-radius: 6px; padding: 4px 8px;
+  border: 2px solid rgba(212,168,67,0.4);
+  border-radius: 8px; padding: 10px 16px;
   cursor: pointer; color: var(--parchment-text);
-  font-family: 'Cinzel', serif; font-size: 0.62rem;
-  transition: all 0.15s; letter-spacing: 0.5px; line-height:1.4;
-  text-align:left; min-width:80px;
+  font-family: 'Cinzel', serif; font-size: 0.85rem;
+  transition: all 0.2s; letter-spacing: 1px;
 }
-.char-btn:hover { border-color: var(--gold); background: rgba(212,168,67,0.12); }
-.char-btn.selected { color: var(--gold-light); }
-.char-btn .cb-rarity { font-size:0.52rem; opacity:0.55; display:block; }
-/* Active group highlight */
-.char-group.active-group .char-group-name { color:var(--gold); }
-/* Options wrapper now just wraps the picker */
-.char-options { width:100%; }
+.char-btn:hover { border-color: var(--gold); background: rgba(212,168,67,0.15); }
+.char-btn.selected { border-color: var(--gold); background: rgba(212,168,67,0.25); color: var(--gold-light); }
+.char-btn.aang { border-color: rgba(100,180,255,0.6); }
+.char-btn.aang.selected { background: rgba(100,180,255,0.2); border-color: #64b4ff; color: #a0d4ff; }
+.char-btn.zuko { border-color: rgba(255,80,30,0.6); }
+.char-btn.zuko.selected { background: rgba(255,80,30,0.2); border-color: #ff501e; color: #ffb080; }
 .start-btn {
   background: linear-gradient(135deg, #8b6914, #d4a843, #8b6914);
   border: none; border-radius: 8px; padding: 14px 40px;
@@ -469,8 +454,9 @@ body {
   <div class="player-setup">
     <div class="player-card-setup" id="p1-setup">
       <h3>PLAYER 1</h3>
-      <div class="char-options" id="p1-chars">
-        <div style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);">Loading characters…</div>
+      <div class="char-options">
+        <button class="char-btn aang selected" onclick="selectChar(1,'aang',this)">AANG</button>
+        <button class="char-btn zuko" onclick="selectChar(1,'zuko',this)">ZUKO</button>
       </div>
       <div class="deck-picker-section">
         <span class="deck-picker-label">DECK</span>
@@ -482,8 +468,9 @@ body {
     </div>
     <div class="player-card-setup" id="p2-setup">
       <h3>PLAYER 2</h3>
-      <div class="char-options" id="p2-chars">
-        <div style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);">Loading characters…</div>
+      <div class="char-options">
+        <button class="char-btn aang" onclick="selectChar(2,'aang',this)">AANG</button>
+        <button class="char-btn zuko selected" onclick="selectChar(2,'zuko',this)">ZUKO</button>
       </div>
       <div class="deck-picker-section">
         <span class="deck-picker-label">DECK</span>
@@ -823,227 +810,74 @@ function getAllyBonuses(ally) {
 }
 
 // ============================================================
-// CHAMBER REGISTRY — populated dynamically from CSV
+// CHAMBER DEFINITIONS
+// Sig move names are preserved here; stats/rules/flavor are
+// overwritten at startup by buildChambersFromDB() using CSV data.
 // ============================================================
-const CHAMBERS = {}; // keyed by card number (string)
-
-// Character theme colours (background gradient base)
-const CHAR_COLORS = {
-  'aang':             '#0d2a3f',
-  'katara':           '#0a2233',
-  'king bumi':        '#1a2d0d',
-  'jojo':             '#2a1f08',
-  'malu':             '#1e0d2e',
-  'prince zuko':      '#3d0f04',
-  'uncle iroh':       '#3a1f04',
-  'afiko':            '#120820',
-  'commander zhao':   '#2e0808',
-  'kinto':            '#060e1e',
-  // promos
-  'air cannon aang':  '#0d2a3f',
-  'fire blast zuko':  '#3d0f04',
-  'ice attack aang':  '#0a2233',
-};
-// Character accent colours for button borders
-const CHAR_ACCENTS = {
-  'aang':             'rgba(100,200,255,0.7)',
-  'katara':           'rgba(60,180,220,0.7)',
-  'king bumi':        'rgba(100,200,80,0.7)',
-  'jojo':             'rgba(180,140,60,0.7)',
-  'malu':             'rgba(160,100,255,0.7)',
-  'prince zuko':      'rgba(255,80,30,0.7)',
-  'uncle iroh':       'rgba(255,140,40,0.7)',
-  'afiko':            'rgba(140,60,255,0.7)',
-  'commander zhao':   'rgba(220,50,50,0.7)',
-  'kinto':            'rgba(40,140,200,0.7)',
-  'air cannon aang':  'rgba(100,200,255,0.7)',
-  'fire blast zuko':  'rgba(255,80,30,0.7)',
-  'ice attack aang':  'rgba(60,180,220,0.7)',
-};
-
-function _charKey(name) { return (name||'').toLowerCase().trim(); }
-function _charSlug(name) { return _charKey(name).replace(/[^a-z0-9]+/g,'-'); }
-
-// Determine base character from chamber card name for template lookup
-function _charBaseSlug(name) {
-  const k = _charKey(name);
-  if (k.includes('king bumi'))       return 'king-bumi';
-  if (k.includes('prince zuko'))     return 'prince-zuko';
-  if (k.includes('uncle iroh'))      return 'uncle-iroh';
-  if (k.includes('commander zhao'))  return 'commander-zhao';
-  if (k.includes('air cannon aang')) return 'aang';
-  if (k.includes('fire blast zuko')) return 'prince-zuko';
-  if (k.includes('ice attack aang')) return 'katara'; // water/air traits
-  if (k.includes('aang'))            return 'aang';
-  if (k.includes('katara'))          return 'katara';
-  if (k.includes('jojo'))            return 'jojo';
-  if (k.includes('malu'))            return 'malu';
-  if (k.includes('afiko'))           return 'afiko';
-  if (k.includes('kinto'))           return 'kinto';
-  return 'aang'; // fallback
-}
-
-// Parse "Move Name: Rules text" format found in ChamberFrontRul / ChamberBackRul
-function _parseSigMove(rulesRaw, fallbackName) {
-  if (!rulesRaw) return { name: fallbackName || 'Signature Move', rules: '' };
-  const colonIdx = rulesRaw.indexOf(':');
-  if (colonIdx > 0 && colonIdx < 40) {
-    return {
-      name:  rulesRaw.substring(0, colonIdx).trim(),
-      rules: rulesRaw.substring(colonIdx + 1).trim(),
-    };
+const CHAMBERS = {
+  aang: {
+    id: 'aang', name: 'Aang',
+    traits: ['fox','spirit','light','air'],
+    color: '#1a3a5a',
+    frontSig: { name: 'Penguin Sledding', int: 5, for: 4, g: 0, y: 1, r: 0,
+      rules: 'When you counterattack from a charged zone, add a green energy.',
+      flavor: '' },
+    backSig:  { name: 'Taming the Unagi', int: 7, for: 7, g: 1, y: 1, r: 0,
+      rules: 'When you counterattack, charge all of your zones.',
+      flavor: '' }
+  },
+  zuko: {
+    id: 'zuko', name: 'Zuko',
+    traits: ['bull','spirit','shadow','fire'],
+    color: '#5a1a0a',
+    frontSig: { name: 'Royal Flame', int: 5, for: 6, g: 1, y: 0, r: 1,
+      rules: 'When you counterattack, your opponent uncharges one of his or her zones.',
+      flavor: '' },
+    backSig:  { name: 'Blue Flame', int: 7, for: 9, g: 1, y: 1, r: 1,
+      rules: "When you counterattack, eliminate all of your opponent's green energy.",
+      flavor: '' }
   }
-  return { name: fallbackName || 'Signature Move', rules: rulesRaw.trim() };
-}
+};
 
 // ============================================================
 // BUILD CHAMBERS FROM CSV
-// Called after loadCardDatabase(). Populates CHAMBERS[cardNum]
-// for every chamber-type card in the database.
+// Called after loadCardDatabase(). Finds chamber-type cards,
+// matches them to a character by name, then overwrites stats,
+// rules, flavor, and traits from the CSV — preserving the
+// sig move names defined above.
 // ============================================================
 function buildChambersFromDB() {
-  let count = 0;
   for (const card of Object.values(CARD_DB)) {
     if (card.type !== 'chamber') continue;
+    if (!card.frontSig && !card.backSig) continue; // no chamber columns present
 
-    const charName = card.name;  // e.g. "King Bumi"
-    const key      = _charKey(charName);
-    const color    = CHAR_COLORS[key]   || CHAR_COLORS[key.split(' ').slice(-1)[0]] || '#1a1200';
-    const accent   = CHAR_ACCENTS[key]  || CHAR_ACCENTS[key.split(' ').slice(-1)[0]] || 'rgba(212,168,67,0.7)';
+    const nameLower = card.name.toLowerCase();
+    let charId = null;
+    if (nameLower.includes('aang'))      charId = 'aang';
+    else if (nameLower.includes('zuko')) charId = 'zuko';
+    if (!charId || !CHAMBERS[charId]) continue;
 
-    const frontParsed = _parseSigMove(card.frontSig?.rules, charName + ' Front');
-    const backParsed  = _parseSigMove(card.backSig?.rules,  charName + ' Back');
+    const ch = CHAMBERS[charId];
 
-    CHAMBERS[card.number] = {
-      id:       card.number,
-      name:     charName,
-      charSlug: _charBaseSlug(charName),
-      cardNumber: card.number,
-      rarity:   card.rarity,
-      traits:   card.traits || [],
-      color,
-      accent,
-      imgUrl:     card.imgUrl,
-      backImgUrl: card.backImgUrl,
-      frontSig: {
-        name:   frontParsed.name,
-        rules:  frontParsed.rules,
-        flavor: card.frontSig?.flavor || '',
-        int: card.frontSig?.int || 0,
-        for: card.frontSig?.for || 0,
-        g:   card.frontSig?.g   || 0,
-        y:   card.frontSig?.y   || 0,
-        r:   card.frontSig?.r   || 0,
-      },
-      backSig: {
-        name:   backParsed.name,
-        rules:  backParsed.rules,
-        flavor: card.backSig?.flavor || '',
-        int: card.backSig?.int || 0,
-        for: card.backSig?.for || 0,
-        g:   card.backSig?.g   || 0,
-        y:   card.backSig?.y   || 0,
-        r:   card.backSig?.r   || 0,
-      },
-    };
-    count++;
-  }
-  console.log(`Chambers built: ${count} variants across all characters`);
-}
+    // Update traits from CSV if the card has them
+    if (card.traits && card.traits.length > 0) ch.traits = card.traits;
 
-// ============================================================
-// CHARACTER PICKER UI — built after CSV loads
-// Groups chamber variants by character name, shows each as
-// a collapsible group with variant chips.
-// ============================================================
-function buildCharacterPicker() {
-  // Group chambers by character name
-  const groups = {}; // charName → array of CHAMBERS entries
-  for (const ch of Object.values(CHAMBERS)) {
-    if (!groups[ch.name]) groups[ch.name] = [];
-    groups[ch.name].push(ch);
-  }
-  // Sort groups by character name
-  const sortedNames = Object.keys(groups).sort((a,b) => a.localeCompare(b));
+    // Merge CSV stats/rules/flavor into frontSig, keeping the name
+    if (card.frontSig) {
+      ch.frontSig = { name: ch.frontSig.name, ...card.frontSig };
+    }
+    // Merge CSV stats/rules/flavor into backSig, keeping the name
+    if (card.backSig) {
+      ch.backSig = { name: ch.backSig.name, ...card.backSig };
+    }
 
-  // Sort variants within each group by rarity (common < uncommon < rare) then number
-  const rarityOrder = { common:0, uncommon:1, rare:2, promo:3 };
-  for (const name of sortedNames) {
-    groups[name].sort((a,b) => {
-      const ra = rarityOrder[a.rarity?.toLowerCase()] ?? 9;
-      const rb = rarityOrder[b.rarity?.toLowerCase()] ?? 9;
-      if (ra !== rb) return ra - rb;
-      return String(a.id).localeCompare(String(b.id), undefined, {numeric:true});
-    });
-  }
-
-  function buildPickerHTML(pNum) {
-    return sortedNames.map(name => {
-      const variants = groups[name];
-      const key = _charKey(name);
-      const accent = CHAR_ACCENTS[key] || 'rgba(212,168,67,0.6)';
-      const chipHTML = variants.map((ch, vi) => {
-        const front = ch.frontSig?.name || '—';
-        const back  = ch.backSig?.name  || '—';
-        const rar   = (ch.rarity || '').toLowerCase();
-        return `<button class="char-btn" data-char="${ch.id}" data-pnum="${pNum}"
-          style="border-color:${accent.replace('0.7','0.4')}"
-          title="#${ch.id} · ${rar}\nFront: ${front}\nBack: ${back}"
-          onclick="selectChar(${pNum},'${ch.id}',this)">
-          <span>${front}</span>
-          <span class="cb-rarity">${rar} · #${ch.id}</span>
-        </button>`;
-      }).join('');
-      return `<div class="char-group" id="cg-p${pNum}-${_charSlug(name)}" style="border-color:${accent.replace('0.7','0.2')}">
-        <div class="char-group-name" style="color:${accent.replace('0.7','1')}" onclick="toggleCharGroup(this)">
-          <span>${name.toUpperCase()}</span>
-          <span class="cg-arrow">▶</span>
-        </div>
-        <div class="char-variants">${chipHTML}</div>
-      </div>`;
-    }).join('');
-  }
-
-  ['p1','p2'].forEach((pk, i) => {
-    const pNum = i + 1;
-    const container = document.getElementById(pk + '-chars');
-    if (!container) return;
-    container.innerHTML = `<div class="char-picker">${buildPickerHTML(pNum)}</div>`;
-  });
-
-  // Auto-select defaults once picker is built
-  // P1 → first Aang common; P2 → first Prince Zuko common
-  const aang206 = '206';   // Prince Zuko first common
-  const aang176 = '176';   // Aang first common
-  _autoSelect(1, aang176);
-  _autoSelect(2, aang206);
-}
-
-function _autoSelect(pNum, preferredId) {
-  // Try preferred first, then first available
-  let btn = document.querySelector(`.char-btn[data-char="${preferredId}"][data-pnum="${pNum}"]`);
-  if (!btn) {
-    btn = document.querySelector(`.char-btn[data-pnum="${pNum}"]`);
-  }
-  if (btn) {
-    selectChar(pNum, btn.dataset.char, btn);
-    // Open the parent group
-    const grp = btn.closest('.char-group');
-    if (grp) grp.classList.add('open', 'active-group');
+    console.log(`Chamber loaded from CSV: ${card.name} (${charId})`);
   }
 }
 
-function toggleCharGroup(headerEl) {
-  const grp = headerEl.closest('.char-group');
-  grp.classList.toggle('open');
-}
-
 // ============================================================
-// DEFAULT DECK TEMPLATES — one per character slug
-// Cards chosen for trait-compatibility with each chamber.
+// DECK TEMPLATES
 // ============================================================
-
-// Aang (fox, spirit, light, air)
 const AANG_DECK_TEMPLATE = [
   { id:'41', count:2 }, { id:'44', count:2 }, { id:'45', count:2 },
   { id:'47', count:2 }, { id:'49', count:2 }, { id:'50', count:1 },
@@ -1057,156 +891,24 @@ const AANG_DECK_TEMPLATE = [
   { id:'124', count:2 }, { id:'119', count:1 },
 ];
 
-// Katara (lion, mind, light, water)
-const KATARA_DECK_TEMPLATE = [
-  { id:'44', count:2 }, { id:'47', count:2 }, { id:'49', count:2 },
-  { id:'50', count:2 }, { id:'51', count:2 }, { id:'57', count:1 },
-  { id:'160', count:1 }, { id:'162', count:1 }, { id:'163', count:1 },
-  { id:'164', count:1 }, { id:'165', count:1 }, { id:'70', count:1 },
-  { id:'75', count:1 }, { id:'77', count:1 }, { id:'80', count:1 },
-  { id:'92',  count:1 }, { id:'94',  count:1 }, { id:'96',  count:1 },
-  { id:'98',  count:1 }, { id:'99',  count:1 }, { id:'100', count:1 },
-  { id:'112', count:1 }, { id:'116', count:1 }, { id:'117', count:1 },
-  { id:'119', count:1 }, { id:'120', count:1 }, { id:'121', count:2 },
-  { id:'123', count:1 }, { id:'124', count:2 },
-];
-
-// King Bumi (bull, body, light, earth)
-const KING_BUMI_DECK_TEMPLATE = [
-  { id:'1',  count:2 }, { id:'2',  count:2 }, { id:'3',  count:2 },
-  { id:'4',  count:2 }, { id:'9',  count:2 }, { id:'12', count:1 },
-  { id:'148', count:1 }, { id:'149', count:1 }, { id:'150', count:1 },
-  { id:'152', count:1 }, { id:'153', count:1 }, { id:'68', count:1 },
-  { id:'70', count:1 }, { id:'75', count:1 }, { id:'77', count:1 },
-  { id:'83',  count:1 }, { id:'84',  count:1 }, { id:'85',  count:1 },
-  { id:'88',  count:1 }, { id:'89',  count:1 }, { id:'113', count:1 },
-  { id:'114', count:1 }, { id:'116', count:1 },
-  { id:'119', count:1 }, { id:'120', count:1 }, { id:'121', count:2 },
-  { id:'122', count:2 }, { id:'124', count:1 },
-];
-
-// Jojo (fox, spirit, shadow, earth)
-const JOJO_DECK_TEMPLATE = [
-  { id:'22', count:2 }, { id:'28', count:2 }, { id:'33', count:2 },
-  { id:'37', count:2 }, { id:'40', count:2 }, { id:'23', count:1 },
-  { id:'148', count:1 }, { id:'149', count:1 }, { id:'152', count:1 },
-  { id:'153', count:1 }, { id:'68', count:1 }, { id:'70', count:1 },
-  { id:'75', count:1 }, { id:'77', count:1 },
-  { id:'101', count:1 }, { id:'102', count:1 }, { id:'103', count:1 },
-  { id:'106', count:1 }, { id:'108', count:1 }, { id:'110', count:1 },
-  { id:'112', count:1 }, { id:'116', count:1 },
-  { id:'125', count:1 }, { id:'126', count:2 }, { id:'127', count:1 },
-  { id:'128', count:1 }, { id:'130', count:1 }, { id:'137', count:1 },
-];
-
-// Malu (lion, body, shadow, air)
-const MALU_DECK_TEMPLATE = [
-  { id:'41', count:2 }, { id:'44', count:2 }, { id:'46', count:2 },
-  { id:'52', count:2 }, { id:'53', count:2 }, { id:'42', count:1 },
-  { id:'142', count:1 }, { id:'143', count:1 }, { id:'144', count:1 },
-  { id:'146', count:1 }, { id:'68', count:1 }, { id:'70', count:1 },
-  { id:'75', count:1 }, { id:'77', count:1 },
-  { id:'83',  count:1 }, { id:'86',  count:1 }, { id:'87',  count:1 },
-  { id:'88',  count:1 }, { id:'89',  count:1 }, { id:'112', count:1 },
-  { id:'114', count:1 }, { id:'116', count:1 },
-  { id:'125', count:1 }, { id:'126', count:2 }, { id:'127', count:2 },
-  { id:'128', count:1 }, { id:'137', count:1 },
-];
-
-// Prince Zuko (bull, spirit, shadow, fire)
-const PRINCE_ZUKO_DECK_TEMPLATE = [
+const ZUKO_DECK_TEMPLATE = [
   { id:'1',  count:2 }, { id:'2',  count:2 }, { id:'3',  count:2 },
   { id:'4',  count:2 }, { id:'9',  count:2 }, { id:'16', count:1 },
-  { id:'17', count:1 }, { id:'154', count:1 }, { id:'155', count:1 },
-  { id:'156', count:1 }, { id:'63', count:1 }, { id:'64', count:1 },
-  { id:'70', count:1 }, { id:'71', count:1 },
-  { id:'101', count:1 }, { id:'103', count:1 }, { id:'104', count:1 },
-  { id:'105', count:1 }, { id:'106', count:1 }, { id:'110', count:1 },
-  { id:'112', count:1 }, { id:'113', count:1 }, { id:'116', count:1 },
-  { id:'125', count:1 }, { id:'126', count:2 }, { id:'129', count:2 },
-  { id:'130', count:2 },
+  { id:'17', count:1 }, { id:'19', count:1 }, { id:'20', count:1 },
+  { id:'35', count:1 }, { id:'63', count:1 }, { id:'64', count:1 },
+  { id:'70', count:1 }, { id:'77', count:1 }, { id:'71', count:1 },
+  { id:'81',  count:1 }, { id:'85',  count:1 }, { id:'87',  count:1 },
+  { id:'93',  count:1 }, { id:'104', count:1 }, { id:'105', count:1 },
+  { id:'88',  count:1 }, { id:'86',  count:1 }, { id:'113', count:1 },
+  { id:'130', count:2 }, { id:'129', count:2 }, { id:'132', count:1 },
+  { id:'133', count:1 }, { id:'135', count:1 },
 ];
-
-// Uncle Iroh (fox, mind, shadow, fire)
-const UNCLE_IROH_DECK_TEMPLATE = [
-  { id:'22', count:2 }, { id:'28', count:2 }, { id:'36', count:2 },
-  { id:'38', count:2 }, { id:'39', count:2 }, { id:'23', count:1 },
-  { id:'154', count:1 }, { id:'155', count:1 }, { id:'156', count:1 },
-  { id:'157', count:1 }, { id:'70', count:1 }, { id:'75', count:1 },
-  { id:'77', count:1 }, { id:'80', count:1 },
-  { id:'92',  count:1 }, { id:'94',  count:1 }, { id:'95',  count:1 },
-  { id:'97',  count:1 }, { id:'98',  count:1 }, { id:'100', count:1 },
-  { id:'112', count:1 }, { id:'113', count:1 }, { id:'116', count:1 },
-  { id:'125', count:1 }, { id:'128', count:1 }, { id:'129', count:2 },
-  { id:'130', count:2 }, { id:'137', count:1 },
-];
-
-// Afiko (lion, spirit, dark, air)
-const AFIKO_DECK_TEMPLATE = [
-  { id:'41', count:2 }, { id:'43', count:2 }, { id:'46', count:2 },
-  { id:'52', count:2 }, { id:'53', count:2 }, { id:'42', count:1 },
-  { id:'142', count:1 }, { id:'143', count:1 }, { id:'144', count:1 },
-  { id:'146', count:1 }, { id:'65', count:1 }, { id:'70', count:1 },
-  { id:'75', count:1 }, { id:'77', count:1 },
-  { id:'101', count:1 }, { id:'102', count:1 }, { id:'103', count:1 },
-  { id:'105', count:1 }, { id:'106', count:1 }, { id:'110', count:1 },
-  { id:'112', count:1 }, { id:'118', count:1 }, { id:'116', count:1 },
-  { id:'131', count:1 }, { id:'132', count:1 }, { id:'133', count:1 },
-  { id:'135', count:1 }, { id:'136', count:1 }, { id:'137', count:1 },
-];
-
-// Commander Zhao (bull, mind, dark, fire)
-const COMMANDER_ZHAO_DECK_TEMPLATE = [
-  { id:'1',  count:2 }, { id:'2',  count:2 }, { id:'7',  count:2 },
-  { id:'9',  count:2 }, { id:'10', count:2 }, { id:'16', count:1 },
-  { id:'154', count:1 }, { id:'155', count:1 }, { id:'157', count:1 },
-  { id:'158', count:1 }, { id:'63', count:1 }, { id:'64', count:1 },
-  { id:'70', count:1 }, { id:'77', count:1 },
-  { id:'92',  count:1 }, { id:'93',  count:1 }, { id:'94',  count:1 },
-  { id:'97',  count:1 }, { id:'98',  count:1 }, { id:'113', count:1 },
-  { id:'116', count:1 }, { id:'118', count:1 },
-  { id:'131', count:1 }, { id:'132', count:2 }, { id:'133', count:1 },
-  { id:'134', count:1 }, { id:'135', count:1 }, { id:'137', count:1 },
-];
-
-// Kinto (fox, body, dark, water)
-const KINTO_DECK_TEMPLATE = [
-  { id:'24', count:2 }, { id:'25', count:2 }, { id:'26', count:2 },
-  { id:'27', count:2 }, { id:'39', count:2 }, { id:'160', count:1 },
-  { id:'161', count:1 }, { id:'162', count:1 }, { id:'163', count:1 },
-  { id:'164', count:1 }, { id:'68', count:1 }, { id:'70', count:1 },
-  { id:'75', count:1 }, { id:'77', count:1 },
-  { id:'81',  count:1 }, { id:'82',  count:1 }, { id:'83',  count:1 },
-  { id:'85',  count:1 }, { id:'87',  count:1 }, { id:'112', count:1 },
-  { id:'114', count:1 }, { id:'116', count:1 },
-  { id:'131', count:1 }, { id:'133', count:1 }, { id:'134', count:2 },
-  { id:'135', count:1 }, { id:'136', count:1 }, { id:'137', count:1 },
-];
-
-const DEFAULT_TEMPLATES = {
-  'aang':             AANG_DECK_TEMPLATE,
-  'katara':           KATARA_DECK_TEMPLATE,
-  'king-bumi':        KING_BUMI_DECK_TEMPLATE,
-  'jojo':             JOJO_DECK_TEMPLATE,
-  'malu':             MALU_DECK_TEMPLATE,
-  'prince-zuko':      PRINCE_ZUKO_DECK_TEMPLATE,
-  'uncle-iroh':       UNCLE_IROH_DECK_TEMPLATE,
-  'afiko':            AFIKO_DECK_TEMPLATE,
-  'commander-zhao':   COMMANDER_ZHAO_DECK_TEMPLATE,
-  'kinto':            KINTO_DECK_TEMPLATE,
-};
-
-function getDefaultTemplate(charId) {
-  const ch = CHAMBERS[String(charId)];
-  if (!ch) return AANG_DECK_TEMPLATE;
-  return DEFAULT_TEMPLATES[ch.charSlug] || AANG_DECK_TEMPLATE;
-}
 
 // ============================================================
 // GAME STATE
 // ============================================================
 let G = null;
-let selectedChars = { p1: null, p2: null }; // set to card numbers after CSV loads
+let selectedChars = { p1: 'aang', p2: 'zuko' };
 let pendingPayment = null;
 let pendingAction = null;
 
@@ -1279,7 +981,7 @@ function initGame() {
       const filtered = saved.template.filter(e => CARD_DB[e.id]);
       if (filtered.length > 0) return filtered;
     }
-    return getDefaultTemplate(charId);
+    return charId === 'aang' ? AANG_DECK_TEMPLATE : ZUKO_DECK_TEMPLATE;
   }
 
   const p1tpl = resolveTemplate('p1', p1char);
@@ -1287,8 +989,8 @@ function initGame() {
 
   const p1 = makePlayer(0, p1char, p1tpl);
   const p2 = makePlayer(1, p2char, p2tpl);
-  p1.name = 'Player 1 (' + (CHAMBERS[p1char]?.name || p1char) + ')';
-  p2.name = 'Player 2 (' + (CHAMBERS[p2char]?.name || p2char) + ')';
+  p1.name = 'Player 1 (' + CHAMBERS[p1char].name + ')';
+  p2.name = 'Player 2 (' + CHAMBERS[p2char].name + ')';
 
   G = {
     players: [p1, p2],
@@ -2384,16 +2086,15 @@ function _decodeDeckCode(code) {
   } catch(e) { return null; }
 }
 
-// Map a chamber card ID to a charId (now just the card number itself)
+// Look up a chamber card ID in CARD_DB and return 'aang', 'zuko', or null
 function _inferCharFromChamber(chamberId) {
   if (!chamberId) return null;
-  const id = String(chamberId);
-  // If it's a direct card number in CHAMBERS, use it
-  if (CHAMBERS[id]) return id;
-  // Fallback: search CARD_DB
-  const card = CARD_DB[id];
-  if (!card || card.type !== 'chamber') return null;
-  return id;
+  const card = CARD_DB[String(chamberId)];
+  if (!card) return null;
+  const n = card.name.toLowerCase();
+  if (n.includes('aang')) return 'aang';
+  if (n.includes('zuko')) return 'zuko';
+  return null;
 }
 
 // Read all saved decks from localStorage, normalize to internal format:
@@ -2438,10 +2139,13 @@ function _loadAllSavedDecks() {
           const template = Object.entries(decoded.cards)
             .map(([id, count]) => ({ id: String(id), count: Number(count) }))
             .filter(e => e.count > 0);
-          // characterId may be a character slug or a chamber card number
+          // characterId may be 'aang'/'zuko' directly, or a chamber card number
           let charId = null;
-          // Try as direct chamber card number first
-          charId = _inferCharFromChamber(d.characterId) || _inferCharFromChamber(decoded.chamber);
+          if (d.characterId === 'aang' || d.characterId === 'zuko') {
+            charId = d.characterId;
+          } else {
+            charId = _inferCharFromChamber(d.characterId) || _inferCharFromChamber(decoded.chamber);
+          }
           result.push({
             id: String(d.id || 'sync_' + result.length),
             name: d.name || decoded.name || 'Unnamed',
@@ -2481,8 +2185,8 @@ function populateDeckPickers() {
       decks.forEach(deck => {
         const known = _countKnownCards(deck.template);
         const total = deck.template.reduce((s, e) => s + e.count, 0);
-        const charLabel = deck.charId && CHAMBERS[deck.charId]
-          ? ' · ' + CHAMBERS[deck.charId].name
+        const charLabel = deck.charId
+          ? ' · ' + deck.charId.charAt(0).toUpperCase() + deck.charId.slice(1)
           : '';
         const opt = document.createElement('option');
         opt.value = deck.id;
@@ -2523,11 +2227,15 @@ function onDeckPick(playerNum, deckId) {
     info.style.color = known > 0 ? 'rgba(106,202,106,0.7)' : 'rgba(200,80,80,0.7)';
   }
 
-  // Auto-select character when the chamber card matches a known chamber
+  // Auto-select character when the chamber card matches a known character
   if (deck.charId && CHAMBERS[deck.charId]) {
     selectedChars[pKey] = deck.charId;
-    const btn = document.querySelector(`.char-btn[data-char="${deck.charId}"][data-pnum="${playerNum}"]`);
-    if (btn) selectChar(playerNum, deck.charId, btn);
+    const setupEl = document.getElementById('p' + playerNum + '-setup');
+    if (setupEl) {
+      setupEl.querySelectorAll('.char-btn').forEach(b => {
+        b.classList.toggle('selected', b.classList.contains(deck.charId));
+      });
+    }
   }
 }
 
@@ -2535,46 +2243,12 @@ function onDeckPick(playerNum, deckId) {
 // SETUP
 // ============================================================
 function selectChar(playerNum, charId, btn) {
-  const pKey = 'p' + playerNum;
-  selectedChars[pKey] = String(charId);
-
-  // Clear all selections for this player
-  document.querySelectorAll(`.char-btn[data-pnum="${playerNum}"]`).forEach(b => {
-    b.classList.remove('selected');
-    b.style.background = '';
-    b.style.color = '';
-    b.style.borderColor = '';
-    // reset to faint accent
-    const ch = CHAMBERS[b.dataset.char];
-    if (ch) b.style.borderColor = ch.accent.replace('0.7','0.3');
-  });
-  // Remove active-group from all groups for this player
-  document.querySelectorAll(`#p${playerNum}-chars .char-group`).forEach(g => g.classList.remove('active-group'));
-
-  // Highlight selected button
-  if (btn) {
-    const ch = CHAMBERS[String(charId)];
-    const accent = ch?.accent || 'rgba(212,168,67,0.8)';
-    btn.classList.add('selected');
-    btn.style.borderColor = accent;
-    btn.style.background  = accent.replace(/[\d.]+\)$/, '0.2)');
-    btn.style.color       = 'var(--gold-light)';
-
-    // Mark the group active
-    const grp = btn.closest('.char-group');
-    if (grp) grp.classList.add('active-group', 'open');
-  }
+  selectedChars['p' + playerNum] = charId;
+  btn.parentElement.querySelectorAll('.char-btn').forEach(b => b.classList.remove('selected'));
+  btn.classList.add('selected');
 }
 
 function startGame() {
-  if (!selectedChars.p1 || !CHAMBERS[selectedChars.p1]) {
-    alert('Please select a chamber card for Player 1.');
-    return;
-  }
-  if (!selectedChars.p2 || !CHAMBERS[selectedChars.p2]) {
-    alert('Please select a chamber card for Player 2.');
-    return;
-  }
   document.getElementById('setup-screen').style.display = 'none';
   document.getElementById('game-layout').style.display  = 'flex';
   initGame();
@@ -2594,7 +2268,6 @@ window.onload = async () => {
 
     msgEl.textContent = 'Loading chamber data…';
     buildChambersFromDB();
-    buildCharacterPicker();
 
     // Populate deck pickers now that CARD_DB is ready
     populateDeckPickers();
