@@ -747,6 +747,7 @@ body {
           onkeydown="if(event.key==='Enter')connectToRoom()" />
         <button class="guest-connect-btn" onclick="connectToRoom()">CONNECT →</button>
       </div>
+      <div id="guest-recent-games-list" style="width:100%;max-width:300px;margin-top:12px;"></div>
     </div>
 
     <!-- Setup sub-phase (shown after connected) -->
@@ -1354,16 +1355,46 @@ function shuffle(arr) {
 
 function buildDeck(template, charId) {
   const cards = [];
+  const cardsByType = { strike: [], advantage: [], ally: [], other: [] };
   let uid = 0;
+  
+  // Group cards by type
   for (const entry of template) {
     const base = CARD_DB[String(entry.id)];
     if (!base) { console.warn('Card not found in DB:', entry.id); continue; }
+    
+    const cardType = base.type || 'other';
+    const typeKey = ['strike', 'advantage', 'ally'].includes(cardType) ? cardType : 'other';
+    
     for (let c = 0; c < entry.count; c++) {
       uid++;
-      cards.push({ ...base, uid: charId + '_' + uid });
+      const card = { ...base, uid: charId + '_' + uid };
+      cardsByType[typeKey].push(card);
     }
   }
-  return shuffle(cards);
+  
+  // Shuffle each type independently
+  for (const typeKey of Object.keys(cardsByType)) {
+    cardsByType[typeKey] = shuffle(cardsByType[typeKey]);
+  }
+  
+  // Interleave card types to ensure good distribution
+  const result = [];
+  const maxLen = Math.max(
+    cardsByType.strike.length,
+    cardsByType.advantage.length,
+    cardsByType.ally.length,
+    cardsByType.other.length
+  );
+  
+  for (let i = 0; i < maxLen; i++) {
+    if (i < cardsByType.strike.length) result.push(cardsByType.strike[i]);
+    if (i < cardsByType.other.length) result.push(cardsByType.other[i]);
+    if (i < cardsByType.ally.length) result.push(cardsByType.ally[i]);
+    if (i < cardsByType.advantage.length) result.push(cardsByType.advantage[i]);
+  }
+  
+  return result;
 }
 
 function makePlayer(pIdx, charId, template, pKey) {
@@ -1424,8 +1455,15 @@ function initGame() {
 
   const p1 = makePlayer(0, p1char, p1tpl, 'p1');
   const p2 = makePlayer(1, p2char, p2tpl, 'p2');
-  p1.name = 'Player 1 (' + CHAMBERS[p1char].name + ')';
-  p2.name = 'Player 2 (' + CHAMBERS[p2char].name + ')';
+  
+  // Format player names with character names and Host/Guest labels for online
+  if (ONLINE.active) {
+    p1.name = 'Player 1 - ' + CHAMBERS[p1char].name + ' - Host';
+    p2.name = 'Player 2 - ' + CHAMBERS[p2char].name + ' - Guest';
+  } else {
+    p1.name = 'Player 1 - ' + CHAMBERS[p1char].name;
+    p2.name = 'Player 2 - ' + CHAMBERS[p2char].name;
+  }
 
   G = {
     players: [p1, p2],
@@ -1442,6 +1480,7 @@ function initGame() {
     skipGreenZone: false,
     choosingPlayer: 0,
     _nextTurnPlayer: undefined,
+    _lastActivePlayer: undefined,  // Track whose turn it should be for online mode
   };
 
   const f0 = calcForceInDiscard(p1);
@@ -2036,14 +2075,17 @@ function endDefenderTurn() {
   const oldAttacker = G.attacker;
   addLog(`${G.players[oldDefender].name} counterattacks with Force ${G.incomingForce}. Passing to ${G.players[oldAttacker].name}…`);
 
+  // Track whose turn is next for online mode
+  G._nextTurnPlayer = oldAttacker;
+  
   if (ONLINE.active) {
     // Online mode: no pass screen — go directly to next player's turn
     startTurn(oldAttacker);
+    onlineSyncState();
     return;
   }
 
   G.phase = 'PASS';
-  G._nextTurnPlayer = oldAttacker;
   renderAll();
   setTimeout(() => {
     const name = G.players[oldAttacker].name;
@@ -2068,6 +2110,11 @@ function endGame(winnerIdx) {
   document.getElementById('winner-text').textContent = `${winner.name} WINS!`;
   document.getElementById('final-score').textContent = `Final Score: ${winner.score}–${loser.score}`;
   document.getElementById('gameover-screen').style.display = 'flex';
+  
+  // Clean up active game tracking when game ends
+  if (ONLINE.active && ONLINE.roomCode) {
+    removeActiveGame(ONLINE.roomCode);
+  }
 }
 
 // ============================================================
@@ -2334,8 +2381,25 @@ function makeAllyCard(ally) {
 function makeChamberMini(chamber, charged) {
   const el = document.createElement('div');
   el.className = 'deck-pile';
-  el.style.cssText = `background:linear-gradient(135deg,${chamber.color||'#1a1a1a'},#3a3a3a);border:${charged?'2px solid var(--charged-glow)':'1px solid rgba(200,160,80,0.5)'};`;
-  el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.4rem;color:${charged?'#ffd700':'#d4a843'};text-align:center;padding:2px;line-height:1.4;">${chamber.name.toUpperCase()}<br>CHAMBER</div>`;
+  el.style.cssText = `border:${charged?'2px solid var(--charged-glow)':'1px solid rgba(200,160,80,0.5)'};overflow:hidden;`;
+  
+  // Try to get the chamber card image from the database
+  const chamberCard = chamber.cardId ? CARD_DB[String(chamber.cardId)] : null;
+  if (chamberCard && chamberCard.imgUrl) {
+    const img = document.createElement('img');
+    img.src = chamberCard.imgUrl;
+    img.alt = chamber.name;
+    img.style.cssText = 'width:100%;height:100%;object-fit:cover;';
+    img.onerror = () => {
+      // Fallback to text if image fails to load
+      el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.4rem;color:${charged?'#ffd700':'#d4a843'};text-align:center;padding:2px;line-height:1.4;background:linear-gradient(135deg,${chamber.color||'#1a1a1a'},#3a3a3a);">${chamber.name.toUpperCase()}<br>CHAMBER</div>`;
+    };
+    el.appendChild(img);
+  } else {
+    // Fallback text display if no image available
+    el.style.cssText += `;background:linear-gradient(135deg,${chamber.color||'#1a1a1a'},#3a3a3a);`;
+    el.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.4rem;color:${charged?'#ffd700':'#d4a843'};text-align:center;padding:2px;line-height:1.4;">${chamber.name.toUpperCase()}<br>CHAMBER</div>`;
+  }
   return el;
 }
 
@@ -2385,9 +2449,15 @@ function renderCenterPanel() {
 
   // ── Online mode: gate actions to the active player ──────────
   if (ONLINE.active) {
-    const isMyTurn = (G.phase === 'OPENING_CHOOSE')
-      ? G.choosingPlayer === ONLINE.myPlayerIdx
-      : G.defender === ONLINE.myPlayerIdx;
+    let isMyTurn = false;
+    
+    if (G.phase === 'OPENING_CHOOSE') {
+      isMyTurn = G.choosingPlayer === ONLINE.myPlayerIdx;
+    } else if (G.phase === 'PASS') {
+      isMyTurn = (G._nextTurnPlayer === ONLINE.myPlayerIdx);
+    } else {
+      isMyTurn = G.defender === ONLINE.myPlayerIdx;
+    }
 
     if (!isMyTurn && G.phase !== 'PASS') {
       phaseEl.textContent = G.phase + (G.step ? ' / ' + G.step : '');
@@ -2782,8 +2852,100 @@ function onVariantPick(playerNum, variantCardId) {
 }
 
 // ============================================================
-// ONLINE MULTIPLAYER MODULE
+// GAME PERSISTENCE MODULE
 // ============================================================
+
+function saveActiveGame(roomCode, isHost) {
+  const games = JSON.parse(localStorage.getItem('avatar-tcg-active-games') || '{}');
+  games[roomCode] = {
+    code: roomCode,
+    role: isHost ? 'host' : 'guest',
+    createdAt: Date.now(),
+    lastActive: Date.now(),
+  };
+  localStorage.setItem('avatar-tcg-active-games', JSON.stringify(games));
+}
+
+function updateGameActivity(roomCode) {
+  const games = JSON.parse(localStorage.getItem('avatar-tcg-active-games') || '{}');
+  if (games[roomCode]) {
+    games[roomCode].lastActive = Date.now();
+    localStorage.setItem('avatar-tcg-active-games', JSON.stringify(games));
+  }
+}
+
+function removeActiveGame(roomCode) {
+  const games = JSON.parse(localStorage.getItem('avatar-tcg-active-games') || '{}');
+  delete games[roomCode];
+  localStorage.setItem('avatar-tcg-active-games', JSON.stringify(games));
+}
+
+function getActiveGames(maxAge = 24 * 60 * 60 * 1000) {  // 24 hours default
+  const games = JSON.parse(localStorage.getItem('avatar-tcg-active-games') || '{}');
+  const now = Date.now();
+  const recent = [];
+  
+  for (const [code, game] of Object.entries(games)) {
+    if (now - game.lastActive < maxAge) {
+      recent.push(game);
+    } else {
+      delete games[code];  // Clean up old games
+    }
+  }
+  
+  localStorage.setItem('avatar-tcg-active-games', JSON.stringify(games));
+  return recent.sort((a, b) => b.lastActive - a.lastActive);
+}
+
+function showRecentGamesForGuest() {
+  const recentGames = getActiveGames();
+  const listEl = document.getElementById('guest-recent-games-list');
+  if (!listEl) return;
+  
+  if (recentGames.length === 0) {
+    listEl.innerHTML = '<div style="font-size:0.75rem;color:rgba(200,160,80,0.5);text-align:center;padding:10px;">No recent games. Enter a code above.</div>';
+    return;
+  }
+  
+  listEl.innerHTML = '<div style="font-size:0.7rem;color:rgba(200,160,80,0.6);margin-bottom:8px;letter-spacing:1px;">RECENT GAMES:</div>';
+  
+  for (const game of recentGames) {
+    const btn = document.createElement('button');
+    btn.style.cssText = `
+      display:block; width:100%; background:rgba(212,168,67,0.08);
+      border:1px solid rgba(212,168,67,0.3); border-radius:6px;
+      padding:8px; margin-bottom:4px; color:var(--parchment-text);
+      font-family:'Cinzel',serif; font-size:0.75rem; cursor:pointer;
+      transition:all 0.2s; text-align:left;
+    `;
+    const timeAgo = getTimeAgo(Date.now() - game.lastActive);
+    btn.innerHTML = `<div style="font-weight:bold;">#${game.code}</div><div style="font-size:0.65rem;color:rgba(200,160,80,0.5);">Active ${timeAgo}</div>`;
+    btn.onmouseover = () => {
+      btn.style.background = 'rgba(212,168,67,0.15)';
+      btn.style.borderColor = 'var(--gold)';
+    };
+    btn.onmouseout = () => {
+      btn.style.background = 'rgba(212,168,67,0.08)';
+      btn.style.borderColor = 'rgba(212,168,67,0.3)';
+    };
+    btn.onclick = () => {
+      const codeInput = document.getElementById('guest-code-input');
+      if (codeInput) codeInput.value = game.code;
+      connectToRoom();
+    };
+    listEl.appendChild(btn);
+  }
+}
+
+function getTimeAgo(ms) {
+  const secs = Math.floor(ms / 1000);
+  const mins = Math.floor(secs / 60);
+  const hours = Math.floor(mins / 60);
+  if (secs < 60) return 'just now';
+  if (mins < 60) return mins + 'm ago';
+  if (hours < 24) return hours + 'h ago';
+  return Math.floor(hours / 24) + 'd ago';
+}
 
 const ONLINE = {
   active: false,
@@ -2822,6 +2984,10 @@ function backToModeSelect() {
   if (ONLINE.channel) {
     try { ONLINE.channel.unsubscribe(); } catch(e) {}
     ONLINE.channel = null;
+  }
+  // Remove from active games if backing out before game started
+  if (ONLINE.roomCode && !ONLINE.active) {
+    removeActiveGame(ONLINE.roomCode);
   }
   // Reset ONLINE state
   Object.assign(ONLINE, {
@@ -2872,6 +3038,7 @@ function chooseRole(role) {
   if (role === 'host') {
     ONLINE.myPlayerIdx = 0;
     ONLINE.roomCode = generateRoomCode();
+    saveActiveGame(ONLINE.roomCode, true);  // Save active game
     showLobbyPhase('host');
     const codeEl = document.getElementById('lobby-room-code');
     if (codeEl) codeEl.textContent = ONLINE.roomCode;
@@ -2881,6 +3048,7 @@ function chooseRole(role) {
   } else {
     ONLINE.myPlayerIdx = 1;
     showLobbyPhase('guest');
+    showRecentGamesForGuest();  // Show recent games to guest
   }
 }
 
@@ -2928,6 +3096,7 @@ function connectToRoom() {
     return;
   }
   ONLINE.roomCode = code;
+  saveActiveGame(code, false);  // Save as guest joining
   _setGuestConnectMsg('Connecting…', 'loading');
 
   ONLINE.supabase = initOnlineSupabase();
@@ -3242,6 +3411,7 @@ function onlineSyncState() {
   if (!ONLINE.active || !ONLINE.channel || ONLINE._applyingRemote) return;
   clearTimeout(_syncDebounce);
   _syncDebounce = setTimeout(() => {
+    updateGameActivity(ONLINE.roomCode);  // Track activity
     ONLINE.channel.send({
       type: 'broadcast',
       event: 'game_state',
