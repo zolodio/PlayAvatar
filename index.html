@@ -127,6 +127,23 @@ html,body{width:100%;height:100%;background:#0a0a0a;overflow:hidden;font-family:
 #gameover-screen h2{font-size:clamp(15px,2.5vw,30px);color:#e8d5a3}
 
 ::-webkit-scrollbar{width:3px}::-webkit-scrollbar-track{background:#1a1a1a}::-webkit-scrollbar-thumb{background:#c8a04a44}
+
+/* DECK SELECT */
+#deck-screen{background:rgba(0,0,0,0.88);flex-direction:column;gap:14px;padding:16px;overflow-y:auto}
+#deck-screen h2{color:#c8a04a;font-size:clamp(14px,2vw,26px);text-align:center}
+#deck-screen .deck-subtitle{color:#7a7a5a;font-size:clamp(9px,1vw,13px);text-align:center;margin-top:-8px}
+.deck-grid{display:flex;flex-wrap:wrap;gap:10px;justify-content:center;max-width:860px;max-height:52vh;overflow-y:auto;padding:4px}
+.deck-card{border:2px solid #c8a04a33;background:rgba(200,160,74,0.05);border-radius:10px;padding:10px 14px;cursor:pointer;text-align:center;transition:all .2s;min-width:140px;max-width:180px;flex:1}
+.deck-card:hover,.deck-card.sel{border-color:#c8a04a;background:rgba(200,160,74,0.15)}
+.deck-card.default-deck{border-color:#4a8fc855}
+.deck-card.default-deck:hover,.deck-card.default-deck.sel{border-color:#4a8fc8;background:rgba(74,143,200,0.15)}
+.deck-card h3{color:#c8a04a;font-size:clamp(10px,1.2vw,15px);margin:4px 0 3px;word-break:break-word}
+.deck-card .deck-meta{font-size:clamp(8px,0.85vw,11px);color:#7a7a5a;margin-top:3px;line-height:1.5}
+.deck-card .deck-tag{display:inline-block;padding:2px 7px;border-radius:10px;font-size:clamp(7px,0.75vw,10px);font-weight:bold;margin-top:4px}
+.deck-card .deck-tag.custom{background:rgba(200,160,74,0.2);color:#c8a04a;border:1px solid #c8a04a44}
+.deck-card .deck-tag.default{background:rgba(74,143,200,0.15);color:#4a8fc8;border:1px solid #4a8fc844}
+.deck-no-saved{color:#4a4a3a;font-size:clamp(9px,1vw,13px);text-align:center;padding:8px 16px;background:rgba(200,160,74,0.05);border:1px dashed #c8a04a33;border-radius:8px}
+.deck-warning{color:#c84a4a;font-size:clamp(8px,0.85vw,11px);margin-top:4px}
 </style>
 </head>
 <body>
@@ -152,6 +169,16 @@ html,body{width:100%;height:100%;background:#0a0a0a;overflow:hidden;font-family:
       <h2 id="char-title">Player 1 — Choose Your Character</h2>
       <div class="char-grid" id="char-grid"></div>
       <button class="btn blue" id="char-confirm" onclick="confirmChar()" disabled>Confirm ✓</button>
+    </div>
+  </div>
+
+  <!-- DECK SELECT -->
+  <div id="deck-screen" class="screen hidden">
+    <div style="display:flex;flex-direction:column;align-items:center;gap:12px;width:100%;max-width:900px">
+      <h2 id="deck-title">Player 1 — Choose Your Deck</h2>
+      <p class="deck-subtitle" id="deck-subtitle">Pick a deck from your collection, or use the default.</p>
+      <div class="deck-grid" id="deck-grid"></div>
+      <button class="btn blue" id="deck-confirm" onclick="confirmDeck()" disabled>Confirm Deck ✓</button>
     </div>
   </div>
 
@@ -353,13 +380,51 @@ function buildDeck(cid){
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=0|Math.random()*(i+1);[a[i],a[j]]=[a[j],a[i]];}return a;}
 
 // ================================================================
+// SAVED DECKS (read from Avatar TCG Database localStorage)
+// ================================================================
+const DECK_STORAGE_KEY = 'aqst_decks';
+
+function loadSavedDecks() {
+  try {
+    const raw = localStorage.getItem(DECK_STORAGE_KEY);
+    if (!raw) return [];
+    const decks = JSON.parse(raw);
+    if (!Array.isArray(decks)) return [];
+    return decks;
+  } catch(e) { return []; }
+}
+
+// Count how many cards in a saved deck are known to this game engine
+function countKnownCards(savedDeck) {
+  let total = 0;
+  for (const [id, qty] of Object.entries(savedDeck.cards || {})) {
+    if (CARDS[id]) total += qty;
+  }
+  return total;
+}
+
+// Build a playable deck array from a saved deck object
+function buildDeckFromSaved(savedDeck) {
+  const d = [];
+  for (const [id, qty] of Object.entries(savedDeck.cards || {})) {
+    if (CARDS[id]) {
+      for (let i = 0; i < qty; i++) {
+        d.push({...CARDS[id], uid: Math.random()});
+      }
+    }
+  }
+  // If nothing was usable, fall back to empty (caller will use default)
+  return shuffle(d);
+}
+
+// ================================================================
 // GAME STATE
 // ================================================================
 let G={screen:'title',selecting:0,players:[null,null],turn:0,incomingForce:4,fromSigMove:false,defenseZone:0,flippedCard:null,phase:'cleanup',log:[],round:0,winner:-1};
 
-function newPlayer(cid){
+function newPlayer(cid, customDeck) {
   const ch=CHARS[cid];
-  const deck=buildDeck(cid);
+  const deck = customDeck && customDeck.length > 0 ? customDeck : buildDeck(cid);
   const disc=deck.splice(0,4);
   const eg=deck.splice(0,3).map(c=>({...c,faceDown:true}));
   const ey=deck.splice(0,3).map(c=>({...c,faceDown:true}));
@@ -543,14 +608,21 @@ function checkWin(){
 // SCREENS
 // ================================================================
 let selChar=null;
-function toCharSelect(){G.screen = 'char';G.selecting=0;selChar=null;showCharSelect();}
+let selDeckId=null;      // id of the selected saved deck (or 'default')
+let pendingPlayers=[];   // accumulate [{ cid, customDeck }] as each player confirms
+
+function toCharSelect(){
+  G.screen='char';G.selecting=0;selChar=null;selDeckId=null;pendingPlayers=[];
+  showCharSelect();
+}
+
 function showCharSelect(){
   showOnly('char-screen');
   document.getElementById('char-title').textContent=`Player ${G.selecting+1} — Choose Your Character`;
   selChar=null;document.getElementById('char-confirm').disabled=true;
-  const taken=G.players.map(p=>p&&p.cid).filter(Boolean);
+  const taken=pendingPlayers.map(p=>p.cid);
   document.getElementById('char-grid').innerHTML=Object.values(CHARS).map(ch=>{
-    const dis=taken.includes(ch.id)&&!(G.players[G.selecting]&&G.players[G.selecting].cid===ch.id);
+    const dis=taken.includes(ch.id);
     return `<div class="char-card${dis?' disabled-card':''}" onclick="selCh('${ch.id}',${dis})">
       <div class="char-emoji">${ch.emoji}</div>
       <h3>${ch.name}</h3>
@@ -558,17 +630,109 @@ function showCharSelect(){
     </div>`;
   }).join('');
 }
+
 function selCh(id,dis){
   if(dis)return;selChar=id;
   document.querySelectorAll('.char-card').forEach(c=>c.classList.remove('sel'));
   event.currentTarget.classList.add('sel');
   document.getElementById('char-confirm').disabled=false;
 }
+
 function confirmChar(){
   if(!selChar)return;
-  G.players[G.selecting]=newPlayer(selChar);G.selecting++;
-  if(G.selecting<2){showCharSelect();}
-  else{
+  // Move to deck selection for this player
+  G.screen='deck';
+  showDeckSelect();
+}
+
+function showDeckSelect(){
+  showOnly('deck-screen');
+  const pNum=G.selecting+1;
+  const ch=CHARS[selChar];
+  document.getElementById('deck-title').textContent=`Player ${pNum} — Choose Your Deck`;
+  document.getElementById('deck-subtitle').textContent=
+    `${ch.emoji} ${ch.name} selected · Pick a deck or use the default ${ch.name} deck`;
+  selDeckId=null;
+  document.getElementById('deck-confirm').disabled=true;
+
+  const savedDecks=loadSavedDecks();
+  let html='';
+
+  // Default deck option
+  html+=`<div class="deck-card default-deck" id="dk-default" onclick="selDk('default')">
+    <div style="font-size:clamp(20px,3vw,36px)">${ch.emoji}</div>
+    <h3>Default ${ch.name} Deck</h3>
+    <div class="deck-meta">Pre-built starter deck</div>
+    <span class="deck-tag default">Built-in</span>
+  </div>`;
+
+  if(savedDecks.length===0){
+    html+=`<div class="deck-no-saved" style="width:100%;margin-top:4px">
+      No saved decks found.<br>
+      Build decks at <span style="color:#c8a04a">Avatar TCG Database</span> and they'll appear here.
+    </div>`;
+  } else {
+    savedDecks.forEach(function(deck){
+      const known=countKnownCards(deck);
+      const total=Object.values(deck.cards||{}).reduce((s,v)=>s+v,0);
+      const warn=known===0?'⚠ No playable cards':'';
+      const chamberName=deck.chamber||'';
+      html+=`<div class="deck-card${known===0?' disabled-card':''}" id="dk-${deck.id}" onclick="selDk('${deck.id}',${known===0})">
+        <div style="font-size:clamp(18px,2.5vw,30px)">🃏</div>
+        <h3>${deck.name||'Unnamed'}</h3>
+        <div class="deck-meta">
+          ${chamberName?`Chamber: ${chamberName}<br>`:''}
+          ${known}/${total} cards playable
+        </div>
+        ${warn?`<div class="deck-warning">${warn}</div>`:''}
+        <span class="deck-tag custom">My Deck</span>
+      </div>`;
+    });
+  }
+
+  document.getElementById('deck-grid').innerHTML=html;
+
+  // Auto-select if navigated from collection site with ?deck=<id>
+  try {
+    const preId = sessionStorage.getItem('aqst_preselect_deck');
+    if(preId && G.selecting===0){
+      sessionStorage.removeItem('aqst_preselect_deck');
+      const targetId = preId==='default'?'default':preId;
+      const el = document.getElementById('dk-'+targetId);
+      if(el && !el.classList.contains('disabled-card')){
+        selDk(targetId, false);
+      }
+    }
+  } catch(e){}
+}
+
+function selDk(id, disabled){
+  if(disabled)return;
+  selDeckId=id;
+  document.querySelectorAll('.deck-card').forEach(c=>c.classList.remove('sel'));
+  const el=document.getElementById('dk-'+id);
+  if(el)el.classList.add('sel');
+  document.getElementById('deck-confirm').disabled=false;
+}
+
+function confirmDeck(){
+  if(!selDeckId)return;
+  let customDeck=null;
+  if(selDeckId!=='default'){
+    const savedDecks=loadSavedDecks();
+    const found=savedDecks.find(d=>d.id===selDeckId);
+    if(found) customDeck=buildDeckFromSaved(found);
+  }
+  pendingPlayers.push({cid:selChar, customDeck:customDeck});
+  G.selecting++;
+
+  if(G.selecting<2){
+    selChar=null;selDeckId=null;
+    G.screen='char';showCharSelect();
+  } else {
+    // Both players configured — build player state and show pre-game handoff
+    G.players[0]=newPlayer(pendingPlayers[0].cid, pendingPlayers[0].customDeck);
+    G.players[1]=newPlayer(pendingPlayers[1].cid, pendingPlayers[1].customDeck);
     showOnly('handoff-screen');
     document.getElementById('ho-emoji').textContent='⚔️';
     document.getElementById('ho-title').textContent='Ready to Battle!';
@@ -584,7 +748,7 @@ function afterHandoff(){
 }
 
 function showOnly(id){
-  ['title-screen','char-screen','handoff-screen','gameover-screen'].forEach(s=>document.getElementById(s).classList.add('hidden'));
+  ['title-screen','char-screen','deck-screen','handoff-screen','gameover-screen'].forEach(s=>document.getElementById(s).classList.add('hidden'));
   document.getElementById('game-layer').classList.add('hidden');
   if(id)document.getElementById(id).classList.remove('hidden');
 }
@@ -598,6 +762,8 @@ function render(){
   if(s==='char'){
   showCharSelect();
   return;
+  }
+  if(s==='deck'){showDeckSelect();return;}
 }
   if(s==='handoff'){
     showOnly('handoff-screen');
@@ -819,100 +985,17 @@ function renderLog(){
 // ================================================================
 // BOOT
 // ================================================================
+
+// If arriving from Avatar TCG Database with ?deck=<id>, store hint
+(function checkUrlDeckParam(){
+  try {
+    const params = new URLSearchParams(window.location.search);
+    const did = params.get('deck');
+    if(did) sessionStorage.setItem('aqst_preselect_deck', did);
+  } catch(e){}
+})();
+
 render();
 </script>
-<script>/**
- * DECK ENCODE / DECODE
- * Allows importing and exporting deck codes for Avatar TCG
- * Format: AQSD1|name|chamber|cardPairs|deckSize|customSize|strength
- */
-
-function encodeDeck(deck) {
-  var cardPairs = Object.keys(deck.cards || {})
-    .map(function (n) { return n + ':' + deck.cards[n]; }).join(',');
-
-  var raw = [
-    (deck.name       || 'Unnamed').replace(/\|/g, ' '),
-    (deck.chamber    || ''),
-    cardPairs,
-    (deck.deckSize   || 'full'),
-    (deck.customSize || 60),
-    (deck.strength   || '')
-  ].join('|');
-
-  try { 
-    return 'AQSD1' + btoa(unescape(encodeURIComponent(raw))); 
-  } catch (e) { 
-    return ''; 
-  }
-}
-
-function decodeDeck(code) {
-  try {
-    code = (code || '').trim();
-    if (code.substring(0, 5) !== 'AQSD1') return null;
-
-    var raw = decodeURIComponent(escape(atob(code.substring(5))));
-    var parts = raw.split('|');
-    if (parts.length < 4) return null;
-
-    var cards = {};
-    if (parts[2]) {
-      parts[2].split(',').forEach(function (pair) {
-        var p = pair.split(':');
-        if (p.length === 2) { 
-          var q = parseInt(p[1], 10); 
-          if (q > 0) cards[p[0]] = q; 
-        }
-      });
-    }
-
-    return {
-      name:       parts[0] || 'Unnamed',
-      chamber:    parts[1] || null,
-      cards:      cards,
-      deckSize:   parts[3] || 'full',
-      customSize: parseInt(parts[4], 10) || 60,
-      strength:   parts[5] || ''
-    };
-  } catch (e) { 
-    return null; 
-  }
-}
-
-/**
- * Convert a decoded deck object to a card template array
- * @param {Object} decodedDeck - Result from decodeDeck()
- * @returns {Array} Template array compatible with buildDeck()
- */
-function deckToTemplate(decodedDeck) {
-  const template = [];
-  for (const [cardId, count] of Object.entries(decodedDeck.cards)) {
-    template.push({ id: cardId, count: count });
-  }
-  return template;
-}
-
-/**
- * Convert a template array to a deck object for encoding
- * @param {Array} template - Template array like AANG_DECK_TEMPLATE
- * @param {String} name - Deck name
- * @param {String} chamber - Chamber/character ID
- * @returns {Object} Deck object ready for encoding
- */
-function templateToDeck(template, name, chamber) {
-  const cards = {};
-  for (const entry of template) {
-    cards[entry.id] = entry.count;
-  }
-  return {
-    name: name,
-    chamber: chamber,
-    cards: cards,
-    deckSize: 'full',
-    customSize: 60,
-    strength: ''
-  };
-}</script>  
 </body>
 </html>
