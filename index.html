@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="scripts/supabase-config.js"></script>
+<script src="scripts/match-results.js"></script>
 <style>
 :root {
   --mat-parchment: #c9a96e;
@@ -2110,6 +2111,23 @@ function endGame(winnerIdx) {
   document.getElementById('winner-text').textContent = `${winner.name} WINS!`;
   document.getElementById('final-score').textContent = `Final Score: ${winner.score}–${loser.score}`;
   document.getElementById('gameover-screen').style.display = 'flex';
+  
+  // Show match results screen (TCG integration)
+  if (typeof MatchResults !== 'undefined') {
+    const matchId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    const currentPlayerIdx = ONLINE.active ? ONLINE.myPlayerIdx : 0;
+    const currentUserId = currentPlayerIdx === winnerIdx ? 'winner' : 'loser';
+    
+    MatchResults.showResult({
+      matchId: matchId,
+      winnerId: 'user_' + winnerIdx,
+      loserId: 'user_' + (1 - winnerIdx),
+      winnerUsername: winner.name,
+      loserUsername: loser.name,
+      winnerCardCount: winner.cardsPlayed || 0,
+      loserCardCount: loser.cardsPlayed || 0
+    }, currentUserId);
+  }
   
   // Clean up active game tracking when game ends
   if (ONLINE.active && ONLINE.roomCode) {
