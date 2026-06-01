@@ -643,6 +643,116 @@ body {
   font-family:'Cinzel',serif; font-size:0.7rem; letter-spacing:1px;
   color: rgba(200,160,80,0.55); padding: 6px 0; animation: pulse 1.5s infinite;
 }
+
+/* ===================== ONLINE GAME OVER SCREEN ===================== */
+.ogo-wrap {
+  min-height: 100vh;
+  display: flex; flex-direction: column; align-items: center; justify-content: flex-start;
+  padding: 24px 16px 40px;
+  font-family: 'Cinzel', serif;
+}
+.ogo-winner { background: radial-gradient(ellipse at center, #1a1000 0%, #000 100%); }
+.ogo-loser  { background: radial-gradient(ellipse at center, #0d0000 0%, #000 100%); }
+
+.ogo-hero { text-align: center; margin-bottom: 20px; position: relative; }
+.ogo-hero-badge {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: clamp(2rem, 7vw, 4rem);
+  letter-spacing: 6px;
+  line-height: 1.1;
+  margin-bottom: 8px;
+}
+.ogo-winner .ogo-hero-badge { color: var(--gold); text-shadow: 0 0 60px rgba(212,168,67,0.9), 0 0 120px rgba(212,168,67,0.4); }
+.ogo-loser  .ogo-hero-badge { color: #884444; text-shadow: 0 0 40px rgba(136,68,68,0.6); }
+
+.ogo-subtitle {
+  font-family: 'Crimson Pro', serif; font-size: 1.1rem; letter-spacing: 3px;
+  color: var(--mat-parchment); opacity: 0.8;
+}
+.ogo-score-line {
+  font-family: 'Cinzel', serif; font-size: 1.4rem; letter-spacing: 4px;
+  color: var(--gold); margin-top: 8px;
+}
+.ogo-char-name {
+  font-family: 'Cinzel', serif; font-size: 0.85rem; letter-spacing: 3px;
+  color: var(--mat-parchment); margin-top: 4px; opacity: 0.7;
+}
+
+/* Confetti canvas */
+#ogo-confetti { position: fixed; inset: 0; pointer-events: none; z-index: 1201; }
+
+/* Stats grid */
+.ogo-stats-grid {
+  display: grid; grid-template-columns: repeat(3, 1fr);
+  gap: 10px; width: 100%; max-width: 560px; margin-bottom: 20px;
+}
+.ogo-stat-card {
+  background: rgba(255,255,255,0.04); border: 1px solid rgba(212,168,67,0.2);
+  border-radius: 10px; padding: 12px 8px; text-align: center;
+}
+.ogo-stat-label {
+  font-size: 0.5rem; letter-spacing: 2px; color: rgba(200,160,80,0.55);
+  text-transform: uppercase; margin-bottom: 4px;
+}
+.ogo-stat-value {
+  font-family: 'Cinzel Decorative', serif; font-size: 1.4rem;
+  color: var(--gold); line-height: 1;
+}
+.ogo-stat-sub { font-size: 0.5rem; color: rgba(200,160,80,0.45); margin-top: 3px; letter-spacing: 1px; }
+
+/* Charts */
+.ogo-charts { width: 100%; max-width: 560px; display: flex; flex-direction: column; gap: 14px; margin-bottom: 20px; }
+.ogo-chart-block {
+  background: rgba(255,255,255,0.03); border: 1px solid rgba(212,168,67,0.15);
+  border-radius: 10px; padding: 14px 16px;
+}
+.ogo-chart-title { font-size: 0.55rem; letter-spacing: 2px; color: rgba(200,160,80,0.6); margin-bottom: 10px; }
+.ogo-bar-chart { display: flex; align-items: flex-end; gap: 3px; height: 60px; }
+.ogo-bar {
+  flex: 1; border-radius: 3px 3px 0 0; min-height: 4px;
+  transition: height 0.6s ease; position: relative;
+}
+.ogo-bar-label { 
+  position: absolute; bottom: -14px; left: 50%; transform: translateX(-50%);
+  font-size: 0.38rem; color: rgba(200,160,80,0.5); white-space: nowrap;
+}
+.ogo-bar-val {
+  position: absolute; top: -14px; left: 50%; transform: translateX(-50%);
+  font-size: 0.4rem; color: rgba(255,255,255,0.7); white-space: nowrap;
+}
+.ogo-donut-row { display: flex; align-items: center; gap: 16px; }
+.ogo-donut-wrap { position: relative; flex-shrink: 0; }
+.ogo-donut-center {
+  position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center;
+  font-size: 0.45rem; color: var(--mat-parchment); text-align: center; line-height: 1.4;
+}
+.ogo-legend { display: flex; flex-direction: column; gap: 6px; flex: 1; }
+.ogo-legend-item { display: flex; align-items: center; gap: 8px; }
+.ogo-legend-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.ogo-legend-label { font-size: 0.55rem; color: var(--mat-parchment); }
+.ogo-legend-count { margin-left: auto; font-size: 0.55rem; color: var(--gold); }
+
+/* Claim button */
+.ogo-claim-btn {
+  background: linear-gradient(135deg, #8b6914, #d4a843, #8b6914);
+  border: none; border-radius: 10px; padding: 16px 48px;
+  font-family: 'Cinzel', serif; font-size: 1rem; letter-spacing: 3px;
+  color: #1a0d00; cursor: pointer; margin-top: 10px;
+  box-shadow: 0 4px 24px rgba(212,168,67,0.5);
+  transition: all 0.2s;
+}
+.ogo-claim-btn:hover { transform: translateY(-2px); box-shadow: 0 8px 36px rgba(212,168,67,0.7); }
+.ogo-loser .ogo-claim-btn {
+  background: linear-gradient(135deg, #3a1a1a, #6b2e2e);
+  color: var(--mat-parchment); box-shadow: 0 4px 20px rgba(100,40,40,0.4);
+}
+.ogo-loser .ogo-claim-btn:hover { box-shadow: 0 8px 30px rgba(120,50,50,0.6); }
+
+.ogo-divider {
+  width: 100%; max-width: 560px; border: none;
+  border-top: 1px solid rgba(212,168,67,0.15); margin: 4px 0;
+}
 </style>
 </head>
 <body>
@@ -831,13 +941,16 @@ body {
   <button class="pass-btn" onclick="dismissPass()">I AM READY</button>
 </div>
 
-<!-- ===== GAME OVER ===== -->
+<!-- ===== GAME OVER (LOCAL / fallback) ===== -->
 <div id="gameover-screen">
   <h1>⚡ VICTORY ⚡</h1>
   <h2 id="winner-text">Player 1 Wins!</h2>
   <p id="final-score" style="color:var(--mat-parchment);font-size:1rem;"></p>
   <button class="play-again-btn" onclick="location.reload()">PLAY AGAIN</button>
 </div>
+
+<!-- ===== ONLINE GAME OVER ===== -->
+<div id="online-gameover-screen" style="display:none;position:fixed;inset:0;z-index:1200;overflow-y:auto;"></div>
 
 <!-- ===== MAIN GAME ===== -->
 <div id="game-layout">
@@ -1422,6 +1535,20 @@ function makePlayer(pIdx, charId, template, pKey) {
     score: 0,
     currentStrike: null,
     currentStrikeZone: null,
+    stats: {
+      cardsPlayed: 0,
+      strikesPlayed: 0,
+      alliesPlayed: 0,
+      advantagesPlayed: 0,
+      sigMovesPlayed: 0,
+      totalForce: 0,
+      totalIntercept: 0,
+      totalEnergy: 0,
+      forceHistory: [],
+      interceptHistory: [],
+      energyHistory: [],
+      cardTypes: { strike: 0, ally: 0, advantage: 0, signature: 0 },
+    },
   };
 }
 
@@ -1620,6 +1747,17 @@ function afterSigPayment(sig) {
   p.currentStrike = sig;
   p.currentStrikeZone = 'signature';
   addLog(`${p.name} plays signature move: ${sig.name} (Force ${sig.for})!`);
+  // Track stats
+  const sigCost = sig.g + sig.y + sig.r;
+  p.stats.cardsPlayed++;
+  p.stats.sigMovesPlayed++;
+  p.stats.cardTypes.signature++;
+  p.stats.totalForce += sig.for;
+  p.stats.totalIntercept += (sig.int || 0);
+  p.stats.totalEnergy += sigCost;
+  p.stats.forceHistory.push(sig.for);
+  p.stats.interceptHistory.push(sig.int || 0);
+  p.stats.energyHistory.push(sigCost);
   applySigEffect(sig, p);
   G.incomingForce = sig.for;
   endDefenderTurn();
@@ -1802,6 +1940,19 @@ function afterStrikePayment(card, zoneName) {
   p.currentStrike = card;
   p.currentStrikeZone = zoneName;
   G.incomingForce = effectiveForce;
+
+  // Track stats
+  const energyCost = card.g + card.y + card.r;
+  p.stats.cardsPlayed++;
+  p.stats.strikesPlayed++;
+  p.stats.cardTypes.strike++;
+  p.stats.totalForce += effectiveForce;
+  p.stats.totalIntercept += (card.int || 0);
+  p.stats.totalEnergy += energyCost;
+  p.stats.forceHistory.push(effectiveForce);
+  p.stats.interceptHistory.push(card.int || 0);
+  p.stats.energyHistory.push(energyCost);
+
   endDefenderTurn();
 }
 
@@ -1862,6 +2013,13 @@ function afterAllyPayment(card, zoneName) {
   zone.flipCard = null;
   zone.ally = card;
   addLog(`${p.name} plays ally ${card.name} in ${zoneName} zone!`);
+  // Track stats
+  const allyCost = card.g + card.y + card.r;
+  p.stats.cardsPlayed++;
+  p.stats.alliesPlayed++;
+  p.stats.cardTypes.ally++;
+  p.stats.totalEnergy += allyCost;
+  p.stats.energyHistory.push(allyCost);
   G.step = 'FLIP';
   renderAll();
 }
@@ -1881,6 +2039,13 @@ function afterAdvantagePayment(card, zoneName) {
     zone.charged = true;
     addLog(`${p.name}'s ${zoneName} zone charged!`);
   }
+  // Track stats
+  const advCost = card.g + card.y + card.r;
+  p.stats.cardsPlayed++;
+  p.stats.advantagesPlayed++;
+  p.stats.cardTypes.advantage++;
+  p.stats.totalEnergy += advCost;
+  p.stats.energyHistory.push(advCost);
   if (card.immediate) {
     applyImmediateEffect(card, p, zoneName);
     p.discard.push(card);
@@ -2108,32 +2273,239 @@ function dismissPass() {
 function endGame(winnerIdx) {
   const winner = G.players[winnerIdx];
   const loser  = G.players[1 - winnerIdx];
-  document.getElementById('winner-text').textContent = `${winner.name} WINS!`;
-  document.getElementById('final-score').textContent = `Final Score: ${winner.score}–${loser.score}`;
-  document.getElementById('gameover-screen').style.display = 'flex';
-  
-  // Show match results screen (TCG integration)
-  if (typeof MatchResults !== 'undefined') {
-    const matchId = 'game_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
-    const currentPlayerIdx = ONLINE.active ? ONLINE.myPlayerIdx : 0;
-    const currentUserId = currentPlayerIdx === winnerIdx ? 'winner' : 'loser';
-    
-    MatchResults.showResult({
-      matchId: matchId,
-      winnerId: 'user_' + winnerIdx,
-      loserId: 'user_' + (1 - winnerIdx),
-      winnerUsername: winner.name,
-      loserUsername: loser.name,
-      winnerCardCount: winner.cardsPlayed || 0,
-      loserCardCount: loser.cardsPlayed || 0
-    }, currentUserId);
-  }
-  
+
   // Clean up active game tracking when game ends
   if (ONLINE.active && ONLINE.roomCode) {
     removeActiveGame(ONLINE.roomCode);
   }
+
+  // Online mode: show rich per-player results screen
+  if (ONLINE.active) {
+    const myIdx = ONLINE.myPlayerIdx;
+    const iWon = (myIdx === winnerIdx);
+    _showOnlineGameOver(winnerIdx, myIdx, iWon);
+    // Also broadcast game_over event so both sides show the screen
+    if (ONLINE.channel) {
+      ONLINE.channel.send({
+        type: 'broadcast',
+        event: 'game_over',
+        payload: { winnerIdx, gameState: JSON.parse(JSON.stringify(G)) }
+      });
+    }
+    return;
+  }
+
+  // Local mode: simple screen
+  document.getElementById('winner-text').textContent = `${winner.name} WINS!`;
+  document.getElementById('final-score').textContent = `Final Score: ${winner.score}\u2013${loser.score}`;
+  document.getElementById('gameover-screen').style.display = 'flex';
 }
+
+// Called on game_over broadcast for the non-triggering player
+function _receiveGameOver(payload) {
+  if (!ONLINE.active) return;
+  G = payload.gameState;
+  const myIdx = ONLINE.myPlayerIdx;
+  const iWon = (myIdx === payload.winnerIdx);
+  _showOnlineGameOver(payload.winnerIdx, myIdx, iWon);
+}
+
+function _showOnlineGameOver(winnerIdx, myIdx, iWon) {
+  const me = G.players[myIdx];
+  const opponent = G.players[1 - myIdx];
+  const winner = G.players[winnerIdx];
+  const loser  = G.players[1 - winnerIdx];
+
+  const screen = document.getElementById('online-gameover-screen');
+  const wrap = document.createElement('div');
+  wrap.className = 'ogo-wrap ' + (iWon ? 'ogo-winner' : 'ogo-loser');
+
+  const myStats   = me.stats || {};
+  const oppStats  = opponent.stats || {};
+
+  function avg(arr) { return arr && arr.length ? (arr.reduce((a,b)=>a+b,0)/arr.length).toFixed(1) : '0'; }
+  function safeNum(n) { return (n || 0); }
+
+  // Hero section
+  const heroHTML = iWon ? `
+    <div class="ogo-hero">
+      <div class="ogo-hero-badge">VICTORY</div>
+      <div class="ogo-subtitle">${me.name}</div>
+      <div class="ogo-score-line">${winner.score} \u2013 ${loser.score}</div>
+      <div class="ogo-char-name">${(me.chamber && me.chamber.name) || ''}</div>
+    </div>` : `
+    <div class="ogo-hero">
+      <div class="ogo-hero-badge" style="color:#884444;">DEFEAT</div>
+      <div class="ogo-subtitle">${me.name}</div>
+      <div class="ogo-score-line">${loser.score} \u2013 ${winner.score}</div>
+      <div class="ogo-char-name">${(me.chamber && me.chamber.name) || ''}</div>
+    </div>`;
+
+  // Stat cards
+  const statsHTML = `
+    <div class="ogo-stats-grid">
+      <div class="ogo-stat-card">
+        <div class="ogo-stat-label">Cards Played</div>
+        <div class="ogo-stat-value">${safeNum(myStats.cardsPlayed)}</div>
+        <div class="ogo-stat-sub">opp: ${safeNum(oppStats.cardsPlayed)}</div>
+      </div>
+      <div class="ogo-stat-card">
+        <div class="ogo-stat-label">Strikes Thrown</div>
+        <div class="ogo-stat-value">${safeNum(myStats.strikesPlayed)}</div>
+        <div class="ogo-stat-sub">opp: ${safeNum(oppStats.strikesPlayed)}</div>
+      </div>
+      <div class="ogo-stat-card">
+        <div class="ogo-stat-label">Sig Moves</div>
+        <div class="ogo-stat-value">${safeNum(myStats.sigMovesPlayed)}</div>
+        <div class="ogo-stat-sub">opp: ${safeNum(oppStats.sigMovesPlayed)}</div>
+      </div>
+      <div class="ogo-stat-card">
+        <div class="ogo-stat-label">Avg Force</div>
+        <div class="ogo-stat-value">${avg(myStats.forceHistory)}</div>
+        <div class="ogo-stat-sub">opp: ${avg(oppStats.forceHistory)}</div>
+      </div>
+      <div class="ogo-stat-card">
+        <div class="ogo-stat-label">Avg Intercept</div>
+        <div class="ogo-stat-value">${avg(myStats.interceptHistory)}</div>
+        <div class="ogo-stat-sub">opp: ${avg(oppStats.interceptHistory)}</div>
+      </div>
+      <div class="ogo-stat-card">
+        <div class="ogo-stat-label">Avg Energy</div>
+        <div class="ogo-stat-value">${avg(myStats.energyHistory)}</div>
+        <div class="ogo-stat-sub">opp: ${avg(oppStats.energyHistory)}</div>
+      </div>
+    </div>`;
+
+  // Bar chart: Force history (up to last 10 strikes)
+  const forceArr = (myStats.forceHistory || []).slice(-10);
+  const maxForce = Math.max(...forceArr, 1);
+  const forceBars = forceArr.length ? forceArr.map((v,i) => `
+    <div class="ogo-bar" style="background:linear-gradient(to top,#8b6914,#d4a843);height:${Math.max(8, (v/maxForce)*56)}px;">
+      <div class="ogo-bar-val">${v}</div>
+    </div>`).join('') : '<div style="color:rgba(200,160,80,0.4);font-size:0.6rem;padding:10px;">No strikes recorded</div>';
+
+  // Donut chart: card types
+  const types = myStats.cardTypes || {};
+  const total  = (types.strike||0)+(types.ally||0)+(types.advantage||0)+(types.signature||0) || 1;
+  const donutData = [
+    { label:'Strikes', count: types.strike||0, color:'#d4a843' },
+    { label:'Signature', count: types.signature||0, color:'#ff9040' },
+    { label:'Allies',  count: types.ally||0,   color:'#9060d0' },
+    { label:'Advantages', count: types.advantage||0, color:'#4090c0' },
+  ].filter(d => d.count > 0);
+
+  // SVG donut
+  let donutSvg = '';
+  if (donutData.length > 0) {
+    let offset = -0.25;
+    const cx=52, cy=52, r=38, stroke=14;
+    const circumference = 2 * Math.PI * r;
+    let paths = donutData.map(d => {
+      const pct = d.count / total;
+      const dash = circumference * pct;
+      const gap  = circumference * (1-pct);
+      const rotDeg = offset * 360;
+      const path = `<circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="${d.color}" stroke-width="${stroke}"
+        stroke-dasharray="${dash} ${gap}" stroke-dashoffset="${-offset * circumference}"
+        transform="rotate(-90 ${cx} ${cy})" opacity="0.9"/>`;
+      offset += pct;
+      return path;
+    }).join('');
+    donutSvg = `<svg width="104" height="104" viewBox="0 0 104 104">${paths}</svg>`;
+  } else {
+    donutSvg = `<svg width="104" height="104" viewBox="0 0 104 104">
+      <circle cx="52" cy="52" r="38" fill="none" stroke="rgba(212,168,67,0.15)" stroke-width="14"/>
+    </svg>`;
+  }
+
+  const legendItems = [
+    { label:'Strikes', count: types.strike||0, color:'#d4a843' },
+    { label:'Signature', count: types.signature||0, color:'#ff9040' },
+    { label:'Allies', count: types.ally||0, color:'#9060d0' },
+    { label:'Advantages', count: types.advantage||0, color:'#4090c0' },
+  ].map(d => `<div class="ogo-legend-item">
+    <div class="ogo-legend-dot" style="background:${d.color}"></div>
+    <span class="ogo-legend-label">${d.label}</span>
+    <span class="ogo-legend-count">${d.count}</span>
+  </div>`).join('');
+
+  const chartsHTML = `
+    <div class="ogo-charts">
+      <div class="ogo-chart-block">
+        <div class="ogo-chart-title">YOUR FORCE PER STRIKE (LAST 10)</div>
+        <div class="ogo-bar-chart" style="padding-bottom:16px;">
+          ${forceBars}
+        </div>
+      </div>
+      <div class="ogo-chart-block">
+        <div class="ogo-chart-title">CARDS PLAYED BY TYPE</div>
+        <div class="ogo-donut-row">
+          <div class="ogo-donut-wrap">
+            ${donutSvg}
+            <div class="ogo-donut-center">${safeNum(myStats.cardsPlayed)}<br>total</div>
+          </div>
+          <div class="ogo-legend">${legendItems}</div>
+        </div>
+      </div>
+    </div>`;
+
+  const claimLabel = iWon ? '🏆 CLAIM REWARDS' : '🎖 CLAIM REWARDS';
+
+  wrap.innerHTML = heroHTML + `<hr class="ogo-divider">` + statsHTML + chartsHTML +
+    `<button class="ogo-claim-btn" onclick="void(0)">${claimLabel}</button>`;
+
+  screen.innerHTML = '';
+  screen.appendChild(wrap);
+  screen.style.display = 'block';
+
+  // Confetti for winner
+  if (iWon) {
+    _startConfetti();
+  }
+}
+
+function _startConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.id = 'ogo-confetti';
+  document.body.appendChild(canvas);
+  const ctx = canvas.getContext('2d');
+  canvas.width = window.innerWidth;
+  canvas.height = window.innerHeight;
+
+  const colors = ['#d4a843','#f0d080','#ff9040','#ffffff','#b8a060'];
+  const pieces = Array.from({length:120}, () => ({
+    x: Math.random() * canvas.width,
+    y: Math.random() * -canvas.height,
+    w: 8 + Math.random()*8, h: 4+Math.random()*4,
+    color: colors[Math.floor(Math.random()*colors.length)],
+    rot: Math.random()*Math.PI*2,
+    vx: (Math.random()-0.5)*2,
+    vy: 2+Math.random()*3,
+    vr: (Math.random()-0.5)*0.15,
+    alpha: 0.8+Math.random()*0.2,
+  }));
+
+  let frame = 0;
+  function tick() {
+    ctx.clearRect(0,0,canvas.width,canvas.height);
+    for (const p of pieces) {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr;
+      if (p.y > canvas.height) { p.y = -20; p.x = Math.random()*canvas.width; }
+      ctx.save();
+      ctx.globalAlpha = p.alpha;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w/2,-p.h/2,p.w,p.h);
+      ctx.restore();
+    }
+    frame++;
+    if (frame < 300) requestAnimationFrame(tick);
+    else { canvas.style.transition='opacity 1s'; canvas.style.opacity='0'; setTimeout(()=>canvas.remove(),1000); }
+  }
+  requestAnimationFrame(tick);
+}
+
 
 // ============================================================
 // ENERGY SYSTEM
@@ -3101,6 +3473,9 @@ function _setupHostChannel() {
       // Guest sent a game state update (guest's turn)
       if (payload) _receiveGameState(payload);
     })
+    .on('broadcast', { event: 'game_over' }, ({ payload }) => {
+      if (payload) _receiveGameOver(payload);
+    })
     .subscribe();
 }
 
@@ -3144,6 +3519,9 @@ function connectToRoom() {
     .on('broadcast', { event: 'game_state' }, ({ payload }) => {
       // Host sent a game state update (host's turn)
       if (payload) _receiveGameState(payload);
+    })
+    .on('broadcast', { event: 'game_over' }, ({ payload }) => {
+      if (payload) _receiveGameOver(payload);
     })
     .subscribe((status) => {
       if (status === 'SUBSCRIBED') {
