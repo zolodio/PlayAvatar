@@ -2449,10 +2449,20 @@ function _showOnlineGameOver(winnerIdx, myIdx, iWon) {
       </div>
     </div>`;
 
-  const claimLabel = iWon ? '🏆 CLAIM REWARDS' : '🎖 CLAIM REWARDS';
+  // Pre-generate the URL so the button is ready instantly
+  const packUrl = iWon ? _generateBattlePackUrl(true) : _generateLoserRewardUrl();
+
+  const claimLabel = iWon
+    ? '<span style="font-size:1.1em">\u{1F3C6}</span> CLAIM VICTORY PACK'
+    : '<span style="font-size:1.1em">\u{1F396}</span> CLAIM PARTICIPATION CARD';
+
+  const claimNote = iWon
+    ? '<div style="font-family:\'Crimson Pro\',serif;font-size:0.72rem;color:rgba(200,160,80,0.55);margin-top:8px;letter-spacing:1px;">A special booster pack earned in online battle</div>'
+    : '<div style="font-family:\'Crimson Pro\',serif;font-size:0.72rem;color:rgba(160,130,90,0.5);margin-top:8px;letter-spacing:1px;">A digital card reward for participating in an online battle — open the database site to claim it</div>';
 
   wrap.innerHTML = heroHTML + `<hr class="ogo-divider">` + statsHTML + chartsHTML +
-    `<button class="ogo-claim-btn" onclick="void(0)">${claimLabel}</button>`;
+    `<button class="ogo-claim-btn" onclick="window.open(${JSON.stringify(packUrl)}, '_blank')">${claimLabel}</button>` +
+    claimNote;
 
   screen.innerHTML = '';
   screen.appendChild(wrap);
@@ -2462,6 +2472,85 @@ function _showOnlineGameOver(winnerIdx, myIdx, iWon) {
   if (iWon) {
     _startConfetti();
   }
+}
+
+// ── Pack generation helpers (mirrors booster site AQS4 encoding) ──────────
+
+function _boosterChecksum(str) {
+  let h = 5381;
+  for (let i = 0; i < str.length; i++) {
+    h = ((h << 5) + h) + str.charCodeAt(i);
+    h = h & h;
+  }
+  return Math.abs(h).toString(36);
+}
+
+function _boosterUUID() {
+  return 'xxxxxxxx-4xxx-yxxx-xxxx'.replace(/[xy]/g, c => {
+    const r = Math.random() * 16 | 0;
+    return (c === 'x' ? r : (r & 0x3 | 0x8)).toString(16);
+  });
+}
+
+function _encAQS4(packId, packTypeId, cardNumbers, src) {
+  const t = Date.now();
+  const cksrc = packId + '|' + cardNumbers.join(',') + '|' + t;
+  const payload = { v: 1, id: packId, p: packTypeId, c: cardNumbers, src, t, ck: _boosterChecksum(cksrc) };
+  try { return 'AQS4' + btoa(unescape(encodeURIComponent(JSON.stringify(payload)))); }
+  catch(e) { return null; }
+}
+
+function _pickBattleCards(iWon) {
+  const all = Object.values(CARD_DB);
+  const byRarity = r => all.filter(c => {
+    const n = parseInt(c.id, 10);
+    return n >= 1 && n <= 175 && (c.rarity || '').toLowerCase() === r;
+  });
+  const chambers = all.filter(c => {
+    const n = parseInt(c.id, 10);
+    return c.type === 'chamber' && n >= 176 && n <= 235;
+  });
+  const pick = arr => arr.length ? arr[Math.floor(Math.random() * arr.length)] : null;
+
+  const cards = [];
+  for (let i = 0; i < 5; i++) { const c = pick(byRarity('common'));    if (c) cards.push(c); }
+  for (let i = 0; i < 3; i++) { const c = pick(byRarity('uncommon'));  if (c) cards.push(c); }
+  // Winners get a 25% zenemental chance; losers get 17%
+  const zenChance = iWon ? 0.17 : 0.17;
+  const zens = byRarity('zenemental');
+  const useZen = Math.random() < zenChance && zens.length > 0;
+  const rare = useZen ? pick(zens) : pick(byRarity('rare'));
+  if (rare) cards.push(rare);
+  const ch = pick(chambers);
+  if (ch) cards.push(ch);
+  return cards.filter(Boolean);
+}
+
+function _generateBattlePackUrl(iWon) {
+  const BOOSTER = 'https://zolodio.github.io/Booster/';
+  if (!CARD_DB || Object.keys(CARD_DB).length === 0) return BOOSTER;
+
+  const src = iWon ? 'game_win' : 'gift';
+  const cards = _pickBattleCards(iWon);
+  if (cards.length < 8) return BOOSTER;
+
+  const packId = _boosterUUID();
+  const nums = cards.map(c => c.id);
+  const code = _encAQS4(packId, 'BSTR001', nums, src);
+  return code ? BOOSTER + '#' + code : BOOSTER;
+}
+
+function _generateLoserRewardUrl() {
+  const DATABASE_SITE = 'https://zolodio.github.io/Avatar-TCG-Database/';
+  if (!CARD_DB || Object.keys(CARD_DB).length === 0) return DATABASE_SITE;
+  // Pick a random common card from the main set (IDs 1–175)
+  const commons = Object.values(CARD_DB).filter(c => {
+    const n = parseInt(c.id, 10);
+    return !isNaN(n) && n >= 1 && n <= 175 && (c.rarity || '').toLowerCase() === 'common';
+  });
+  if (commons.length === 0) return DATABASE_SITE;
+  const card = commons[Math.floor(Math.random() * commons.length)];
+  return DATABASE_SITE + '#loser-reward=' + card.id;
 }
 
 function _startConfetti() {
