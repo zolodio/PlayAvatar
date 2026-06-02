@@ -823,7 +823,7 @@ body {
       <div class="online-setup-title">YOUR SETUP — HOST (PLAYER 1)</div>
       <div id="online-host-char-area" style="margin-bottom:10px;"></div>
       <div class="deck-picker-section">
-        <span class="deck-picker-label">DECK</span>
+        <span class="deck-picker-label">DECK (DIGITAL ONLY)</span>
         <select class="deck-picker-select" id="online-host-deck-select" onchange="onOnlineDeckPick(this.value,'host')">
           <option value="">Default Deck</option>
         </select>
@@ -871,7 +871,7 @@ body {
         <div class="online-setup-title">YOUR SETUP — GUEST (PLAYER 2)</div>
         <div id="online-guest-char-area" style="margin-bottom:10px;"></div>
         <div class="deck-picker-section">
-          <span class="deck-picker-label">DECK</span>
+          <span class="deck-picker-label">DECK (DIGITAL ONLY)</span>
           <select class="deck-picker-select" id="online-guest-deck-select" onchange="onOnlineDeckPick(this.value,'guest')">
             <option value="">Default Deck</option>
           </select>
@@ -908,7 +908,7 @@ body {
         <div style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);text-align:center;padding:10px;">Loading characters…</div>
       </div>
       <div class="deck-picker-section">
-        <span class="deck-picker-label">DECK</span>
+        <span class="deck-picker-label">DECK (PHYSICAL OR DIGITAL)</span>
         <select class="deck-picker-select" id="p1-deck-select" onchange="onDeckPick(1,this.value)">
           <option value="">Default Deck</option>
         </select>
@@ -922,7 +922,7 @@ body {
         <div style="font-family:'Cinzel',serif;font-size:0.65rem;color:rgba(200,160,80,0.5);text-align:center;padding:10px;">Loading characters…</div>
       </div>
       <div class="deck-picker-section">
-        <span class="deck-picker-label">DECK</span>
+        <span class="deck-picker-label">DECK (PHYSICAL OR DIGITAL)</span>
         <select class="deck-picker-select" id="p2-deck-select" onchange="onDeckPick(2,this.value)">
           <option value="">Default Deck</option>
         </select>
@@ -3131,11 +3131,13 @@ function _inferCharFromChamber(chamberId) {
 
 // Read all saved decks from localStorage, normalize to internal format:
 // { id, name, charId ('aang'|'zuko'|null), template [{id,count}] }
-function _loadAllSavedDecks() {
-  const result = [];
+// deckType: 'all' | 'digital' | 'physical'
+// mode: 'all' = all three types (local play), 'digital' = digital only (online play)
+function _loadAllSavedDecks(mode = 'all') {
+  const physical = [];
+  const digital  = [];
 
-  // ── Format 1: aqst_decks (deck-builder.js) ──────────────
-  // { id, name, chamber, cards: { cardNum: qty }, ... }
+  // ── Physical decks: aqst_decks (local deck-builder) ──────────────────────
   try {
     const raw = localStorage.getItem('aqst_decks');
     if (raw) {
@@ -3146,19 +3148,19 @@ function _loadAllSavedDecks() {
           const template = Object.entries(d.cards)
             .map(([id, count]) => ({ id: String(id), count: Number(count) }))
             .filter(e => e.count > 0);
-          result.push({
-            id: String(d.id || 'aqst_' + result.length),
+          physical.push({
+            id: String(d.id || 'aqst_' + physical.length),
             name: d.name || 'Unnamed',
             charId: _inferCharFromChamber(d.chamber),
             template,
+            deckType: 'physical',
           });
         });
       }
     }
   } catch(e) { console.warn('[DeckPicker] aqst_decks read error:', e); }
 
-  // ── Format 2: avatar-tcg-decks (deck-sync.js) ───────────
-  // { id, name, characterId, code: 'AQSD1...' }
+  // ── Digital decks: avatar-tcg-decks (database site / AQSD1 encoded) ──────
   try {
     const raw = localStorage.getItem('avatar-tcg-decks');
     if (raw) {
@@ -3171,26 +3173,69 @@ function _loadAllSavedDecks() {
           const template = Object.entries(decoded.cards)
             .map(([id, count]) => ({ id: String(id), count: Number(count) }))
             .filter(e => e.count > 0);
-          // characterId may be a charId string directly, or a chamber card number
           let charId = null;
           if (d.characterId && typeof d.characterId === 'string' && CHAMBERS[d.characterId]) {
             charId = d.characterId;
           } else {
             charId = _inferCharFromChamber(d.characterId) || _inferCharFromChamber(decoded.chamber);
           }
-          result.push({
-            id: String(d.id || 'sync_' + result.length),
+          digital.push({
+            id: String(d.id || 'sync_' + digital.length),
             name: d.name || decoded.name || 'Unnamed',
             charId,
             template,
+            deckType: 'digital',
           });
         });
       }
     }
   } catch(e) { console.warn('[DeckPicker] avatar-tcg-decks read error:', e); }
 
-  return result;
+  if (mode === 'digital') return digital;
+  if (mode === 'physical') return physical;
+  // mode === 'all': return all saved decks (physical + digital); 'All Cards' is handled separately
+  return [...physical, ...digital];
 }
+
+// Pre-built starter decks for online play (digital mode fallback)
+// Aang chamber #176 (traits: fox, spirit, light, air) + compatible common strikes
+// Zuko chamber #206 (traits: bull, spirit, shadow, fire) + compatible common strikes
+const STARTER_DECKS = [
+  {
+    id: 'starter_aang_176',
+    name: 'Aang Starter',
+    charId: 'aang',
+    deckType: 'digital',
+    isStarter: true,
+    template: [
+      { id: '22', count: 4 }, // Breath of the Dragon
+      { id: '26', count: 4 }, // Frost Daggers
+      { id: '31', count: 4 }, // Howling Wind
+      { id: '35', count: 4 }, // Swirling Flames
+      { id: '36', count: 4 }, // Teeth of the Dragon
+      { id: '38', count: 4 }, // Tongue of the Dragon
+      { id: '40', count: 4 }, // Wind on the Waves
+      { id: '176', count: 1 }, // Aang Chamber
+    ],
+  },
+  {
+    id: 'starter_zuko_206',
+    name: 'Prince Zuko Starter',
+    charId: 'prince_zuko',
+    deckType: 'digital',
+    isStarter: true,
+    template: [
+      { id: '1', count: 4 }, // Blazing Axe Kick
+      { id: '2', count: 4 }, // Boiling Point
+      { id: '4', count: 4 }, // Burning Disc
+      { id: '6', count: 4 }, // Doublefoot Dropkick
+      { id: '7', count: 4 }, // Eye of Ozai
+      { id: '8', count: 4 }, // Fetch!
+      { id: '9', count: 4 }, // Flare
+      { id: '206', count: 1 }, // Prince Zuko Chamber
+    ],
+  },
+];
 
 // Count how many cards in a template are present in the loaded CARD_DB
 function _countKnownCards(template) {
@@ -3220,9 +3265,10 @@ function populateDeckPickers() {
         const charLabel = deck.charId
           ? ' · ' + deck.charId.charAt(0).toUpperCase() + deck.charId.slice(1)
           : '';
+        const typeTag = deck.isDigital ? ' [Digital]' : ' [Physical]';
         const opt = document.createElement('option');
         opt.value = deck.id;
-        opt.textContent = deck.name + charLabel + '  (' + known + '/' + total + ' cards)';
+        opt.textContent = deck.name + charLabel + typeTag + '  (' + known + '/' + total + ' cards)';
         opt.disabled = known === 0;
         sel.appendChild(opt);
       });
@@ -3673,25 +3719,69 @@ function _populateOnlineDeckPicker(role) {
   const sel    = document.getElementById(selId);
   if (!sel) return;
 
-  const decks = _loadAllSavedDecks();
+  // Built-in starter decks always available for online play
+  const ONLINE_STARTER_DECKS = [
+    {
+      id: 'starter_aang_176',
+      name: 'Aang Starter',
+      charId: 'aang',
+      isDigital: true,
+      isStarter: true,
+      chamberId: '176',
+      template: [
+        { id: '22', count: 4 },
+        { id: '26', count: 4 },
+        { id: '31', count: 5 },
+        { id: '35', count: 4 },
+        { id: '36', count: 4 },
+        { id: '38', count: 5 },
+        { id: '40', count: 4 },
+        { id: '176', count: 1 },
+      ],
+    },
+    {
+      id: 'starter_zuko_206',
+      name: 'Prince Zuko Starter',
+      charId: 'prince_zuko',
+      isDigital: true,
+      isStarter: true,
+      chamberId: '206',
+      template: [
+        { id: '1',  count: 4 },
+        { id: '2',  count: 4 },
+        { id: '4',  count: 5 },
+        { id: '6',  count: 4 },
+        { id: '7',  count: 4 },
+        { id: '8',  count: 5 },
+        { id: '9',  count: 4 },
+        { id: '206', count: 1 },
+      ],
+    },
+  ];
+
+  const savedDecks = _loadAllSavedDecks(true); // online: digital decks only
+  const decks = [...ONLINE_STARTER_DECKS, ...savedDecks];
   while (sel.options.length > 1) sel.remove(1);
 
-  if (decks.length === 0) {
-    const opt = document.createElement('option');
-    opt.disabled = true; opt.textContent = '— No saved decks found —';
-    sel.appendChild(opt);
-  } else {
-    decks.forEach(d => {
-      const known = _countKnownCards(d.template);
-      const total = d.template.reduce((s, e) => s + e.count, 0);
-      const label = d.name + (d.charId ? ' · ' + d.charId.charAt(0).toUpperCase() + d.charId.slice(1) : '')
-                  + '  (' + known + '/' + total + ' cards)';
-      const opt = document.createElement('option');
-      opt.value = d.id; opt.textContent = label;
-      opt.disabled = known === 0;
-      sel.appendChild(opt);
-    });
+  if (savedDecks.length === 0) {
+    const msg = document.createElement('option');
+    msg.disabled = true;
+    msg.textContent = '— No digital decks found — build one on the database site or choose a starter deck below —';
+    sel.appendChild(msg);
   }
+
+  decks.forEach(d => {
+    const known = _countKnownCards(d.template);
+    const total = d.template.reduce((s, e) => s + e.count, 0);
+    const starterTag = d.isStarter ? ' ⭐ Starter' : '';
+    const charLabel = d.charId ? ' · ' + d.charId.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase()) : '';
+    const label = d.name + charLabel + starterTag + '  (' + known + '/' + total + ' cards)';
+    const opt = document.createElement('option');
+    opt.value = d.id; opt.textContent = label;
+    opt.disabled = known === 0;
+    sel.appendChild(opt);
+  });
+
   sel._savedDecks = decks;
 }
 
@@ -3757,7 +3847,8 @@ function onOnlineDeckPick(value, role) {
   }
   if (charId && CHAMBERS[charId]) {
     ONLINE._mySelectedChar = charId;
-    ONLINE._mySelectedChamberId = null;
+    // Use the deck's explicit chamberId (e.g. starter deck specifies card 176 vs 177)
+    ONLINE._mySelectedChamberId = deck.chamberId || null;
   }
 
   // Info line
