@@ -2462,7 +2462,7 @@ function _showOnlineGameOver(winnerIdx, myIdx, iWon) {
     : '<div style="font-family:\'Crimson Pro\',serif;font-size:0.72rem;color:rgba(160,130,90,0.5);margin-top:8px;letter-spacing:1px;">A digital card reward for participating in an online battle — open the database site to claim it</div>';
 
   wrap.innerHTML = heroHTML + `<hr class="ogo-divider">` + statsHTML + chartsHTML +
-    `<button class="ogo-claim-btn" onclick="window.open(window._onlineRewardUrl, '_blank')">${claimLabel}</button>` +
+    `<button class="ogo-claim-btn" onclick="_claimReward()">${claimLabel}</button>` +
     claimNote;
 
   screen.innerHTML = '';
@@ -2554,6 +2554,15 @@ function _generateLoserRewardUrl() {
   return DATABASE_SITE + '#loser-reward=' + card.id;
 }
 
+
+// ── Claim reward: plant session token then navigate ──────────────────────
+function _claimReward() {
+  var url = window._onlineRewardUrl;
+  if (!url) return;
+  // Plant the access token so the booster site gate passes
+  try { sessionStorage.setItem('aqtcg_access_v1', 'PLAYGRANT'); } catch(e) {}
+  window.location.href = url;
+}
 
 function _startConfetti() {
   const canvas = document.createElement('canvas');
