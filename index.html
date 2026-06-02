@@ -3054,7 +3054,30 @@ function showCardZoom(card) {
 }
 
 function showChamberInfo(player) {
-  const ch  = player.chamber;
+  const ch = player.chamber;
+
+  // Determine if this is "your own" chamber:
+  // In online mode, compare player index to myPlayerIdx.
+  // In local (pass-and-play) mode, the current defender is always the active player.
+  const isOwnChamber = ONLINE.active
+    ? (player.idx === ONLINE.myPlayerIdx)
+    : (player.idx === G.defender);
+
+  if (!isOwnChamber) {
+    // Show the chamber card itself but keep signature moves secret
+    const sigLabel = player.chamberFrontActive ? 'Front Signature' : 'Back Signature';
+    showCardZoom({
+      name: `${ch.name} — Chamber Card`,
+      imgUrl: null,
+      int: undefined, for: undefined,
+      g: 0, y: 0, r: 0,
+      traits: ch.traits,
+      rules: `${sigLabel}: ??? (Secret — your opponent's signature move is hidden until they use it)`,
+      flavor: 'Keep your enemies guessing.'
+    });
+    return;
+  }
+
   const sig = player.chamberFrontActive ? ch.frontSig : ch.backSig;
   showCardZoom({
     name: `${ch.name} — ${sig.name}`,
