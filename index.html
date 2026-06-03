@@ -367,6 +367,8 @@ body {
 .act-btn.danger:hover { border-color: #cc4040; background: rgba(154,32,32,0.3); }
 .act-btn.success { border-color: rgba(40,180,40,0.7); }
 .act-btn.success:hover { border-color: #60c060; background: rgba(40,130,40,0.3); }
+.act-btn.pp-btn { border-color: rgba(80,140,220,0.8); color: #a0c8ff; }
+.act-btn.pp-btn:hover { border-color: #80c0ff; background: rgba(64,120,200,0.25); color: #c0e0ff; }
 
 /* ===================== CARD MODAL ===================== */
 #card-modal {
@@ -1938,6 +1940,15 @@ function playAsStrike(card) {
     return;
   }
 
+  // Apply any payment-power mods that were already confirmed via the PP button
+  const ppIntMod = card._ppIntMod || 0;
+  const ppForMod = card._ppForMod || 0;
+  const finalInt = effectiveInt + ppIntMod;
+  if (finalInt < G.incomingForce) {
+    addLog(`After payment powers, Intercept (${finalInt}) < Force (${G.incomingForce}) — cannot counterattack!`);
+    return;
+  }
+
   // Rulebook §12: if the card has payment powers, offer them BEFORE paying the sidebar cost
   const powers = parsePaymentPowers(card.rules || '');
   if (powers.length > 0) {
@@ -2268,6 +2279,8 @@ function focusCard() {
   const zone = p.zones[G.currentZone];
   if (!zone.flipCard) return;
   const card = zone.flipCard;
+  // If a PP session was open for this card, discard it — player chose to focus instead
+  if (_ppSession && _ppSession.card === card) _ppSession = null;
   zone.flipCard = null;
   zone.energy.push(card);
   addLog(`${p.name} focuses ${card.name} into ${G.currentZone} energy.`);
@@ -2301,6 +2314,8 @@ function discardCard() {
   const zone = p.zones[G.currentZone];
   if (!zone.flipCard) return;
   const card = zone.flipCard;
+  // If a PP session was open for this card, discard it
+  if (_ppSession && _ppSession.card === card) _ppSession = null;
   zone.flipCard = null;
   p.discard.push(card);
   addLog(`${p.name} discards ${card.name}.`);
@@ -2829,8 +2844,13 @@ function openPaymentPowerModal(card) {
   const allyBon = getAllyBonuses(zone.ally);
   const { advInt } = getAdvBonuses(p, G.currentZone, zone);
 
+  // If a session already exists for this exact card (player dismissed and reopened), resume it
+  if (_ppSession && _ppSession.card === card) {
+    renderPaymentPowerModal();
+    return;
+  }
+
   // Parse all payment powers from rules text
-  // Format examples:  "-1 Intercept → +1 Force"  |  "Red → +4 Intercept. Use only once."
   const powers = parsePaymentPowers(card.rules || '');
   if (powers.length === 0) { addLog('No payment powers to use.'); return; }
 
@@ -2839,7 +2859,7 @@ function openPaymentPowerModal(card) {
     zoneName: G.currentZone,
     intMod: 0,
     forMod: 0,
-    timesUsed: {}, // power index → count used
+    timesUsed: {},
     powers,
     baseInt: card.int + allyBon.int + advInt,
     baseFor: card.for + allyBon.for,
@@ -3016,7 +3036,13 @@ function confirmPaymentPowers() {
 
 function cancelPaymentPowers() {
   document.getElementById('pp-modal').style.display = 'none';
-  _ppSession = null;
+  // Don't wipe _ppSession — player may reopen via the button.
+  // But do clear any partially-stored mods on the card.
+  if (_ppSession) {
+    delete _ppSession.card._ppIntMod;
+    delete _ppSession.card._ppForMod;
+  }
+  // Return to CHOOSING so the player can inspect the card or pick another action
   G.step = 'CHOOSING';
   renderAll();
 }
@@ -3394,11 +3420,26 @@ function renderCenterPanel() {
       if (card.type === 'strike') {
         const allyBon = getAllyBonuses(zone.ally);
         const { advInt } = getAdvBonuses(defender, G.currentZone, zone);
-        const effInt = card.int + allyBon.int + advInt;
+        const ppIntMod = (_ppSession && _ppSession.card === card) ? _ppSession.intMod : (card._ppIntMod || 0);
+        const ppForMod = (_ppSession && _ppSession.card === card) ? _ppSession.forMod : (card._ppForMod || 0);
+        const effInt = card.int + allyBon.int + advInt + ppIntMod;
+        const effFor = card.for + ppForMod;
         const opp = G.players[G.attacker];
         const extraY = getOppExtraYellow(opp);
         const canPlay = effInt >= G.incomingForce && canAfford(defender, card.g, card.y + extraY, card.r);
-        const b = makeBtn(`⚔ COUNTERATTACK (I:${effInt} F:${card.for})`, () => playAsStrike(card), canPlay ? 'success' : '');
+
+        // Payment Powers button — show left of Counterattack whenever the card has powers
+        const powers = parsePaymentPowers(card.rules || '');
+        if (powers.length > 0) {
+          const hasActiveSession = _ppSession && _ppSession.card === card;
+          const ppLabel = hasActiveSession && (ppIntMod !== 0 || ppForMod !== 0)
+            ? `⚡ PAYMENT POWERS (I${ppIntMod >= 0 ? '+' : ''}${ppIntMod} F${ppForMod >= 0 ? '+' : ''}${ppForMod})`
+            : '⚡ PAYMENT POWERS';
+          const ppBtn = makeBtn(ppLabel, () => openPaymentPowerModal(card), 'pp-btn');
+          btnsEl.appendChild(ppBtn);
+        }
+
+        const b = makeBtn(`⚔ COUNTERATTACK (I:${effInt} F:${effFor})`, () => playAsStrike(card), canPlay ? 'success' : '');
         b.disabled = !canPlay;
         btnsEl.appendChild(b);
       }
