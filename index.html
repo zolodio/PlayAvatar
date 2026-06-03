@@ -1949,13 +1949,6 @@ function playAsStrike(card) {
     return;
   }
 
-  // Rulebook §12: if the card has payment powers, offer them BEFORE paying the sidebar cost
-  const powers = parsePaymentPowers(card.rules || '');
-  if (powers.length > 0) {
-    openPaymentPowerModal(card);
-    return;
-  }
-
   const opp = G.players[G.attacker];
   const extraY = getOppExtraYellow(opp);
   if (extraY > 0) addLog(`Opponent advantage: strike costs +${extraY} yellow energy!`);
