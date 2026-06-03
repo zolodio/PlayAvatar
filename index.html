@@ -262,9 +262,149 @@ body {
 .zone.yellow-zone { background: linear-gradient(to right, var(--yellow-zone), var(--yellow-zone-mid) 30%, var(--yellow-zone-mid) 70%, var(--yellow-zone)); border-top: 1px solid rgba(0,0,0,0.2); border-bottom: 1px solid rgba(0,0,0,0.3); }
 .zone.red-zone { background: linear-gradient(to right, var(--red-zone), var(--red-zone-mid) 30%, var(--red-zone-mid) 70%, var(--red-zone)); border-top: 1px solid rgba(0,0,0,0.2); }
 .zone.active-defense { box-shadow: inset 0 0 20px rgba(255,255,200,0.2); }
+
+/* ===== CHARGED ZONE: GLOW + SHIMMER + LIGHTNING BORDER ===== */
+
+/* 1 — Pulsing outer glow with breathing inner light + expanding outline ring */
+.zone.charged {
+  box-shadow:
+    0 0 0 2px rgba(255, 215, 0, 0.92),
+    0 0 16px rgba(255, 215, 0, 0.42),
+    0 0 36px rgba(255, 200, 0, 0.2),
+    inset 0 0 24px rgba(255, 215, 0, 0.09);
+  animation: zone-charge-breathe 2.5s ease-in-out infinite;
+}
+
+@keyframes zone-charge-breathe {
+  0%, 100% {
+    box-shadow:
+      0 0 0 2px  rgba(255, 215, 0, 0.92),
+      0 0 14px   rgba(255, 215, 0, 0.38),
+      0 0 30px   rgba(255, 200, 0, 0.16),
+      inset 0 0 20px rgba(255, 215, 0, 0.07);
+    outline: 1px solid rgba(255, 215, 0, 0.10);
+    outline-offset: 3px;
+  }
+  50% {
+    box-shadow:
+      0 0 0 3px  rgba(255, 255, 150, 1),
+      0 0 26px   rgba(255, 215, 0, 0.62),
+      0 0 58px   rgba(255, 200, 0, 0.3),
+      inset 0 0 32px rgba(255, 215, 0, 0.15);
+    outline: 1px solid rgba(255, 215, 0, 0.48);
+    outline-offset: 7px;
+  }
+}
+
+/* 2 — CSS custom property so the conic-gradient angle can be animated */
+@property --arc {
+  syntax: '<angle>';
+  initial-value: 0deg;
+  inherits: false;
+}
+
+/* 3 — Racing lightning strip on the zone border.
+   Two layered conic gradients: a bright primary spark + a dimmer trailing glow.
+   Masked so ONLY the outer 3 px "border strip" is visible; the interior stays transparent. */
+.zone.charged::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  padding: 3px;       /* controls lightning-strip thickness */
+  z-index: 4;
+  pointer-events: none;
+
+  background:
+    /* trailing glow, 50° behind the bright spark */
+    conic-gradient(
+      from calc(var(--arc) - 50deg),
+      transparent           0deg,
+      transparent         340deg,
+      rgba(255,220,0,.18) 350deg,
+      rgba(255,240,80,.4) 357deg,
+      rgba(255,220,0,.16) 360deg
+    ),
+    /* primary bright spark */
+    conic-gradient(
+      from var(--arc),
+      transparent             0deg,
+      transparent           290deg,
+      rgba(255,210,0,.22)   310deg,
+      rgba(255,240,60,.65)  328deg,
+      rgba(255,255,180,.92) 340deg,
+      rgba(255,255,255,1)   347deg,
+      rgba(255,255,180,.92) 352deg,
+      rgba(255,240,60,.55)  357deg,
+      rgba(255,210,0,.18)   360deg
+    );
+
+  /* Punch out the interior so only the padding border strip shows */
+  -webkit-mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  -webkit-mask-composite: destination-out;
+  mask:
+    linear-gradient(#fff 0 0) content-box,
+    linear-gradient(#fff 0 0);
+  mask-composite: exclude;
+
+  animation: lightning-orbit 1.8s linear infinite;
+}
+
+@keyframes lightning-orbit {
+  to { --arc: 360deg; }
+}
+
+/* 4 — Sweeping shimmer across the zone interior, layered behind cards */
+.zone.charged .zone-inner::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background: linear-gradient(
+    110deg,
+    transparent         15%,
+    rgba(255,215,0,.04) 38%,
+    rgba(255,255,200,.10) 50%,
+    rgba(255,215,0,.04) 62%,
+    transparent         85%
+  );
+  background-size: 250% 100%;
+  animation: shimmer-sweep 3.5s ease-in-out infinite;
+}
+
+@keyframes shimmer-sweep {
+  0%   { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+
+/* 5 — Flickering ⚡ icon with occasional bright flash */
 .zone.charged::after {
-  content: '⚡'; position: absolute; top: 4px; right: 4px; font-size: 0.8rem;
-  color: var(--charged-glow); text-shadow: 0 0 8px rgba(255,215,0,0.8); pointer-events: none;
+  content: '⚡';
+  position: absolute; top: 4px; right: 4px;
+  font-size: 0.8rem;
+  color: var(--charged-glow);
+  text-shadow: 0 0 8px rgba(255,215,0,0.8), 0 0 18px rgba(255,215,0,0.4);
+  pointer-events: none;
+  animation: bolt-flicker 3.2s ease-in-out infinite;
+}
+
+@keyframes bolt-flicker {
+  0%, 72%, 100% {
+    opacity: 1;
+    text-shadow: 0 0 8px rgba(255,215,0,0.8), 0 0 18px rgba(255,215,0,0.4);
+  }
+  74% { opacity: 0.1; text-shadow: none; }
+  76% {
+    opacity: 1;
+    text-shadow:
+      0 0 16px rgba(255,255,120,1),
+      0 0 32px rgba(255,215,0,.95),
+      0 0 54px rgba(255,200,0,.6);
+  }
+  78% { opacity: 0.3; text-shadow: none; }
+  80% { opacity: 1; text-shadow: 0 0 8px rgba(255,215,0,0.8); }
 }
 
 .zone-label {
@@ -273,7 +413,7 @@ body {
   letter-spacing: 2px; color: rgba(255,255,255,0.4);
   padding: 4px; flex-shrink: 0; text-transform: uppercase;
 }
-.zone-inner { flex: 1; display: flex; align-items: center; gap: 6px; padding: 4px 6px; height: 100%; }
+.zone-inner { flex: 1; display: flex; align-items: center; gap: 6px; padding: 4px 6px; height: 100%; position: relative; }
 
 .card-slot {
   position: relative; background: var(--card-slot-bg);
@@ -455,6 +595,31 @@ body {
 ::-webkit-scrollbar { width: 4px; }
 ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
 ::-webkit-scrollbar-thumb { background: rgba(212,168,67,0.4); border-radius: 2px; }
+
+/* ===================== SIDEWAYS / TAPPED STATE ===================== */
+/* Used when: zone charge-space card is turned sideways (zone charged),
+   or a strike flip-card is turned sideways (counterattack played). */
+.sideways-card {
+  transform: rotate(90deg) scale(0.72);
+  transform-origin: center center;
+  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Gold glow on charged charge-space items (chamber / deck / discard) */
+.charge-slot .sideways-card {
+  border: 2px solid var(--charged-glow) !important;
+  box-shadow: 0 0 12px 4px rgba(255, 215, 0, 0.55),
+              0 0 24px rgba(255, 215, 0, 0.25),
+              inset 0 0 6px rgba(255, 215, 0, 0.15);
+}
+
+/* Amber-orange glow on the counterattack strike card */
+.flip-slot .sideways-card {
+  box-shadow: 0 0 14px 4px rgba(255, 140, 40, 0.7),
+              0 0 28px rgba(255, 100, 0, 0.35);
+  outline: 2px solid rgba(255, 160, 50, 0.6);
+  outline-offset: 2px;
+}
 
 /* ===================== MODE SELECT SCREEN ===================== */
 #mode-select-screen {
@@ -3177,6 +3342,11 @@ function renderPlayer(pIdx) {
     if (zone.flipCard) {
       const fc = makeTcgCard(zone.flipCard, true);
       fc.classList.add('flip-slot-card');
+      // Show card sideways when it was played as a strike counterattack
+      // (same object reference: currentStrike IS the flipCard until cleanup)
+      if (p.currentStrike && p.currentStrike === zone.flipCard && p.currentStrikeZone === zname) {
+        fc.classList.add('sideways-card');
+      }
       flipSlot.appendChild(fc);
     } else {
       flipSlot.innerHTML = '<div class="card-slot-label">FLIP<br>HERE</div>';
@@ -3188,6 +3358,8 @@ function renderPlayer(pIdx) {
     if (zname === 'green') {
       const chamberEl = makeChamberMini(p.chamber, zone.charged);
       chamberEl.onclick = () => showChamberInfo(p);
+      // Turn Chamber Card sideways when green zone is charged
+      if (zone.charged) chamberEl.classList.add('sideways-card');
       chargeSlot.appendChild(chamberEl);
       if (zone.charged) {
         const ci = document.createElement('div');
@@ -3195,9 +3367,15 @@ function renderPlayer(pIdx) {
         chargeSlot.appendChild(ci);
       }
     } else if (zname === 'yellow') {
-      chargeSlot.appendChild(makeDeckPile(p.deck));
+      const deckEl = makeDeckPile(p.deck);
+      // Turn Deck sideways when yellow zone is charged
+      if (zone.charged) deckEl.classList.add('sideways-card');
+      chargeSlot.appendChild(deckEl);
     } else {
-      chargeSlot.appendChild(makeDiscardPile(p.discard));
+      const discardEl = makeDiscardPile(p.discard);
+      // Turn Discard Pile sideways when red zone is charged
+      if (zone.charged) discardEl.classList.add('sideways-card');
+      chargeSlot.appendChild(discardEl);
     }
     inner.appendChild(chargeSlot);
 
