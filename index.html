@@ -1012,6 +1012,19 @@ body {
   <button class="modal-close-btn" onclick="closeCardModal()">CLOSE</button>
 </div>
 
+<!-- ===== PAYMENT POWER MODAL ===== -->
+<div id="pp-modal" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.8);align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(135deg,#0e1a2e,#1a2a3e);border:2px solid #4080c0;border-radius:12px;padding:24px 28px;max-width:420px;width:92%;max-height:80vh;overflow-y:auto;box-shadow:0 0 40px rgba(64,128,192,0.4);">
+    <h3 style="font-family:'Cinzel',serif;color:#80c0ff;margin-bottom:12px;text-align:center;">⚡ PAYMENT POWERS</h3>
+    <p style="font-size:0.75rem;color:rgba(200,200,200,0.6);text-align:center;margin-bottom:12px;">Apply powers before paying the sidebar cost. Powers may be used multiple times unless noted.</p>
+    <div id="pp-modal-body"></div>
+    <div style="display:flex;gap:12px;justify-content:center;margin-top:16px;flex-wrap:wrap;">
+      <button class="em-btn cancel" onclick="cancelPaymentPowers()">CANCEL</button>
+      <button class="em-btn confirm" onclick="confirmPaymentPowers()">DONE — PAY SIDEBAR COST</button>
+    </div>
+  </div>
+</div>
+
 <!-- ===== ENERGY MODAL ===== -->
 <div id="energy-modal">
   <div id="energy-modal-content">
@@ -1050,6 +1063,18 @@ body {
     <div class="energy-modal-btns">
       <button class="em-btn cancel" onclick="cancelPayment()">CANCEL</button>
       <button class="em-btn confirm" onclick="confirmPayment()">CONFIRM PAYMENT</button>
+    </div>
+  </div>
+</div>
+
+<!-- ===== ALLY REPLACE CHOICE MODAL ===== -->
+<div id="ally-replace-modal" style="display:none;position:fixed;inset:0;z-index:1100;background:rgba(0,0,0,0.75);align-items:center;justify-content:center;">
+  <div style="background:linear-gradient(135deg,#1a120a,#2c1a0c);border:2px solid var(--gold);border-radius:12px;padding:28px 32px;max-width:380px;width:90%;text-align:center;box-shadow:0 0 40px rgba(212,168,67,0.3);">
+    <h3 style="font-family:'Cinzel',serif;color:var(--gold);margin-bottom:10px;">ALLY CONFLICT</h3>
+    <p id="ally-replace-msg" style="font-family:'Crimson Pro',serif;color:var(--parchment-text);font-size:0.95rem;margin-bottom:20px;line-height:1.5;"></p>
+    <div style="display:flex;gap:12px;justify-content:center;flex-wrap:wrap;">
+      <button class="em-btn" style="background:#3a5a3a;border-color:#6aca6a;" onclick="resolveAllyReplace('replace')">REPLACE OLD ALLY</button>
+      <button class="em-btn cancel" onclick="resolveAllyReplace('discard')">DISCARD NEW ALLY</button>
     </div>
   </div>
 </div>
@@ -1611,15 +1636,32 @@ function initGame() {
     _lastActivePlayer: undefined,  // Track whose turn it should be for online mode
   };
 
-  const f0 = calcForceInDiscard(p1);
-  const f1 = calcForceInDiscard(p2);
+  let f0 = calcForceInDiscard(p1);
+  let f1 = calcForceInDiscard(p2);
   addLog(`Opening reveal — ${p1.name}: ${f0} Force | ${p2.name}: ${f1} Force`);
-  if (f0 >= f1) {
+
+  // Rulebook §7: if tied, each player adds cards until the tie is broken
+  while (f0 === f1) {
+    if (p1.deck.length === 0) reshuffleDeck(p1);
+    if (p2.deck.length === 0) reshuffleDeck(p2);
+    if (p1.deck.length === 0 && p2.deck.length === 0) break; // no cards left — treat as still tied, P1 chooses
+    if (p1.deck.length > 0) p1.discard.push(p1.deck.shift());
+    if (p2.deck.length > 0) p2.discard.push(p2.deck.shift());
+    f0 = calcForceInDiscard(p1);
+    f1 = calcForceInDiscard(p2);
+    addLog(`Tie! Additional cards revealed — ${p1.name}: ${f0} | ${p2.name}: ${f1}`);
+  }
+
+  if (f0 > f1) {
     addLog(`${p1.name} chooses who defends the opening attack.`);
     G.choosingPlayer = 0;
-  } else {
+  } else if (f1 > f0) {
     addLog(`${p2.name} chooses who defends the opening attack.`);
     G.choosingPlayer = 1;
+  } else {
+    // Still tied after exhausting cards — default P1
+    addLog(`Still tied — ${p1.name} chooses by default.`);
+    G.choosingPlayer = 0;
   }
 }
 
@@ -1661,6 +1703,11 @@ function startTurn(playerIdx) {
 
 function doCleanup(playerIdx) {
   const p = G.players[playerIdx];
+  // Rulebook §13C: if a signature move was played, push it back and flip the chamber
+  if (p.currentStrike && p.currentStrikeZone === 'signature') {
+    p.chamberFrontActive = !p.chamberFrontActive;
+    addLog(`${p.name}'s Chamber Card flips — next signature move is now ready.`);
+  }
   for (const zname of ['green','yellow','red']) {
     if (p.zones[zname].flipCard) {
       p.discard.push(p.zones[zname].flipCard);
@@ -1693,9 +1740,15 @@ function doReplenish(playerIdx) {
 
 function gainEnergy(player, color, amount) {
   for (let i = 0; i < amount; i++) {
-    const src = player.discard.length > 0 ? player.discard : player.deck;
-    if (src.length > 0) {
-      player.zones[color].energy.push(src.shift());
+    // Rulebook §11: if discard is empty, put 4 top deck cards into discard first
+    if (player.discard.length === 0) {
+      if (player.deck.length === 0) reshuffleDeck(player);
+      const refillCount = Math.min(4, player.deck.length);
+      for (let j = 0; j < refillCount; j++) player.discard.push(player.deck.shift());
+      if (refillCount > 0) addLog(`${player.name} refills discard (${refillCount} cards) to gain energy.`);
+    }
+    if (player.discard.length > 0) {
+      player.zones[color].energy.push(player.discard.shift());
       addLog(`${player.name} gains 1 ${color} energy.`);
     }
   }
@@ -1743,7 +1796,7 @@ function afterSigPayment(sig) {
   p.zones.green.charged = false;
   p.zones.yellow.charged = false;
   p.zones.red.charged = false;
-  p.chamberFrontActive = !p.chamberFrontActive;
+  // NOTE: chamber does NOT flip here — it flips during cleanup (§13C)
   p.currentStrike = sig;
   p.currentStrikeZone = 'signature';
   addLog(`${p.name} plays signature move: ${sig.name} (Force ${sig.for})!`);
@@ -1884,6 +1937,14 @@ function playAsStrike(card) {
     addLog(`Cannot play ${card.name}: Intercept ${effectiveInt} < Force ${G.incomingForce}`);
     return;
   }
+
+  // Rulebook §12: if the card has payment powers, offer them BEFORE paying the sidebar cost
+  const powers = parsePaymentPowers(card.rules || '');
+  if (powers.length > 0) {
+    openPaymentPowerModal(card);
+    return;
+  }
+
   const opp = G.players[G.attacker];
   const extraY = getOppExtraYellow(opp);
   if (extraY > 0) addLog(`Opponent advantage: strike costs +${extraY} yellow energy!`);
@@ -1896,7 +1957,11 @@ function afterStrikePayment(card, zoneName) {
   const zone = p.zones[zoneName];
   const allyBon = getAllyBonuses(zone.ally);
   const { advFor } = getAdvBonuses(p, zoneName, zone);
-  let forBonus = allyBon.for + advFor;
+  // Include any payment-power force bonus accumulated before sidebar payment
+  const ppForMod = card._ppForMod || 0;
+  delete card._ppForMod;
+  delete card._ppIntMod;
+  let forBonus = allyBon.for + advFor + ppForMod;
 
   const r = card.rules || '';
   if (r.includes('For each ally you have')) {
@@ -2006,10 +2071,54 @@ function playAsAlly(card) {
   openEnergyModal(p, card.g, card.y, card.r, `Play ally: ${card.name}`);
 }
 
+// Pending ally-replace state (card + zone captured before modal opens)
+let _pendingAllyReplace = null;
+
 function afterAllyPayment(card, zoneName) {
   const p = G.players[G.defender];
   const zone = p.zones[zoneName];
-  if (zone.ally) p.discard.push(zone.ally);
+
+  if (zone.ally) {
+    // Rulebook §13A: player CHOOSES to replace the old ally OR discard the new one
+    _pendingAllyReplace = { card, zoneName };
+    const modal = document.getElementById('ally-replace-modal');
+    document.getElementById('ally-replace-msg').textContent =
+      `${p.name} already has ${zone.ally.name} in the ${zoneName} zone. ` +
+      `Replace it with ${card.name}, or discard ${card.name}?`;
+    modal.style.display = 'flex';
+    return;
+  }
+
+  _finaliseAllyPlacement(card, zoneName);
+}
+
+function resolveAllyReplace(choice) {
+  document.getElementById('ally-replace-modal').style.display = 'none';
+  if (!_pendingAllyReplace) return;
+  const { card, zoneName } = _pendingAllyReplace;
+  _pendingAllyReplace = null;
+  const p = G.players[G.defender];
+  const zone = p.zones[zoneName];
+
+  if (choice === 'replace') {
+    // Discard the OLD ally, keep the new one
+    p.discard.push(zone.ally);
+    addLog(`${p.name} discards ${zone.ally.name} and replaces it with ${card.name}.`);
+    _finaliseAllyPlacement(card, zoneName);
+  } else {
+    // Discard the NEW ally; player is still defending in the same zone
+    p.discard.push(card);
+    addLog(`${p.name} discards ${card.name} — ${zone.ally.name} stays.`);
+    // Clear the flip card slot and stay in the same zone
+    zone.flipCard = null;
+    G.step = 'FLIP';
+    renderAll();
+  }
+}
+
+function _finaliseAllyPlacement(card, zoneName) {
+  const p = G.players[G.defender];
+  const zone = p.zones[zoneName];
   zone.flipCard = null;
   zone.ally = card;
   addLog(`${p.name} plays ally ${card.name} in ${zoneName} zone!`);
@@ -2198,6 +2307,47 @@ function discardCard() {
   moveToNextZone();
 }
 
+// Rulebook §14C — Reflip: pay the cost, discard this card, flip a new one in the same zone
+function reflipCard(card) {
+  const p = G.players[G.defender];
+  const zone = p.zones[G.currentZone];
+
+  // Parse reflip cost from rules text: "Reflip: Green" / "Reflip: Yellow" / "Reflip: Red"
+  const reflipMatch = (card.rules || '').match(/Reflip:\s*(Green|Yellow|Red)/i);
+  if (!reflipMatch) { addLog('No valid Reflip cost found on this card.'); return; }
+  const reflipColor = reflipMatch[1].toLowerCase();
+
+  if (zone.energy.length === 0 && p.zones[reflipColor].energy.length === 0) {
+    addLog(`Not enough ${reflipColor} energy to Reflip!`);
+    return;
+  }
+
+  // Determine the actual zone whose energy to spend based on the colour
+  const energyZone = p.zones[reflipColor];
+  if (energyZone.energy.length === 0) {
+    addLog(`Not enough ${reflipColor} energy to Reflip!`);
+    return;
+  }
+
+  // Pay the reflip cost (no sidebar cost — rulebook says you do NOT pay sidebar)
+  p.discard.push(energyZone.energy.pop());
+  addLog(`${p.name} pays 1 ${reflipColor} energy for Reflip on ${card.name}.`);
+
+  // Discard the current flip card
+  zone.flipCard = null;
+  p.discard.push(card);
+  addLog(`${p.name} reflips — ${card.name} discarded, flipping a new card.`);
+
+  // Immediately flip a new card into the same zone (do NOT advance zone)
+  if (p.deck.length === 0) reshuffleDeck(p);
+  if (p.deck.length === 0) { addLog('No cards available to reflip into!'); moveToNextZone(); return; }
+  const newCard = p.deck.shift();
+  zone.flipCard = newCard;
+  addLog(`${p.name} flips: ${newCard.name} (${newCard.type})`);
+  G.step = 'CHOOSING';
+  renderAll();
+}
+
 function moveToNextZone() {
   const zones = ['green', 'yellow', 'red'];
   const ci = zones.indexOf(G.currentZone);
@@ -2230,6 +2380,11 @@ function scorePoint(scorerIdx) {
 }
 
 function cleanupAfterScore(player) {
+  // Rulebook §13C: if a signature move was played, flip the chamber on cleanup
+  if (player.currentStrike && player.currentStrikeZone === 'signature') {
+    player.chamberFrontActive = !player.chamberFrontActive;
+    addLog(`${player.name}'s Chamber Card flips — next signature move is now ready.`);
+  }
   for (const zname of ['green','yellow','red']) {
     if (player.zones[zname].flipCard) { player.discard.push(player.zones[zname].flipCard); player.zones[zname].flipCard = null; }
   }
@@ -2608,8 +2763,263 @@ function _startConfetti() {
 
 
 // ============================================================
-// ENERGY SYSTEM
+// PITCH — Rulebook §14D
+// Pitching discards the card, applies the effect, then moves to next zone.
 // ============================================================
+function pitchCard(card) {
+  const p = G.players[G.defender];
+  const zone = p.zones[G.currentZone];
+  if (!zone.flipCard) return;
+
+  const r = card.rules || '';
+  // Parse: "Pitch → <effect>"
+  const pitchMatch = r.match(/Pitch\s*[→>]\s*(.+)/i);
+  const effectText = pitchMatch ? pitchMatch[1].trim() : '';
+
+  zone.flipCard = null;
+  p.discard.push(card);
+  addLog(`${p.name} pitches ${card.name}!`);
+
+  // Apply the pitch effect
+  applyPitchEffect(effectText, p);
+
+  // Rulebook §14D: pitching moves you to the next zone
+  moveToNextZone();
+}
+
+function applyPitchEffect(effectText, player) {
+  const e = effectText.toLowerCase();
+  if (e.includes('charge this zone')) {
+    if (!player.zones[G.currentZone].charged) {
+      player.zones[G.currentZone].charged = true;
+      addLog(`${player.name}'s ${G.currentZone} zone charged (from Pitch)!`);
+    }
+  }
+  if (e.includes('add a green energy') || e.includes('+1 green energy')) {
+    gainEnergy(player, 'green', 1);
+  }
+  if (e.includes('add a yellow energy') || e.includes('+1 yellow energy')) {
+    gainEnergy(player, 'yellow', 1);
+  }
+  if (e.includes('add a red energy') || e.includes('+1 red energy')) {
+    gainEnergy(player, 'red', 1);
+  }
+  if (e.includes('eliminate one of your opponent') && e.includes('ally')) {
+    const opp = G.players[G.attacker];
+    const oa = ['green','yellow','red'].filter(z => opp.zones[z].ally);
+    if (oa.length > 0) {
+      opp.discard.push(opp.zones[oa[0]].ally);
+      opp.zones[oa[0]].ally = null;
+      addLog(`${opp.name}'s ally eliminated (from Pitch)!`);
+    }
+  }
+}
+
+// ============================================================
+// PAYMENT POWERS — Rulebook §12
+// The → symbol separates cost from effect. Players may apply
+// payment powers multiple times before paying sidebar cost.
+// ============================================================
+// State for in-progress payment power session on a strike
+let _ppSession = null; // { card, zoneName, intMod, forMod, timesUsed }
+
+function openPaymentPowerModal(card) {
+  const p = G.players[G.defender];
+  const zone = p.zones[G.currentZone];
+  const allyBon = getAllyBonuses(zone.ally);
+  const { advInt } = getAdvBonuses(p, G.currentZone, zone);
+
+  // Parse all payment powers from rules text
+  // Format examples:  "-1 Intercept → +1 Force"  |  "Red → +4 Intercept. Use only once."
+  const powers = parsePaymentPowers(card.rules || '');
+  if (powers.length === 0) { addLog('No payment powers to use.'); return; }
+
+  _ppSession = {
+    card,
+    zoneName: G.currentZone,
+    intMod: 0,
+    forMod: 0,
+    timesUsed: {}, // power index → count used
+    powers,
+    baseInt: card.int + allyBon.int + advInt,
+    baseFor: card.for + allyBon.for,
+  };
+
+  renderPaymentPowerModal();
+}
+
+function parsePaymentPowers(rulesText) {
+  const powers = [];
+  // Split on newlines or semicolons, look for the → arrow
+  const lines = rulesText.split(/\n|;/);
+  for (const line of lines) {
+    const arrowIdx = line.indexOf('→');
+    if (arrowIdx === -1) continue;
+    const cost = line.substring(0, arrowIdx).trim();
+    const effect = line.substring(arrowIdx + 1).trim();
+    const useOnce = /use only once/i.test(effect);
+    powers.push({ cost, effect, useOnce, raw: line.trim() });
+  }
+  return powers;
+}
+
+function renderPaymentPowerModal() {
+  const modal = document.getElementById('pp-modal');
+  const p = G.players[G.defender];
+  const sess = _ppSession;
+  const effInt = Math.max(0, sess.baseInt + sess.intMod);
+  const effFor = sess.baseFor + sess.forMod;
+
+  let powersHtml = '';
+  sess.powers.forEach((pw, idx) => {
+    const used = sess.timesUsed[idx] || 0;
+    const disabled = pw.useOnce && used >= 1;
+    const canAffordCost = canAffordPaymentPowerCost(pw.cost, p, sess.intMod);
+    const btnDisabled = disabled || !canAffordCost ? 'disabled' : '';
+    powersHtml += `<div style="margin:8px 0;padding:8px;background:rgba(0,0,0,0.3);border-radius:6px;border:1px solid rgba(200,160,80,0.2);">
+      <div style="font-size:0.8rem;color:#c8a050;margin-bottom:6px;">${pw.raw}</div>
+      <button class="em-btn" style="font-size:0.75rem;padding:6px 14px;" onclick="applyPaymentPower(${idx})" ${btnDisabled}>
+        USE${pw.useOnce ? ' (once)' : ''} — used: ${used}
+      </button>
+    </div>`;
+  });
+
+  document.getElementById('pp-modal-body').innerHTML = `
+    <div style="margin-bottom:12px;font-size:0.9rem;color:#e8d090;">
+      <b>${sess.card.name}</b><br>
+      Effective Intercept: <span style="color:#80c0ff;">${effInt}</span> &nbsp;|&nbsp;
+      Force: <span style="color:#ffd060;">${effFor}</span>
+    </div>
+    <div style="font-size:0.75rem;color:rgba(200,160,80,0.6);margin-bottom:8px;">Incoming Force: ${G.incomingForce}</div>
+    ${powersHtml}
+  `;
+  modal.style.display = 'flex';
+}
+
+function canAffordPaymentPowerCost(costText, player, currentIntMod) {
+  const c = costText.toLowerCase().trim();
+  if (c === 'green') return player.zones.green.energy.length > 0;
+  if (c === 'yellow') return player.zones.yellow.energy.length > 0;
+  if (c === 'red') return player.zones.red.energy.length > 0;
+  // Intercept reduction cost: "-1 intercept"
+  const intRedMatch = c.match(/-(\d+)\s*intercept/);
+  if (intRedMatch) {
+    const sess = _ppSession;
+    const newInt = sess.baseInt + sess.intMod - parseInt(intRedMatch[1]);
+    return newInt >= 0; // can't reduce below 0
+  }
+  return true;
+}
+
+function applyPaymentPower(idx) {
+  const p = G.players[G.defender];
+  const sess = _ppSession;
+  const pw = sess.powers[idx];
+  const used = sess.timesUsed[idx] || 0;
+  if (pw.useOnce && used >= 1) return;
+
+  const cost = pw.cost.toLowerCase().trim();
+  const effect = pw.effect.toLowerCase();
+
+  // Pay the cost
+  if (cost === 'green' && p.zones.green.energy.length > 0) {
+    p.discard.push(p.zones.green.energy.pop());
+    addLog(`${p.name} pays 1 green for payment power.`);
+  } else if (cost === 'yellow' && p.zones.yellow.energy.length > 0) {
+    p.discard.push(p.zones.yellow.energy.pop());
+    addLog(`${p.name} pays 1 yellow for payment power.`);
+  } else if (cost === 'red' && p.zones.red.energy.length > 0) {
+    p.discard.push(p.zones.red.energy.pop());
+    addLog(`${p.name} pays 1 red for payment power.`);
+  } else if (cost.includes('intercept')) {
+    const intRedMatch = cost.match(/-(\d+)\s*intercept/);
+    if (intRedMatch) {
+      const reduction = parseInt(intRedMatch[1]);
+      if (sess.baseInt + sess.intMod - reduction < 0) {
+        addLog('Cannot reduce Intercept below 0!'); return;
+      }
+      sess.intMod -= reduction;
+      addLog(`${p.name} reduces Intercept by ${reduction} for payment power.`);
+    }
+  } else if (cost.includes('eliminate') && cost.includes('energy')) {
+    // e.g. "Eliminate a yellow energy"
+    const colorM = cost.match(/(green|yellow|red)/);
+    if (colorM) {
+      const ec = colorM[1];
+      if (p.zones[ec].energy.length > 0) {
+        p.discard.push(p.zones[ec].energy.pop());
+        addLog(`${p.name} eliminates 1 ${ec} energy for payment power.`);
+      } else { addLog(`No ${ec} energy to eliminate!`); return; }
+    }
+  } else {
+    addLog(`Payment power cost "${pw.cost}" applied (auto).`);
+  }
+
+  // Apply the effect
+  if (effect.includes('+') && effect.includes('intercept')) {
+    const m = effect.match(/\+(\d+)\s*intercept/);
+    if (m) sess.intMod += parseInt(m[1]);
+  }
+  if (effect.includes('+') && effect.includes('force')) {
+    const m = effect.match(/\+(\d+)\s*force/);
+    if (m) sess.forMod += parseInt(m[1]);
+  }
+  if (effect.includes('-') && effect.includes('force')) {
+    const m = effect.match(/-(\d+)\s*force/);
+    if (m) sess.forMod -= parseInt(m[1]);
+  }
+  if (effect.includes('eliminate') && effect.includes('yellow energy')) {
+    const opp = G.players[G.attacker];
+    if (opp.zones.yellow.energy.length > 0) {
+      opp.zones.yellow.energy.pop();
+      addLog(`${opp.name} loses 1 yellow energy (payment power effect)!`);
+    }
+  }
+  if (effect.includes('charge this zone')) {
+    const zone = p.zones[sess.zoneName];
+    if (!zone.charged) { zone.charged = true; addLog(`${p.name}'s ${sess.zoneName} zone charged!`); }
+  }
+
+  sess.timesUsed[idx] = used + 1;
+  addLog(`Payment power applied: ${pw.raw}`);
+  renderPaymentPowerModal();
+}
+
+function confirmPaymentPowers() {
+  document.getElementById('pp-modal').style.display = 'none';
+  if (!_ppSession) return;
+  const { card, zoneName, intMod, forMod } = _ppSession;
+  const p = G.players[G.defender];
+  const zone = p.zones[zoneName];
+  const allyBon = getAllyBonuses(zone.ally);
+  const { advInt } = getAdvBonuses(p, zoneName, zone);
+
+  const effectiveInt = card.int + allyBon.int + advInt + intMod;
+  if (effectiveInt < G.incomingForce) {
+    addLog(`After payment powers, Intercept (${effectiveInt}) < Force (${G.incomingForce}) — cannot counterattack!`);
+    _ppSession = null;
+    G.step = 'CHOOSING';
+    renderAll();
+    return;
+  }
+
+  // Store the mods on the card temporarily so afterStrikePayment can use them
+  card._ppIntMod = intMod;
+  card._ppForMod = forMod;
+  _ppSession = null;
+
+  const opp = G.players[G.attacker];
+  const extraY = getOppExtraYellow(opp);
+  pendingAction = { type: 'strike', card, zone: zoneName };
+  openEnergyModal(p, card.g, card.y + extraY, card.r, `Counterattack: ${card.name}`);
+}
+
+function cancelPaymentPowers() {
+  document.getElementById('pp-modal').style.display = 'none';
+  _ppSession = null;
+  G.step = 'CHOOSING';
+  renderAll();
+}
 function canAfford(player, g, y, r) {
   const avG = player.zones.green.energy.length;
   const avY = player.zones.yellow.energy.length;
@@ -3004,6 +3414,23 @@ function renderCenterPanel() {
       }
       btnsEl.appendChild(makeBtn('🔋 FOCUS (Add to Energy)', () => focusCard()));
       btnsEl.appendChild(makeBtn('🗑 DISCARD', () => discardCard(), 'danger'));
+
+      // Reflip button — show only if card has a Reflip cost the player can afford
+      if (card && (card.rules || '').match(/Reflip:\s*(Green|Yellow|Red)/i)) {
+        const reflipMatch = card.rules.match(/Reflip:\s*(Green|Yellow|Red)/i);
+        const reflipColor = reflipMatch[1].toLowerCase();
+        const canReflip = defender.zones[reflipColor].energy.length > 0;
+        const rb = makeBtn(`♻ REFLIP (pay 1 ${reflipColor})`, () => reflipCard(card), canReflip ? '' : '');
+        rb.disabled = !canReflip;
+        btnsEl.appendChild(rb);
+      }
+
+      // Pitch button — show only if card has a Pitch power the player can use
+      if (card && (card.rules || '').includes('Pitch')) {
+        const pitchBtn = makeBtn('📤 PITCH (discard for effect)', () => pitchCard(card), '');
+        btnsEl.appendChild(pitchBtn);
+      }
+
       btnsEl.appendChild(makeBtn('🔍 VIEW CARD', () => showCardZoom(card)));
     }
     return;
