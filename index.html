@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Avatar TCG — Master of Elements</title>
 <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@400;700;900&family=Cinzel+Decorative:wght@700&family=Crimson+Pro:ital,wght@0,400;0,600;1,400&display=swap" rel="stylesheet">
+<link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="scripts/supabase-config.js"></script>
 <script src="scripts/match-results.js"></script>
@@ -262,149 +263,9 @@ body {
 .zone.yellow-zone { background: linear-gradient(to right, var(--yellow-zone), var(--yellow-zone-mid) 30%, var(--yellow-zone-mid) 70%, var(--yellow-zone)); border-top: 1px solid rgba(0,0,0,0.2); border-bottom: 1px solid rgba(0,0,0,0.3); }
 .zone.red-zone { background: linear-gradient(to right, var(--red-zone), var(--red-zone-mid) 30%, var(--red-zone-mid) 70%, var(--red-zone)); border-top: 1px solid rgba(0,0,0,0.2); }
 .zone.active-defense { box-shadow: inset 0 0 20px rgba(255,255,200,0.2); }
-
-/* ===== CHARGED ZONE: GLOW + SHIMMER + LIGHTNING BORDER ===== */
-
-/* 1 — Pulsing outer glow with breathing inner light + expanding outline ring */
-.zone.charged {
-  box-shadow:
-    0 0 0 2px rgba(255, 215, 0, 0.92),
-    0 0 16px rgba(255, 215, 0, 0.42),
-    0 0 36px rgba(255, 200, 0, 0.2),
-    inset 0 0 24px rgba(255, 215, 0, 0.09);
-  animation: zone-charge-breathe 2.5s ease-in-out infinite;
-}
-
-@keyframes zone-charge-breathe {
-  0%, 100% {
-    box-shadow:
-      0 0 0 2px  rgba(255, 215, 0, 0.92),
-      0 0 14px   rgba(255, 215, 0, 0.38),
-      0 0 30px   rgba(255, 200, 0, 0.16),
-      inset 0 0 20px rgba(255, 215, 0, 0.07);
-    outline: 1px solid rgba(255, 215, 0, 0.10);
-    outline-offset: 3px;
-  }
-  50% {
-    box-shadow:
-      0 0 0 3px  rgba(255, 255, 150, 1),
-      0 0 26px   rgba(255, 215, 0, 0.62),
-      0 0 58px   rgba(255, 200, 0, 0.3),
-      inset 0 0 32px rgba(255, 215, 0, 0.15);
-    outline: 1px solid rgba(255, 215, 0, 0.48);
-    outline-offset: 7px;
-  }
-}
-
-/* 2 — CSS custom property so the conic-gradient angle can be animated */
-@property --arc {
-  syntax: '<angle>';
-  initial-value: 0deg;
-  inherits: false;
-}
-
-/* 3 — Racing lightning strip on the zone border.
-   Two layered conic gradients: a bright primary spark + a dimmer trailing glow.
-   Masked so ONLY the outer 3 px "border strip" is visible; the interior stays transparent. */
-.zone.charged::before {
-  content: '';
-  position: absolute;
-  inset: 0;
-  padding: 3px;       /* controls lightning-strip thickness */
-  z-index: 4;
-  pointer-events: none;
-
-  background:
-    /* trailing glow, 50° behind the bright spark */
-    conic-gradient(
-      from calc(var(--arc) - 50deg),
-      transparent           0deg,
-      transparent         340deg,
-      rgba(255,220,0,.18) 350deg,
-      rgba(255,240,80,.4) 357deg,
-      rgba(255,220,0,.16) 360deg
-    ),
-    /* primary bright spark */
-    conic-gradient(
-      from var(--arc),
-      transparent             0deg,
-      transparent           290deg,
-      rgba(255,210,0,.22)   310deg,
-      rgba(255,240,60,.65)  328deg,
-      rgba(255,255,180,.92) 340deg,
-      rgba(255,255,255,1)   347deg,
-      rgba(255,255,180,.92) 352deg,
-      rgba(255,240,60,.55)  357deg,
-      rgba(255,210,0,.18)   360deg
-    );
-
-  /* Punch out the interior so only the padding border strip shows */
-  -webkit-mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  -webkit-mask-composite: destination-out;
-  mask:
-    linear-gradient(#fff 0 0) content-box,
-    linear-gradient(#fff 0 0);
-  mask-composite: exclude;
-
-  animation: lightning-orbit 1.8s linear infinite;
-}
-
-@keyframes lightning-orbit {
-  to { --arc: 360deg; }
-}
-
-/* 4 — Sweeping shimmer across the zone interior, layered behind cards */
-.zone.charged .zone-inner::after {
-  content: '';
-  position: absolute;
-  inset: 0;
-  z-index: 0;
-  pointer-events: none;
-  background: linear-gradient(
-    110deg,
-    transparent         15%,
-    rgba(255,215,0,.04) 38%,
-    rgba(255,255,200,.10) 50%,
-    rgba(255,215,0,.04) 62%,
-    transparent         85%
-  );
-  background-size: 250% 100%;
-  animation: shimmer-sweep 3.5s ease-in-out infinite;
-}
-
-@keyframes shimmer-sweep {
-  0%   { background-position: -100% 0; }
-  100% { background-position: 200% 0; }
-}
-
-/* 5 — Flickering ⚡ icon with occasional bright flash */
 .zone.charged::after {
-  content: '⚡';
-  position: absolute; top: 4px; right: 4px;
-  font-size: 0.8rem;
-  color: var(--charged-glow);
-  text-shadow: 0 0 8px rgba(255,215,0,0.8), 0 0 18px rgba(255,215,0,0.4);
-  pointer-events: none;
-  animation: bolt-flicker 3.2s ease-in-out infinite;
-}
-
-@keyframes bolt-flicker {
-  0%, 72%, 100% {
-    opacity: 1;
-    text-shadow: 0 0 8px rgba(255,215,0,0.8), 0 0 18px rgba(255,215,0,0.4);
-  }
-  74% { opacity: 0.1; text-shadow: none; }
-  76% {
-    opacity: 1;
-    text-shadow:
-      0 0 16px rgba(255,255,120,1),
-      0 0 32px rgba(255,215,0,.95),
-      0 0 54px rgba(255,200,0,.6);
-  }
-  78% { opacity: 0.3; text-shadow: none; }
-  80% { opacity: 1; text-shadow: 0 0 8px rgba(255,215,0,0.8); }
+  content: '⚡'; position: absolute; top: 4px; right: 4px; font-size: 0.8rem;
+  color: var(--charged-glow); text-shadow: 0 0 8px rgba(255,215,0,0.8); pointer-events: none;
 }
 
 .zone-label {
@@ -413,7 +274,7 @@ body {
   letter-spacing: 2px; color: rgba(255,255,255,0.4);
   padding: 4px; flex-shrink: 0; text-transform: uppercase;
 }
-.zone-inner { flex: 1; display: flex; align-items: center; gap: 6px; padding: 4px 6px; height: 100%; position: relative; }
+.zone-inner { flex: 1; display: flex; align-items: center; gap: 6px; padding: 4px 6px; height: 100%; }
 
 .card-slot {
   position: relative; background: var(--card-slot-bg);
@@ -596,29 +457,251 @@ body {
 ::-webkit-scrollbar-track { background: rgba(0,0,0,0.2); }
 ::-webkit-scrollbar-thumb { background: rgba(212,168,67,0.4); border-radius: 2px; }
 
-/* ===================== SIDEWAYS / TAPPED STATE ===================== */
-/* Used when: zone charge-space card is turned sideways (zone charged),
-   or a strike flip-card is turned sideways (counterattack played). */
-.sideways-card {
-  transform: rotate(90deg) scale(0.72);
-  transform-origin: center center;
-  transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+/* ═══════════════════════════════════════════════════════════
+   GAME OVERLAY — Media Bar + EPB Chat
+   Media bar slides up from bottom; game-layout scales to fit
+═══════════════════════════════════════════════════════════ */
+:root { --mb-h: 58px; --mb-h-mob: 50px; }
+
+/* Shrink game layout to fit above the bar — no overlap */
+body.has-media-bar #game-layout {
+  height: calc(100vh - var(--mb-h)) !important;
+}
+/* Shift EPB main button and chat panel up when bar is active */
+body.has-media-bar .game-epb-main   { bottom: calc(var(--mb-h) + 16px) !important; }
+body.has-media-bar #gameEpbSub-chat { bottom: calc(var(--mb-h) + 16px + 80px) !important; }
+body.has-media-bar #gameEpbSub-music{ bottom: calc(var(--mb-h) + 16px + 44px) !important; }
+body.has-media-bar #gameEpbSub-home { bottom: calc(var(--mb-h) + 16px + 10px) !important; }
+body.has-media-bar #gameEpbLabel-chat { bottom: calc(var(--mb-h) + 16px + 80px) !important; }
+body.has-media-bar #gameEpbLabel-music{ bottom: calc(var(--mb-h) + 16px + 44px) !important; }
+body.has-media-bar #gameEpbLabel-home { bottom: calc(var(--mb-h) + 16px + 10px) !important; }
+body.has-media-bar .game-epb-chat-panel {
+  bottom: calc(var(--mb-h) + 16px + 54px + 4px) !important;
 }
 
-/* Gold glow on charged charge-space items (chamber / deck / discard) */
-.charge-slot .sideways-card {
-  border: 2px solid var(--charged-glow) !important;
-  box-shadow: 0 0 12px 4px rgba(255, 215, 0, 0.55),
-              0 0 24px rgba(255, 215, 0, 0.25),
-              inset 0 0 6px rgba(255, 215, 0, 0.15);
+/* ── Media bar shell ── */
+.mb-bar {
+  position: fixed; bottom: 0; left: 0; right: 0; z-index: 600;
+  height: var(--mb-h);
+  background: rgba(8,5,2,0.97);
+  backdrop-filter: blur(18px); -webkit-backdrop-filter: blur(18px);
+  border-top: 1px solid rgba(212,168,67,0.35);
+  display: flex; align-items: center; padding: 0 20px 0 10px; gap: 4px;
+  transform: translateY(calc(100% + 2px));
+  transition: transform 0.32s cubic-bezier(0.4,0,0.2,1);
+  box-shadow: 0 -6px 28px rgba(0,0,0,0.7);
+  overflow: visible;
+}
+.mb-bar.mb-show { transform: translateY(0); }
+.mb-seek {
+  position: absolute; top: -4px; left: 0; right: 0; height: 4px;
+  cursor: pointer; background: rgba(44,26,12,0.8);
+}
+.mb-seek-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #d4a843, #b44ddf);
+  pointer-events: none; width: 0%;
+  border-radius: 0 2px 2px 0;
+}
+.mb-seek-thumb {
+  position: absolute; top: 50%; transform: translate(-50%,-50%);
+  width: 10px; height: 10px; border-radius: 50%;
+  background: var(--gold); border: 2px solid #0a0704;
+  pointer-events: none; left: 0%; opacity: 0; transition: opacity 0.15s;
+}
+.mb-seek:hover .mb-seek-thumb { opacity: 1; }
+.mb-info {
+  display: flex; align-items: center; gap: 8px;
+  flex: 0 0 auto; width: 170px; min-width: 0; overflow: hidden;
+}
+.mb-thumb {
+  width: 36px; height: 36px; border-radius: 5px; object-fit: cover;
+  flex-shrink: 0; background: rgba(44,26,12,0.8);
+  border: 1px solid rgba(212,168,67,0.3); display: block;
+}
+.mb-track-text { min-width: 0; }
+.mb-track-name {
+  font-family: 'Cinzel', serif; font-size: 0.68rem; font-weight: 700;
+  color: var(--parchment-text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 1.2;
+}
+.mb-track-time {
+  font-size: 0.58rem; color: rgba(200,160,80,0.5); margin-top: 2px;
+  font-family: 'Courier New', monospace;
+}
+.mb-controls {
+  display: flex; align-items: center; gap: 1px;
+  flex: 1; justify-content: center;
+}
+.mb-btn {
+  width: 32px; height: 32px; border-radius: 7px;
+  background: none; border: none; color: rgba(200,160,80,0.5);
+  font-size: 0.78rem; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: color 0.15s, background 0.15s; flex-shrink: 0; position: relative;
+}
+.mb-btn:hover { color: var(--parchment-text); background: rgba(212,168,67,0.1); }
+.mb-btn.mb-on { color: var(--gold); }
+.mb-btn.mb-on:hover { color: var(--gold-light); }
+.mb-playpause {
+  width: 38px; height: 38px; border-radius: 50%;
+  background: var(--gold); color: #2c1a0c; font-size: 0.88rem;
+  border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  transition: background 0.15s, transform 0.1s; flex-shrink: 0;
+  box-shadow: 0 2px 12px rgba(212,168,67,0.45); margin: 0 3px;
+}
+.mb-playpause:hover { background: var(--gold-light); transform: scale(1.07); }
+.mb-playpause.mb-pp-pause {
+  background: #4a7dff; color: #fff;
+  box-shadow: 0 2px 10px rgba(74,125,255,0.35);
+}
+.mb-playpause.mb-pp-pause:hover { background: #5d8cff; }
+.mb-rep-num {
+  position: absolute; bottom: 1px; right: 1px;
+  font-size: 0.48rem; font-weight: 900; color: var(--gold);
+  line-height: 1; pointer-events: none; display: none;
+}
+.mb-vol {
+  flex: 0 0 auto; display: flex; align-items: center; gap: 5px; width: 110px;
+}
+.mb-vol-track {
+  flex: 1; -webkit-appearance: none; appearance: none;
+  height: 3px; border-radius: 99px; outline: none; cursor: pointer;
+  background: rgba(44,26,12,0.8);
+}
+.mb-vol-track::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 11px; height: 11px; border-radius: 50%;
+  background: var(--gold); cursor: pointer;
+  box-shadow: 0 0 4px rgba(212,168,67,0.5);
+}
+.mb-vol-track::-moz-range-thumb {
+  width: 11px; height: 11px; border-radius: 50%;
+  background: var(--gold); cursor: pointer; border: none;
+}
+@media (max-width: 520px) {
+  :root { --mb-h: var(--mb-h-mob); }
+  .mb-info { display: none; }
+  .mb-bar { padding: 0 6px; gap: 0; }
+  .mb-btn { width: 28px; height: 28px; font-size: 0.72rem; }
+  .mb-playpause { width: 34px; height: 34px; font-size: 0.8rem; margin: 0 2px; }
+  .mb-vol { width: 84px; }
 }
 
-/* Amber-orange glow on the counterattack strike card */
-.flip-slot .sideways-card {
-  box-shadow: 0 0 14px 4px rgba(255, 140, 40, 0.7),
-              0 0 28px rgba(255, 100, 0, 0.35);
-  outline: 2px solid rgba(255, 160, 50, 0.6);
-  outline-offset: 2px;
+/* ── EPB (game) ── */
+.game-epb-backdrop {
+  position: fixed; inset: 0; z-index: 590;
+  background: rgba(0,0,0,0); pointer-events: none;
+  transition: background 0.25s;
+}
+.game-epb-backdrop.active { background: rgba(0,0,0,0.35); pointer-events: auto; }
+.game-epb-main {
+  position: fixed; bottom: 20px; right: 20px; z-index: 600;
+  width: 52px; height: 52px; border-radius: 50%;
+  background: linear-gradient(135deg, #8b6914, #d4a843, #8b6914);
+  border: 2px solid rgba(212,168,67,0.6);
+  box-shadow: 0 4px 18px rgba(0,0,0,0.6), 0 0 0 0 rgba(212,168,67,0);
+  cursor: pointer; transition: transform 0.2s, box-shadow 0.2s;
+  display: flex; align-items: center; justify-content: center;
+  overflow: hidden; padding: 0;
+}
+.game-epb-main img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+.game-epb-main:hover { transform: scale(1.08); box-shadow: 0 6px 24px rgba(212,168,67,0.5); }
+.game-epb-main.open { transform: rotate(45deg) scale(1.05); box-shadow: 0 6px 28px rgba(212,168,67,0.6); }
+.game-epb-sub {
+  position: fixed; z-index: 600;
+  width: 42px; height: 42px; border-radius: 50%;
+  border: none; cursor: pointer; color: #fff; font-size: 0.88rem;
+  display: flex; align-items: center; justify-content: center;
+  opacity: 0; pointer-events: none;
+  transform: var(--epb-off-tf, scale(0.35));
+  transition: opacity 0.22s, transform 0.22s, box-shadow 0.15s;
+  box-shadow: 0 3px 12px rgba(0,0,0,0.5);
+}
+.game-epb-sub.visible { opacity: 1; transform: scale(1); pointer-events: auto; }
+.game-epb-sub.visible:hover { transform: scale(1.12); }
+.game-epb-label {
+  position: fixed; z-index: 600;
+  font-family: 'Cinzel', serif; font-size: 0.6rem; letter-spacing: 1px;
+  color: var(--parchment-text); background: rgba(10,7,4,0.88);
+  border: 1px solid rgba(212,168,67,0.25); border-radius: 4px;
+  padding: 3px 8px; pointer-events: none; opacity: 0;
+  white-space: nowrap; transition: opacity 0.15s;
+}
+.game-epb-label.show { opacity: 1; }
+
+/* ── Game EPB Chat Panel ── */
+.game-epb-chat-panel {
+  position: fixed; bottom: 94px; right: 20px; z-index: 598;
+  width: 300px; max-height: 380px;
+  background: rgba(10,7,4,0.96);
+  backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(212,168,67,0.3);
+  border-radius: 14px 14px 4px 14px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.7);
+  display: none; flex-direction: column; overflow: hidden;
+}
+.game-epb-chat-panel.active { display: flex; }
+.game-chat-hdr {
+  padding: 10px 14px; background: rgba(44,26,12,0.7);
+  border-bottom: 1px solid rgba(212,168,67,0.2);
+  display: flex; align-items: center; justify-content: space-between; flex-shrink: 0;
+}
+.game-chat-title {
+  font-family: 'Cinzel', serif; font-size: 0.82rem; letter-spacing: 2px;
+  color: var(--gold);
+}
+.game-chat-x {
+  background: none; border: none; color: rgba(200,160,80,0.5);
+  font-size: 0.9rem; cursor: pointer; padding: 2px 6px; border-radius: 4px;
+  transition: color 0.2s;
+}
+.game-chat-x:hover { color: var(--gold); }
+.game-chat-room-row {
+  padding: 6px 12px; border-bottom: 1px solid rgba(212,168,67,0.12); flex-shrink: 0;
+}
+.game-chat-room-sel {
+  width: 100%; background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(212,168,67,0.25); border-radius: 6px;
+  padding: 5px 8px; color: var(--parchment-text);
+  font-family: 'Cinzel', serif; font-size: 0.6rem; cursor: pointer; outline: none;
+  appearance: none; -webkit-appearance: none;
+}
+.game-chat-msgs {
+  flex: 1; overflow-y: auto; padding: 10px 12px;
+  display: flex; flex-direction: column; gap: 6px;
+  scrollbar-width: thin; scrollbar-color: rgba(212,168,67,0.3) transparent;
+}
+.game-chat-msgs::-webkit-scrollbar { width: 3px; }
+.game-chat-msgs::-webkit-scrollbar-thumb { background: rgba(212,168,67,0.3); border-radius: 2px; }
+.game-chat-prompt {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  color: rgba(200,160,80,0.4); font-size: 0.72rem; text-align: center;
+  padding: 20px 10px; font-family: 'Cinzel', serif; letter-spacing: 1px;
+}
+.game-chat-input-row {
+  display: flex; gap: 6px; padding: 8px 10px;
+  border-top: 1px solid rgba(212,168,67,0.15); flex-shrink: 0;
+}
+.game-chat-txt {
+  flex: 1; background: rgba(0,0,0,0.6);
+  border: 1px solid rgba(212,168,67,0.25); border-radius: 8px;
+  padding: 6px 10px; color: var(--parchment-text);
+  font-family: 'Crimson Pro', serif; font-size: 0.82rem; outline: none;
+}
+.game-chat-txt:focus { border-color: rgba(212,168,67,0.6); }
+.game-chat-send {
+  width: 32px; height: 32px; border-radius: 8px;
+  background: linear-gradient(135deg, #8b6914, #d4a843);
+  border: none; color: #2c1a0c; font-size: 0.8rem;
+  cursor: pointer; display: flex; align-items: center; justify-content: center;
+  flex-shrink: 0; transition: opacity 0.15s;
+}
+.game-chat-send:hover { opacity: 0.85; }
+/* Hidden YouTube mount point */
+#ytmp-game-mount {
+  position: fixed; left: -9999px; top: -9999px;
+  width: 1px; height: 1px; overflow: hidden; pointer-events: none;
 }
 
 /* ===================== MODE SELECT SCREEN ===================== */
@@ -3342,11 +3425,6 @@ function renderPlayer(pIdx) {
     if (zone.flipCard) {
       const fc = makeTcgCard(zone.flipCard, true);
       fc.classList.add('flip-slot-card');
-      // Show card sideways when it was played as a strike counterattack
-      // (same object reference: currentStrike IS the flipCard until cleanup)
-      if (p.currentStrike && p.currentStrike === zone.flipCard && p.currentStrikeZone === zname) {
-        fc.classList.add('sideways-card');
-      }
       flipSlot.appendChild(fc);
     } else {
       flipSlot.innerHTML = '<div class="card-slot-label">FLIP<br>HERE</div>';
@@ -3358,8 +3436,6 @@ function renderPlayer(pIdx) {
     if (zname === 'green') {
       const chamberEl = makeChamberMini(p.chamber, zone.charged);
       chamberEl.onclick = () => showChamberInfo(p);
-      // Turn Chamber Card sideways when green zone is charged
-      if (zone.charged) chamberEl.classList.add('sideways-card');
       chargeSlot.appendChild(chamberEl);
       if (zone.charged) {
         const ci = document.createElement('div');
@@ -3367,15 +3443,9 @@ function renderPlayer(pIdx) {
         chargeSlot.appendChild(ci);
       }
     } else if (zname === 'yellow') {
-      const deckEl = makeDeckPile(p.deck);
-      // Turn Deck sideways when yellow zone is charged
-      if (zone.charged) deckEl.classList.add('sideways-card');
-      chargeSlot.appendChild(deckEl);
+      chargeSlot.appendChild(makeDeckPile(p.deck));
     } else {
-      const discardEl = makeDiscardPile(p.discard);
-      // Turn Discard Pile sideways when red zone is charged
-      if (zone.charged) discardEl.classList.add('sideways-card');
-      chargeSlot.appendChild(discardEl);
+      chargeSlot.appendChild(makeDiscardPile(p.discard));
     }
     inner.appendChild(chargeSlot);
 
@@ -4761,5 +4831,560 @@ window.onload = async () => {
 };
 </script>
 <script src="scripts/choice-modal.js"></script>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GAME OVERLAY — Media Bar
+═══════════════════════════════════════════════════════════ -->
+<div id="mbBar" class="mb-bar">
+  <div class="mb-seek" id="mbSeek">
+    <div class="mb-seek-fill" id="mbFill"></div>
+    <div class="mb-seek-thumb" id="mbThumb"></div>
+  </div>
+  <div class="mb-info">
+    <img class="mb-thumb" id="mbArt" src="" alt="">
+    <div class="mb-track-text">
+      <div class="mb-track-name" id="mbName">Avatar Soundtrack</div>
+      <div class="mb-track-time" id="mbTime">0:00 / 0:00</div>
+    </div>
+  </div>
+  <div class="mb-controls">
+    <button class="mb-btn" id="mbShuffle" title="Shuffle"><i class="fas fa-random"></i></button>
+    <button class="mb-btn" id="mbPrev"    title="Previous track"><i class="fas fa-step-backward"></i></button>
+    <button class="mb-btn" id="mbRew"     title="Rewind 10s"><i class="fas fa-backward"></i></button>
+    <button class="mb-playpause" id="mbPP" title="Play / Pause">
+      <i class="fas fa-play" id="mbPPIcon"></i>
+    </button>
+    <button class="mb-btn" id="mbStop"   title="Stop &amp; dismiss"><i class="fas fa-stop"></i></button>
+    <button class="mb-btn" id="mbFwd"    title="Forward 10s"><i class="fas fa-forward"></i></button>
+    <button class="mb-btn" id="mbNext"   title="Next track"><i class="fas fa-step-forward"></i></button>
+    <button class="mb-btn" id="mbRepeat" title="Repeat">
+      <i class="fas fa-redo"></i>
+      <span class="mb-rep-num" id="mbRepNum">1</span>
+    </button>
+  </div>
+  <div class="mb-vol">
+    <button class="mb-btn" id="mbMute" title="Mute / Unmute" style="width:26px;flex-shrink:0;">
+      <i class="fas fa-volume-up" id="mbVolIco"></i>
+    </button>
+    <input class="mb-vol-track" id="mbVol" type="range" min="0" max="100" value="80" step="1">
+  </div>
+</div>
+
+<!-- Hidden YouTube mount -->
+<div id="ytmp-game-mount"><div id="ytmp-game"></div></div>
+
+<!-- ═══════════════════════════════════════════════════════════
+     GAME OVERLAY — EPB + Chat Panel
+═══════════════════════════════════════════════════════════ -->
+<div class="game-epb-backdrop" id="gameEpbBackdrop"></div>
+<button class="game-epb-main" id="gameEpbMainBtn" title="Avatar Quick Menu">
+  <img src="https://github.com/zolodio/Avatar-TCG-Database/blob/Current-Development/ATCGicon.png?raw=true" alt="Menu">
+</button>
+
+<!-- Chat panel -->
+<div class="game-epb-chat-panel" id="gameEpbChatPanel">
+  <div class="game-chat-hdr">
+    <div class="game-chat-title">💬 Chat</div>
+    <button class="game-chat-x" id="gameEpbChatClose" title="Close"><i class="fas fa-times"></i></button>
+  </div>
+  <div class="game-chat-room-row">
+    <select class="game-chat-room-sel" id="gameEpbRoomSel">
+      <option value="global"># Global Chat</option>
+    </select>
+  </div>
+  <div class="game-chat-msgs" id="gameEpbMsgs">
+    <div class="game-chat-prompt">
+      <i class="fas fa-comments" style="font-size:1.6rem;"></i>
+      <span>Sign in on the main site to chat</span>
+    </div>
+  </div>
+  <div class="game-chat-input-row" id="gameEpbInputRow" style="display:none;">
+    <input class="game-chat-txt" id="gameEpbTxt" placeholder="Message…" maxlength="500" autocomplete="off">
+    <button class="game-chat-send" id="gameEpbSendBtn"><i class="fas fa-paper-plane"></i></button>
+  </div>
+</div>
+
+<script>
+/* ═══════════════════════════════════════════════════════════════
+   GAME OVERLAY — Media Player + EPB Chat  (game-overlay inline)
+   Handles: music control bar + floating chat button.
+   Media bar slides up from bottom; #game-layout height adjusts
+   so the board area is never obscured.
+═══════════════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  /* ─────────────────────────────────────────────────────────────
+     PART 1 · MEDIA PLAYER BAR
+  ───────────────────────────────────────────────────────────── */
+  var PLAYLIST  = 'PLVdzXINk9vjd3uCgmwiTej4NfN-4U1ZRp';
+  var FIRST_VID = 'yBXbGHfs0kE';
+
+  var ytp     = null;
+  var ytReady = false;
+  var playing = false;
+  var muted   = false;
+  var shuffle = false;
+  var repeat  = 'none';
+  var seekDrag = false;
+  var tickId  = null;
+  var lastVol = 80;
+  var ytpInitiated = false;
+
+  var bar = document.getElementById('mbBar');
+
+  function fmtTime(s) {
+    s = Math.max(0, Math.floor(s || 0));
+    return Math.floor(s / 60) + ':' + (s % 60 < 10 ? '0' : '') + (s % 60);
+  }
+  function showBar() { bar.classList.add('mb-show'); document.body.classList.add('has-media-bar'); }
+  function hideBar() { bar.classList.remove('mb-show'); document.body.classList.remove('has-media-bar'); }
+
+  function setPP(isPlaying) {
+    var pp = document.getElementById('mbPP'), ico = document.getElementById('mbPPIcon');
+    if (!pp || !ico) return;
+    pp.classList.toggle('mb-pp-pause', isPlaying);
+    ico.className = isPlaying ? 'fas fa-pause' : 'fas fa-play';
+    pp.title = isPlaying ? 'Pause' : 'Play';
+  }
+  function setVolIcon(vol, isMuted) {
+    var ico = document.getElementById('mbVolIco'); if (!ico) return;
+    ico.className = (isMuted || vol === 0) ? 'fas fa-volume-mute' : vol < 40 ? 'fas fa-volume-down' : 'fas fa-volume-up';
+  }
+  function setRepeatUI() {
+    var btn = document.getElementById('mbRepeat'), badge = document.getElementById('mbRepNum');
+    if (!btn || !badge) return;
+    btn.classList.toggle('mb-on', repeat !== 'none');
+    badge.style.display = repeat === 'one' ? 'block' : 'none';
+    if (repeat === 'none') btn.title = 'Repeat off';
+    else if (repeat === 'all') btn.title = 'Repeat all';
+    else btn.title = 'Repeat one';
+  }
+
+  /* Seek bar */
+  function seekPct(pct) {
+    pct = Math.max(0, Math.min(1, pct));
+    document.getElementById('mbFill').style.width  = (pct * 100) + '%';
+    document.getElementById('mbThumb').style.left  = (pct * 100) + '%';
+    if (ytReady && ytp) { try { ytp.seekTo(pct * (ytp.getDuration() || 0), true); } catch (e) {} }
+  }
+  var seekEl = document.getElementById('mbSeek');
+  seekEl.addEventListener('mousedown', startSeek);
+  seekEl.addEventListener('touchstart', startSeek, { passive: true });
+  function startSeek(e) {
+    seekDrag = true; doSeek(e);
+    document.addEventListener('mousemove', doSeek);
+    document.addEventListener('touchmove', doSeek, { passive: true });
+    document.addEventListener('mouseup', endSeek);
+    document.addEventListener('touchend', endSeek);
+  }
+  function doSeek(e) {
+    var t = e.touches ? e.touches[0] : e;
+    var r = seekEl.getBoundingClientRect();
+    seekPct((t.clientX - r.left) / r.width);
+  }
+  function endSeek() {
+    seekDrag = false;
+    document.removeEventListener('mousemove', doSeek);
+    document.removeEventListener('touchmove', doSeek);
+    document.removeEventListener('mouseup', endSeek);
+    document.removeEventListener('touchend', endSeek);
+  }
+
+  /* Tick */
+  function tick() {
+    if (!ytReady || !ytp || seekDrag) return;
+    try {
+      var cur = ytp.getCurrentTime() || 0, dur = ytp.getDuration() || 0;
+      var pct = dur > 0 ? (cur / dur * 100) : 0;
+      document.getElementById('mbFill').style.width = pct + '%';
+      document.getElementById('mbThumb').style.left = pct + '%';
+      document.getElementById('mbTime').textContent = fmtTime(cur) + ' / ' + fmtTime(dur);
+    } catch (e) {}
+  }
+  function startTick() { if (!tickId) tickId = setInterval(tick, 800); }
+  function stopTick()  { clearInterval(tickId); tickId = null; }
+
+  /* Track info */
+  function refreshTrack() {
+    if (!ytReady || !ytp) return;
+    try {
+      var d = ytp.getVideoData();
+      if (d && d.title) document.getElementById('mbName').textContent = d.title;
+      if (d && d.video_id) document.getElementById('mbArt').src = 'https://img.youtube.com/vi/' + d.video_id + '/default.jpg';
+    } catch (e) {}
+  }
+
+  /* YouTube player */
+  function buildYtPlayer() {
+    if (document.getElementById('ytmp-game') && window.YT && window.YT.Player) {
+      ytp = new YT.Player('ytmp-game', {
+        videoId: FIRST_VID,
+        playerVars: { list: PLAYLIST, listType: 'playlist', rel: 0, playsinline: 1, controls: 0, modestbranding: 1 },
+        events: {
+          onReady: function (e) {
+            ytReady = true;
+            try { e.target.setVolume(parseInt(document.getElementById('mbVol').value, 10)); } catch (_) {}
+          },
+          onStateChange: function (e) {
+            var S = e.data;
+            if (S === YT.PlayerState.PLAYING) {
+              playing = true; setPP(true); showBar(); startTick(); refreshTrack();
+            } else if (S === YT.PlayerState.PAUSED) {
+              playing = false; setPP(false); stopTick();
+            } else if (S === YT.PlayerState.ENDED) {
+              playing = false; setPP(false); stopTick();
+              if (repeat === 'one') { try { ytp.seekTo(0); ytp.playVideo(); } catch (_) {} }
+            } else if (S === YT.PlayerState.BUFFERING) {
+              refreshTrack();
+            }
+          }
+        }
+      });
+    }
+  }
+
+  /* Ensure YT API then build player */
+  function initYtPlayer() {
+    if (ytpInitiated) return;
+    ytpInitiated = true;
+    if (window.YT && window.YT.Player) { buildYtPlayer(); return; }
+    var prev = window.onYouTubeIframeAPIReady;
+    window.onYouTubeIframeAPIReady = function () {
+      if (typeof prev === 'function') prev();
+      buildYtPlayer();
+    };
+    if (!document.getElementById('ytApiSrc')) {
+      var sc = document.createElement('script');
+      sc.id = 'ytApiSrc';
+      sc.src = 'https://www.youtube.com/iframe_api';
+      document.head.appendChild(sc);
+    }
+  }
+
+  /* Expose so EPB music button can trigger */
+  window._gameMediaPlay = function () {
+    initYtPlayer();
+    if (ytReady && ytp) {
+      try { playing ? ytp.pauseVideo() : ytp.playVideo(); } catch (_) {}
+    } else {
+      /* Player not ready yet — will auto-play once onReady fires if we call play */
+      setTimeout(function () {
+        if (ytReady && ytp) { try { ytp.playVideo(); } catch (_) {} }
+      }, 2000);
+      showBar();
+    }
+  };
+
+  function safeCall(fn) { if (ytReady && ytp) { try { fn(ytp); } catch (_) {} } }
+
+  /* Button wiring */
+  document.getElementById('mbPP').addEventListener('click', function () {
+    initYtPlayer();
+    safeCall(function (p) { playing ? p.pauseVideo() : p.playVideo(); });
+  });
+  document.getElementById('mbStop').addEventListener('click', function () {
+    safeCall(function (p) { p.stopVideo(); });
+    playing = false; setPP(false); stopTick();
+    document.getElementById('mbFill').style.width = '0%';
+    document.getElementById('mbThumb').style.left = '0%';
+    document.getElementById('mbTime').textContent = '0:00 / 0:00';
+    hideBar();
+  });
+  document.getElementById('mbPrev').addEventListener('click', function () { safeCall(function (p) { p.previousVideo(); }); });
+  document.getElementById('mbNext').addEventListener('click', function () { safeCall(function (p) { p.nextVideo(); }); });
+  document.getElementById('mbRew').addEventListener('click', function () {
+    safeCall(function (p) { p.seekTo(Math.max(0, (p.getCurrentTime() || 0) - 10), true); });
+  });
+  document.getElementById('mbFwd').addEventListener('click', function () {
+    safeCall(function (p) { p.seekTo(Math.min(p.getDuration() || 0, (p.getCurrentTime() || 0) + 10), true); });
+  });
+  document.getElementById('mbShuffle').addEventListener('click', function () {
+    shuffle = !shuffle;
+    this.classList.toggle('mb-on', shuffle);
+    safeCall(function (p) { p.setShuffle(shuffle); });
+  });
+  document.getElementById('mbRepeat').addEventListener('click', function () {
+    repeat = repeat === 'none' ? 'all' : repeat === 'all' ? 'one' : 'none';
+    setRepeatUI();
+    safeCall(function (p) { p.setLoop(repeat !== 'none'); });
+  });
+  document.getElementById('mbMute').addEventListener('click', function () {
+    muted = !muted;
+    this.classList.toggle('mb-on', muted);
+    safeCall(function (p) { muted ? p.mute() : p.unMute(); });
+    setVolIcon(parseInt(document.getElementById('mbVol').value, 10), muted);
+  });
+  document.getElementById('mbVol').addEventListener('input', function () {
+    var vol = parseInt(this.value, 10); lastVol = vol;
+    safeCall(function (p) {
+      p.setVolume(vol);
+      if (vol > 0 && muted) { p.unMute(); muted = false; document.getElementById('mbMute').classList.remove('mb-on'); }
+    });
+    setVolIcon(vol, muted && vol === 0);
+  });
+
+
+  /* ─────────────────────────────────────────────────────────────
+     PART 2 · EPB (Ever-Present Button) with Game Chat
+  ───────────────────────────────────────────────────────────── */
+  var EPB_CFG = [
+    { id:'chat',  icon:'fa-comment-dots', bg:'#2e8ce8',     label:'Game Chat',  angle:0,  action: function () { toggleChat(); } },
+    { id:'music', icon:'fa-music',        bg:'#b44ddf',     label:'Music',      angle:45, action: function () { closeEpb(); window._gameMediaPlay(); } },
+    { id:'home',  icon:'fa-home',         bg:'var(--gold)', label:'Main Site',  angle:90, action: function () { closeEpb(); window.location.href='../'; } }
+  ];
+
+  var MAIN_R = 20, MAIN_SZ = 52, SUB_SZ = 42, ARC_R = 84;
+  var cx0 = MAIN_R + MAIN_SZ / 2, cy0 = MAIN_R + MAIN_SZ / 2;
+
+  EPB_CFG.forEach(function (cfg) {
+    var rad = cfg.angle * Math.PI / 180;
+    var scx = cx0 + Math.sin(rad) * ARC_R;
+    var scy = cy0 + Math.cos(rad) * ARC_R;
+    var br  = Math.round(scx - SUB_SZ / 2);
+    var bb  = Math.round(scy - SUB_SZ / 2);
+    var tx  = Math.round(scx - cx0), ty = Math.round(scy - cy0);
+    cfg._hiddenTf = 'translateX(' + tx + 'px) translateY(' + ty + 'px) scale(0.35)';
+    cfg._delay    = (EPB_CFG.indexOf(cfg) * 55) + 'ms';
+
+    var btn = document.createElement('button');
+    btn.id = 'gameEpbSub-' + cfg.id;
+    btn.className = 'game-epb-sub';
+    btn.title = cfg.label;
+    btn.style.right = br + 'px';
+    btn.style.bottom = bb + 'px';
+    btn.style.background = cfg.bg;
+    btn.style.setProperty('--epb-off-tf', cfg._hiddenTf);
+    btn.innerHTML = '<i class="fas ' + cfg.icon + '"></i>';
+    document.body.appendChild(btn);
+    cfg._btn = btn;
+
+    var lbl = document.createElement('div');
+    lbl.id = 'gameEpbLabel-' + cfg.id;
+    lbl.className = 'game-epb-label';
+    lbl.textContent = cfg.label;
+    lbl.style.right  = (br + SUB_SZ + 8) + 'px';
+    lbl.style.bottom = (bb + SUB_SZ / 2 - 10) + 'px';
+    document.body.appendChild(lbl);
+    cfg._label = lbl;
+
+    btn.addEventListener('mouseenter', function () { lbl.classList.add('show'); });
+    btn.addEventListener('mouseleave', function () { lbl.classList.remove('show'); });
+    btn.addEventListener('click', function () { cfg.action(); });
+  });
+
+  var backdrop  = document.getElementById('gameEpbBackdrop');
+  var mainBtn   = document.getElementById('gameEpbMainBtn');
+  var chatPanel = document.getElementById('gameEpbChatPanel');
+  var chatClose = document.getElementById('gameEpbChatClose');
+  var roomSel   = document.getElementById('gameEpbRoomSel');
+  var msgsEl    = document.getElementById('gameEpbMsgs');
+  var inputRow  = document.getElementById('gameEpbInputRow');
+  var txtEl     = document.getElementById('gameEpbTxt');
+  var sendBtn   = document.getElementById('gameEpbSendBtn');
+
+  var state = {
+    menuOpen: false, chatOpen: false,
+    room: 'global', profile: null, userId: null,
+    chatSub: null, seenRooms: { global: true },
+    gameRoomAdded: false
+  };
+
+  mainBtn.addEventListener('click', function () { state.menuOpen ? closeEpb() : openEpb(); });
+  backdrop.addEventListener('click', closeEpb);
+  chatClose.addEventListener('click', function () { state.chatOpen = false; chatPanel.classList.remove('active'); });
+  roomSel.addEventListener('change', function () { state.room = this.value; loadMsgs(state.room); });
+
+  function openEpb() {
+    state.menuOpen = true;
+    mainBtn.classList.add('open');
+    backdrop.classList.add('active');
+    EPB_CFG.forEach(function (cfg) {
+      cfg._btn.style.transitionDelay = cfg._delay;
+      cfg._btn.classList.add('visible');
+    });
+  }
+  function closeEpb() {
+    state.menuOpen = false;
+    mainBtn.classList.remove('open');
+    backdrop.classList.remove('active');
+    EPB_CFG.forEach(function (cfg) {
+      cfg._btn.style.transitionDelay = '0ms';
+      cfg._btn.classList.remove('visible');
+      cfg._label.classList.remove('show');
+    });
+  }
+  function toggleChat() {
+    closeEpb();
+    state.chatOpen = !state.chatOpen;
+    chatPanel.classList.toggle('active', state.chatOpen);
+    if (state.chatOpen) loadMsgs(state.room);
+  }
+
+  /* ── Supabase helper ── */
+  function getSb() {
+    if (window.sb) return window.sb;
+    /* Try to piggyback on ONLINE's client */
+    if (typeof ONLINE !== 'undefined' && ONLINE.supabase) {
+      window.sb = ONLINE.supabase; return window.sb;
+    }
+    /* Create a fresh client from config */
+    if (window.supabase && window.SUPABASE_URL && window.SUPABASE_URL.indexOf('YOUR_PROJECT') === -1) {
+      window.sb = window.supabase.createClient(window.SUPABASE_URL, window.SUPABASE_ANON_KEY);
+      return window.sb;
+    }
+    return null;
+  }
+
+  /* ── Game Room hook — auto-add room when online game starts ── */
+  function addGameRoomOption(roomCode) {
+    if (!roomCode || state.gameRoomAdded) return;
+    state.gameRoomAdded = true;
+    var roomId = 'game_' + roomCode;
+    var opt = document.createElement('option');
+    opt.value = roomId;
+    opt.textContent = '⚔ Game Room ' + roomCode;
+    /* Insert at top after global */
+    if (roomSel.options.length > 0) roomSel.insertBefore(opt, roomSel.options[1]);
+    else roomSel.appendChild(opt);
+    /* Auto-switch chat to game room */
+    state.room = roomId;
+    roomSel.value = roomId;
+    if (state.chatOpen) loadMsgs(state.room);
+    else {
+      /* Auto-open chat to game room on game start */
+      state.chatOpen = true;
+      chatPanel.classList.add('active');
+      loadMsgs(state.room);
+    }
+  }
+  /* Patch global functions after game scripts load */
+  function patchGameFunctions() {
+    var orig_begin = window.beginOnlineGame;
+    if (typeof orig_begin === 'function') {
+      window.beginOnlineGame = function () {
+        orig_begin.apply(this, arguments);
+        setTimeout(function () {
+          if (typeof ONLINE !== 'undefined' && ONLINE.roomCode) addGameRoomOption(ONLINE.roomCode);
+        }, 200);
+      };
+    }
+    var orig_receive = window._receiveGameStart;
+    if (typeof orig_receive === 'function') {
+      window._receiveGameStart = function () {
+        orig_receive.apply(this, arguments);
+        setTimeout(function () {
+          if (typeof ONLINE !== 'undefined' && ONLINE.roomCode) addGameRoomOption(ONLINE.roomCode);
+        }, 200);
+      };
+    }
+  }
+  /* Run patch after page fully loads */
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', patchGameFunctions);
+  else setTimeout(patchGameFunctions, 0);
+
+  /* ── Chat messages ── */
+  function esc(s) { return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;'); }
+
+  function msgHtml(m) {
+    var mine = state.profile && m.username === state.profile.username;
+    var init = esc((m.username || '?').charAt(0).toUpperCase());
+    var avStyle = 'width:22px;height:22px;border-radius:50%;background:linear-gradient(135deg,' +
+      (mine ? '#d4a843,#b44ddf' : '#2e8ce8,#b44ddf') +
+      ');display:flex;align-items:center;justify-content:center;font-size:0.5rem;font-weight:700;color:#fff;flex-shrink:0;font-family:Cinzel,serif;';
+    return '<div style="display:flex;flex-direction:' + (mine ? 'row-reverse' : 'row') + ';align-items:flex-start;gap:6px;">' +
+      '<div style="' + avStyle + '">' + init + '</div>' +
+      '<div style="max-width:78%;">' +
+        '<div style="font-size:0.55rem;color:rgba(200,160,80,0.55);margin-bottom:2px;' + (mine ? 'text-align:right;' : '') + '">' + esc(m.username || '?') + '</div>' +
+        '<div style="background:' + (mine ? 'rgba(212,168,67,0.12)' : 'rgba(255,255,255,0.05)') + ';border:1px solid ' + (mine ? 'rgba(212,168,67,0.25)' : 'rgba(255,255,255,0.08)') + ';border-radius:' + (mine ? '10px 10px 3px 10px' : '10px 10px 10px 3px') + ';padding:6px 10px;font-family:Crimson Pro,Georgia,serif;font-size:0.82rem;color:var(--parchment-text);line-height:1.4;word-break:break-word;">' +
+          esc(m.content) +
+        '</div>' +
+      '</div>' +
+    '</div>';
+  }
+
+  function showPrompt(html) {
+    msgsEl.innerHTML = '<div class="game-chat-prompt">' + html + '</div>';
+    inputRow.style.display = 'none';
+  }
+
+  function renderMsgs(msgs) {
+    if (!msgs || !msgs.length) {
+      msgsEl.innerHTML = '<div class="game-chat-prompt"><i class="fas fa-scroll" style="font-size:1.4rem;opacity:0.25;"></i><span>No messages yet — say hi!</span></div>';
+      return;
+    }
+    msgsEl.innerHTML = msgs.map(function (m) {
+      return '<div>' + msgHtml(m) + '</div>';
+    }).join('');
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  function appendMsg(m) {
+    var ph = msgsEl.querySelector('.game-chat-prompt'); if (ph) ph.remove();
+    var div = document.createElement('div');
+    div.innerHTML = msgHtml(m);
+    msgsEl.appendChild(div.firstChild);
+    msgsEl.scrollTop = msgsEl.scrollHeight;
+  }
+
+  function subscribeRoom(room) {
+    var sb = getSb(); if (!sb) return;
+    if (state.chatSub) { try { state.chatSub.unsubscribe(); } catch (e) {} state.chatSub = null; }
+    state.chatSub = sb.channel('game-epb:' + room)
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages', filter: 'room=eq.' + room }, function (p) { appendMsg(p.new); })
+      .subscribe();
+  }
+
+  async function loadMsgs(room) {
+    var sb = getSb();
+    msgsEl.innerHTML = '<div class="game-chat-prompt"><i class="fas fa-circle-notch fa-spin" style="font-size:1.2rem;opacity:0.4;"></i></div>';
+    if (!sb) { showPrompt('<i class="fas fa-lock" style="font-size:1.4rem;opacity:0.3;"></i><span>Supabase not configured</span>'); return; }
+    var session = await sb.auth.getSession();
+    var user = session && session.data && session.data.session && session.data.session.user;
+    if (!user) {
+      showPrompt('<i class="fas fa-user-lock" style="font-size:1.4rem;opacity:0.25;"></i><span>Sign in on the main site to chat</span>');
+      return;
+    }
+    if (!state.profile || state.userId !== user.id) {
+      state.userId = user.id;
+      var pRes = await sb.from('profiles').select('username,avatar_card_number').eq('user_id', user.id).maybeSingle();
+      state.profile = pRes.data || { username: user.email };
+    }
+    inputRow.style.display = '';
+    txtEl.placeholder = 'Message as @' + (state.profile.username || '?') + '…';
+    var res = await sb.from('messages').select('*').eq('room', room).order('created_at', { ascending: true }).limit(80);
+    renderMsgs(res.data || []);
+    subscribeRoom(room);
+  }
+
+  async function sendMsg() {
+    var sb = getSb(); if (!sb || !state.profile || !state.userId) return;
+    var content = (txtEl.value || '').trim(); if (!content) return;
+    txtEl.value = '';
+    await sb.from('messages').insert({
+      room: state.room, user_id: state.userId,
+      username: state.profile.username,
+      avatar_card_number: state.profile.avatar_card_number || null,
+      content: content
+    });
+  }
+  sendBtn.addEventListener('click', sendMsg);
+  txtEl.addEventListener('keydown', function (e) { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); sendMsg(); } });
+
+  /* ── Auth poll ── */
+  var _lastUid = null;
+  setInterval(async function () {
+    var sb = getSb(); if (!sb) return;
+    var s = await sb.auth.getSession();
+    var uid = s && s.data && s.data.session && s.data.session.user && s.data.session.user.id;
+    if (uid !== _lastUid) {
+      _lastUid = uid; state.profile = null; state.userId = null;
+      if (state.chatOpen) loadMsgs(state.room);
+    }
+  }, 5000);
+
+  console.log('[game-overlay] loaded ✓');
+})();
+</script>
 </body>
 </html>
