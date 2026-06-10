@@ -68,7 +68,7 @@ function showChoiceModal(config) {
     'border:2px solid #d4a843',
     'border-radius:12px',
     'padding:24px 20px 20px',
-    'max-width:380px;width:100%',
+    'max-width:420px;width:100%',
     'max-height:85vh;overflow-y:auto',
     'font-family:\'Crimson Pro\',Georgia,serif',
   ].join(';');
@@ -288,41 +288,275 @@ function chooseEnergy(player, title, prompt, onChoose, onCancel) {
   showChoiceModal({ title, prompt, options: opts, onChoose, onCancel, allowCancel: !!onCancel });
 }
 
-// Show top N deck cards and let player reorder (drag-free: pick order by clicking)
+// ============================================================
+//  DECK-VIEWING MODAL — look at top N cards with full actions
+//  Supports: reorder (pick order), discard, put-on-bottom
+//  This REPLACES the old chooseDeckOrder function.
+// ============================================================
+function showDeckViewModal(player, cards, allCards, title, prompt, onDone) {
+  // Build the full interactive deck-view panel
+  let existing = document.getElementById('deck-view-overlay');
+  if (existing) existing.remove();
+
+  if (!document.getElementById('cm-keyframes')) {
+    const style = document.createElement('style');
+    style.id = 'cm-keyframes';
+    style.textContent = '@keyframes cmFadeIn{from{opacity:0;transform:scale(0.96)}to{opacity:1;transform:scale(1)}}';
+    document.head.appendChild(style);
+  }
+
+  const overlay = document.createElement('div');
+  overlay.id = 'deck-view-overlay';
+  overlay.style.cssText = [
+    'position:fixed;inset:0;z-index:960',
+    'background:rgba(0,0,0,0.92)',
+    'display:flex;align-items:center;justify-content:center',
+    'padding:16px',
+    'animation:cmFadeIn 0.15s ease-out',
+  ].join(';');
+
+  const box = document.createElement('div');
+  box.style.cssText = [
+    'background:linear-gradient(135deg,#1a1200,#0e0900)',
+    'border:2px solid #d4a843',
+    'border-radius:14px',
+    'padding:20px',
+    'max-width:520px;width:100%',
+    'max-height:90vh;overflow-y:auto',
+    'font-family:\'Crimson Pro\',Georgia,serif',
+  ].join(';');
+
+  // Header
+  const hdr = document.createElement('div');
+  hdr.style.cssText = 'font-family:\'Cinzel\',serif;font-size:1rem;color:#d4a843;margin-bottom:4px;letter-spacing:2px;';
+  hdr.textContent = title || `🔍 ${player.name}'s Deck`;
+  box.appendChild(hdr);
+
+  const sub = document.createElement('div');
+  sub.style.cssText = 'font-size:0.78rem;color:rgba(200,160,80,0.65);margin-bottom:14px;line-height:1.5;';
+  sub.textContent = prompt || `Viewing top ${cards.length} card(s). Drag to reorder, or use the action buttons on each card. Click DONE when finished.`;
+  box.appendChild(sub);
+
+  // Legend
+  const legend = document.createElement('div');
+  legend.style.cssText = 'display:flex;gap:10px;margin-bottom:14px;flex-wrap:wrap;';
+  legend.innerHTML = `
+    <span style="font-family:'Cinzel',serif;font-size:0.6rem;color:#a0e090;letter-spacing:1px;">↑↓ Reorder</span>
+    <span style="font-family:'Cinzel',serif;font-size:0.6rem;color:#e8b040;letter-spacing:1px;">📋 Bottom</span>
+    <span style="font-family:'Cinzel',serif;font-size:0.6rem;color:#cc4040;letter-spacing:1px;">🗑 Discard</span>
+    <span style="font-family:'Cinzel',serif;font-size:0.6rem;color:rgba(200,160,80,0.5);letter-spacing:1px;">Top = card #1</span>
+  `;
+  box.appendChild(legend);
+
+  // Card list (mutable working copy — starts as the viewed cards)
+  let workingCards = [...cards];
+  // Cards that were sent to bottom (removed from top N, appended to deck bottom)
+  let bottomCards = [];
+  // Cards that were discarded
+  let discardedCards = [];
+
+  const listEl = document.createElement('div');
+  listEl.style.cssText = 'display:flex;flex-direction:column;gap:6px;';
+  box.appendChild(listEl);
+
+  function renderList() {
+    listEl.innerHTML = '';
+    workingCards.forEach((card, idx) => {
+      const row = document.createElement('div');
+      row.style.cssText = [
+        'display:flex;align-items:center;gap:8px',
+        'background:rgba(44,26,12,0.6)',
+        'border:1px solid rgba(212,168,67,0.3)',
+        'border-radius:8px;padding:8px 10px',
+        'transition:background 0.1s',
+      ].join(';');
+      row.setAttribute('draggable','true');
+      row.dataset.idx = idx;
+
+      // Position badge
+      const badge = document.createElement('div');
+      badge.style.cssText = 'font-family:\'Cinzel\',serif;font-size:0.75rem;color:rgba(212,168,67,0.6);min-width:24px;text-align:center;flex-shrink:0;';
+      badge.textContent = '#' + (idx + 1);
+      row.appendChild(badge);
+
+      // Card info
+      const info = document.createElement('div');
+      info.style.cssText = 'flex:1;min-width:0;';
+      info.innerHTML = `
+        <div style="font-family:'Cinzel',serif;font-size:0.78rem;color:#f5e8c0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${card.name}</div>
+        <div style="font-size:0.65rem;color:rgba(200,180,140,0.6);margin-top:1px;">${card.type.toUpperCase()} &nbsp;·&nbsp; I:${card.int} F:${card.for} &nbsp;·&nbsp; ${card.g}G ${card.y}Y ${card.r}R</div>
+      `;
+      row.appendChild(info);
+
+      // Move up button
+      if (idx > 0) {
+        const upBtn = document.createElement('button');
+        upBtn.textContent = '▲';
+        upBtn.title = 'Move toward top of deck';
+        upBtn.style.cssText = 'background:rgba(100,180,100,0.15);border:1px solid rgba(100,180,100,0.4);border-radius:4px;padding:3px 7px;color:#a0e090;cursor:pointer;font-size:0.75rem;flex-shrink:0;';
+        upBtn.onclick = () => {
+          [workingCards[idx-1], workingCards[idx]] = [workingCards[idx], workingCards[idx-1]];
+          renderList();
+        };
+        row.appendChild(upBtn);
+      }
+
+      // Move down button
+      if (idx < workingCards.length - 1) {
+        const downBtn = document.createElement('button');
+        downBtn.textContent = '▼';
+        downBtn.title = 'Move toward bottom of deck';
+        downBtn.style.cssText = 'background:rgba(100,180,100,0.15);border:1px solid rgba(100,180,100,0.4);border-radius:4px;padding:3px 7px;color:#a0e090;cursor:pointer;font-size:0.75rem;flex-shrink:0;';
+        downBtn.onclick = () => {
+          [workingCards[idx], workingCards[idx+1]] = [workingCards[idx+1], workingCards[idx]];
+          renderList();
+        };
+        row.appendChild(downBtn);
+      }
+
+      // Put on bottom button
+      const botBtn = document.createElement('button');
+      botBtn.textContent = '📋';
+      botBtn.title = 'Put on bottom of deck';
+      botBtn.style.cssText = 'background:rgba(184,128,32,0.15);border:1px solid rgba(184,128,32,0.4);border-radius:4px;padding:3px 7px;color:#e8b040;cursor:pointer;font-size:0.75rem;flex-shrink:0;';
+      botBtn.onclick = () => {
+        const [removed] = workingCards.splice(idx, 1);
+        bottomCards.push(removed);
+        renderList();
+        updateStatus();
+      };
+      row.appendChild(botBtn);
+
+      // Discard button
+      const discBtn = document.createElement('button');
+      discBtn.textContent = '🗑';
+      discBtn.title = 'Discard this card';
+      discBtn.style.cssText = 'background:rgba(154,32,32,0.2);border:1px solid rgba(154,32,32,0.4);border-radius:4px;padding:3px 7px;color:#cc4040;cursor:pointer;font-size:0.75rem;flex-shrink:0;';
+      discBtn.onclick = () => {
+        const [removed] = workingCards.splice(idx, 1);
+        discardedCards.push(removed);
+        renderList();
+        updateStatus();
+      };
+      row.appendChild(discBtn);
+
+      listEl.appendChild(row);
+    });
+
+    // Show discarded / bottom sections if populated
+    if (discardedCards.length > 0) {
+      const dSect = document.createElement('div');
+      dSect.style.cssText = 'margin-top:8px;padding:8px 10px;background:rgba(154,32,32,0.1);border:1px solid rgba(154,32,32,0.3);border-radius:6px;';
+      dSect.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.6rem;color:#cc4040;margin-bottom:4px;">DISCARDED</div>` +
+        discardedCards.map((c,i) => `<div style="font-size:0.72rem;color:rgba(200,130,130,0.7);display:flex;align-items:center;gap:6px;">
+          <span>${c.name}</span>
+          <button onclick="window._deckViewUndo('discard',${i})" style="background:none;border:1px solid rgba(200,130,130,0.3);border-radius:3px;padding:1px 6px;color:rgba(200,130,130,0.7);cursor:pointer;font-size:0.6rem;">UNDO</button>
+        </div>`).join('');
+      listEl.appendChild(dSect);
+    }
+
+    if (bottomCards.length > 0) {
+      const bSect = document.createElement('div');
+      bSect.style.cssText = 'margin-top:8px;padding:8px 10px;background:rgba(122,85,16,0.1);border:1px solid rgba(184,128,32,0.3);border-radius:6px;';
+      bSect.innerHTML = `<div style="font-family:'Cinzel',serif;font-size:0.6rem;color:#e8b040;margin-bottom:4px;">SENT TO BOTTOM</div>` +
+        bottomCards.map((c,i) => `<div style="font-size:0.72rem;color:rgba(200,170,100,0.7);display:flex;align-items:center;gap:6px;">
+          <span>${c.name}</span>
+          <button onclick="window._deckViewUndo('bottom',${i})" style="background:none;border:1px solid rgba(200,170,100,0.3);border-radius:3px;padding:1px 6px;color:rgba(200,170,100,0.7);cursor:pointer;font-size:0.6rem;">UNDO</button>
+        </div>`).join('');
+      listEl.appendChild(bSect);
+    }
+  }
+
+  // Expose undo to global scope temporarily
+  window._deckViewUndo = (type, idx) => {
+    if (type === 'discard') {
+      const [c] = discardedCards.splice(idx, 1);
+      workingCards.push(c);
+    } else {
+      const [c] = bottomCards.splice(idx, 1);
+      workingCards.push(c);
+    }
+    renderList();
+    updateStatus();
+  };
+
+  // Status line
+  const statusEl = document.createElement('div');
+  statusEl.style.cssText = 'font-family:\'Cinzel\',serif;font-size:0.62rem;color:rgba(200,160,80,0.5);margin-top:12px;letter-spacing:1px;';
+  box.appendChild(statusEl);
+
+  function updateStatus() {
+    statusEl.textContent = `${workingCards.length} on top · ${bottomCards.length} going to bottom · ${discardedCards.length} discarded`;
+  }
+
+  // Footer
+  const footer = document.createElement('div');
+  footer.style.cssText = 'display:flex;gap:10px;margin-top:14px;justify-content:flex-end;';
+
+  const doneBtn = document.createElement('button');
+  doneBtn.textContent = '✓ DONE';
+  doneBtn.style.cssText = [
+    'background:linear-gradient(135deg,#8b6914,#d4a843)',
+    'border:none;border-radius:6px;padding:9px 22px',
+    'font-family:\'Cinzel\',serif;font-size:0.8rem',
+    'color:#2c1a0c;cursor:pointer;letter-spacing:2px',
+  ].join(';');
+  doneBtn.onclick = () => {
+    overlay.remove();
+    delete window._deckViewUndo;
+
+    // Apply changes to player's deck:
+    // 1. Remove ALL viewed cards from deck (they were at positions 0..n-1)
+    const n = allCards.length;
+    player.deck.splice(0, n);
+
+    // 2. Put discarded cards into player discard pile
+    for (const c of discardedCards) {
+      player.discard.push(c);
+    }
+
+    // 3. Put bottom cards at end of deck
+    for (const c of bottomCards) {
+      player.deck.push(c);
+    }
+
+    // 4. Put remaining working cards back on top (in chosen order)
+    for (let i = workingCards.length - 1; i >= 0; i--) {
+      player.deck.unshift(workingCards[i]);
+    }
+
+    const actions = [];
+    if (workingCards.length > 0) actions.push(`reordered ${workingCards.length}`);
+    if (bottomCards.length > 0) actions.push(`${bottomCards.length} to bottom`);
+    if (discardedCards.length > 0) actions.push(`discarded ${discardedCards.length}`);
+    if (actions.length > 0) addLog(`${player.name}: ${actions.join(', ')}.`);
+
+    onDone();
+  };
+  footer.appendChild(doneBtn);
+  box.appendChild(footer);
+
+  // Render initial state
+  renderList();
+  updateStatus();
+
+  overlay.appendChild(box);
+  document.body.appendChild(overlay);
+}
+
+// Public API — show top N cards of a player's deck with full management options
 function chooseDeckOrder(player, n, onDone) {
   if (player.deck.length === 0) { onDone(); return; }
   const cards = player.deck.slice(0, Math.min(n, player.deck.length));
-  const ordered = [];
-
-  function pickNext() {
-    const remaining = cards.filter(c => !ordered.includes(c));
-    if (!remaining.length) {
-      // Splice back into top of deck in chosen order
-      for (let i = ordered.length - 1; i >= 0; i--) {
-        const idx = player.deck.indexOf(ordered[i]);
-        if (idx !== -1) player.deck.splice(idx, 1);
-        player.deck.unshift(ordered[i]);
-      }
-      addLog(`${player.name} reordered top ${ordered.length} card(s).`);
-      onDone();
-      return;
-    }
-    showChoiceModal({
-      title: 'Reorder Your Deck',
-      prompt: `Choose card #${ordered.length + 1} (top of deck). ${remaining.length} card(s) left to place.`,
-      options: remaining.map(c => ({
-        label: c.name,
-        sub: `${c.type.toUpperCase()}  |  I:${c.int} F:${c.for}  |  Cost: ${c.g}G ${c.y}Y ${c.r}R`,
-        color: '',
-        data: c,
-      })),
-      onChoose: (card) => { ordered.push(card); pickNext(); },
-    });
-  }
-
-  pickNext();
+  showDeckViewModal(
+    player,
+    [...cards],
+    cards,
+    `🔍 Look at Top ${cards.length} Cards`,
+    `${player.name} — view, reorder, discard, or put cards on the bottom of your deck. Click ✓ DONE when finished.`,
+    onDone
+  );
 }
-
 
 // ============================================================
 //  PATCHED GAME FUNCTIONS
@@ -339,7 +573,7 @@ function applyImmediateEffect(card, player, zoneName) {
     addLog(`${player.name} gains red energy!`);
   }
 
-  // "Look at top N cards and reorder"
+  // "Look at top N cards and reorder" — now uses the full deck-view modal
   const topMatch = r.match(/[Ll]ook at the top (\w+) cards? of your deck[^.]*\. (?:You may )?[Rr]eorder/);
   if (topMatch) {
     const words = { one:1, two:2, three:3, four:4, five:5 };
@@ -349,7 +583,20 @@ function applyImmediateEffect(card, player, zoneName) {
 
   // "Look at the top card of your deck" (peek only)
   if (r.includes('Look at the top card of your deck') && !topMatch) {
-    if (player.deck.length > 0) addLog(`${player.name} peeks: ${player.deck[0].name}`);
+    if (player.deck.length > 0) {
+      const top = player.deck[0];
+      showChoiceModal({
+        title: `${player.name}'s Top Card`,
+        prompt: 'Peeked at the top card of your deck.',
+        options: [{
+          label: top.name,
+          sub: `${top.type.toUpperCase()}  |  I:${top.int} F:${top.for}  |  Cost: ${top.g}G ${top.y}Y ${top.r}R`,
+          color: '',
+          data: null,
+        }],
+        onChoose: () => {},
+      });
+    }
   }
 
   // "You may charge any zone" / "charge one of your zones"
